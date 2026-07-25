@@ -9,6 +9,10 @@ export const Route = createFileRoute("/_authenticated/entregador")({
     meta: [
       { title: "Entregar — Pede pro Kevin" },
       { name: "description", content: "Pedidos disponíveis para entrega na sua vizinhança." },
+          { property: "og:title", content: "Entregar — Pede pro Kevin" },
+          { property: "og:description", content: "Pedidos disponíveis para entrega na sua vizinhança." },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Entregador,
@@ -70,7 +74,7 @@ function Entregador() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold">{formatBRL(o.total)}</p>
-                    <span className="text-[10px] uppercase text-primary font-semibold">Aceitar</span>
+                    <span className="text-[10px] uppercase text-primary font-semibold">Ver pedido</span>
                   </div>
                 </div>
               </div>

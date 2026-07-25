@@ -18,6 +18,10 @@ export const Route = createFileRoute("/_authenticated/novo-pedido")({
     meta: [
       { title: "Novo pedido — Pede pro Kevin" },
       { name: "description", content: "Descreva seu pedido e um vizinho entregará." },
+      { property: "og:title", content: "Novo pedido — Pede pro Kevin" },
+      { property: "og:description", content: "Descreva seu pedido e um vizinho entregará." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: NovoPedido,
