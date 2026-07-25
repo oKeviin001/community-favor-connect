@@ -30,12 +30,13 @@ interface Order {
   endereco_loja: string | null;
   endereco_entrega: string;
   observacoes: string | null;
-  valor_produto: string;
-  valor_frete: string;
-  taxa_servico: string;
-  total: string;
+  valor_produto: string | number;
+  valor_frete: string | number;
+  taxa_servico: string | number;
+  total: string | number | null;
   status: string;
   criado_em: string;
+  atualizado_em?: string;
 }
 interface Msg { id: string; sender_id: string; texto: string; criado_em: string }
 
@@ -60,7 +61,7 @@ function PedidoDetail() {
   useEffect(() => {
     async function load() {
       const { data: o } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
-      setOrder(o as Order | null);
+      setOrder((o as unknown) as Order | null);
       if (o) {
         const { data: p } = await supabase
           .from("profiles")
@@ -90,7 +91,7 @@ function PedidoDetail() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
-        (payload) => setOrder((prev) => (prev ? { ...prev, ...(payload.new as Order) } : prev)),
+        (payload) => setOrder((prev) => (prev ? { ...prev, ...((payload.new as unknown) as Order) } : prev)),
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -127,7 +128,7 @@ function PedidoDetail() {
       .maybeSingle();
     if (error) return toast.error(error.message);
     if (!data) return toast.error("Esse pedido já foi aceito por outro entregador.");
-    setOrder(data as Order);
+    setOrder((data as unknown) as Order);
     toast.success("Pedido aceito!");
     navigate({ to: "/pedidos/$id", params: { id }, replace: true });
   }
@@ -292,7 +293,7 @@ function Detail({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-function Money({ label, v }: { label: string; v: string }) {
+function Money({ label, v }: { label: string; v: string | number | null }) {
   return (
     <div>
       <p className="text-[10px] uppercase text-muted-foreground">{label}</p>
