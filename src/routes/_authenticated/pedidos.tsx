@@ -9,6 +9,10 @@ export const Route = createFileRoute("/_authenticated/pedidos")({
     meta: [
       { title: "Meus pedidos — Pede pro Kevin" },
       { name: "description", content: "Acompanhe seus pedidos ativos e o histórico." },
+      { property: "og:title", content: "Meus pedidos — Pede pro Kevin" },
+      { property: "og:description", content: "Acompanhe seus pedidos ativos e o histórico." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Pedidos,

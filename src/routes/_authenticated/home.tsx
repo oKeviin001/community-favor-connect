@@ -10,6 +10,10 @@ export const Route = createFileRoute("/_authenticated/home")({
     meta: [
       { title: "Início — Pede pro Kevin" },
       { name: "description", content: "Faça pedidos e acompanhe entregas na sua vizinhança." },
+      { property: "og:title", content: "Início — Pede pro Kevin" },
+      { property: "og:description", content: "Faça pedidos e acompanhe entregas na sua vizinhança." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Home,

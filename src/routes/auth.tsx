@@ -10,6 +10,10 @@ export const Route = createFileRoute("/auth")({
     meta: [
       { title: "Entrar — Pede pro Kevin" },
       { name: "description", content: "Entre no Pede pro Kevin para pedir ou entregar na sua vizinhança." },
+      { property: "og:title", content: "Entrar — Pede pro Kevin" },
+      { property: "og:description", content: "Entre no Pede pro Kevin para pedir ou entregar na sua vizinhança." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,

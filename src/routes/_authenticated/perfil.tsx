@@ -12,6 +12,10 @@ export const Route = createFileRoute("/_authenticated/perfil")({
     meta: [
       { title: "Perfil — Pede pro Kevin" },
       { name: "description", content: "Gerencie seu perfil e preferências." },
+      { property: "og:title", content: "Perfil — Pede pro Kevin" },
+      { property: "og:description", content: "Gerencie seu perfil e preferências." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Perfil,
