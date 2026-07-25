@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/entregador")({
 
 interface Row {
   id: string; descricao: string; loja: string | null;
-  categoria: string; total: string; endereco_entrega: string; criado_em: string;
+  categoria: string; total: number | null; endereco_entrega: string; criado_em: string;
 }
 
 function Entregador() {
@@ -30,7 +30,7 @@ function Entregador() {
         .eq("status", "aguardando_entregador")
         .is("entregador_id", null)
         .order("criado_em", { ascending: false });
-      setRows((data as Row[]) ?? []);
+      setRows(((data as unknown) as Row[]) ?? []);
     }
     load();
     const ch = supabase

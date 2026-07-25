@@ -101,7 +101,8 @@ function PedidoDetail() {
   const step = statusIndex(order.status);
   const cat = CATEGORIAS.find((c) => c.id === order.categoria);
 
-  async function updateStatus(next: string) {
+  type OrderStatus = "aceito" | "aguardando_entregador" | "cancelado" | "compra_finalizada" | "confirmado" | "em_compra" | "em_disputa" | "em_entrega" | "entregue";
+  async function updateStatus(next: OrderStatus) {
     const { error } = await supabase
       .from("orders")
       .update({ status: next, atualizado_em: new Date().toISOString() })

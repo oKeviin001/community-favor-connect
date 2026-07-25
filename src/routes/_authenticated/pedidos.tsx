@@ -20,7 +20,7 @@ interface Row {
   loja: string | null;
   status: string;
   categoria: string;
-  total: string;
+  total: number | null;
   criado_em: string;
   cliente_id: string;
   entregador_id: string | null;
@@ -38,7 +38,7 @@ function Pedidos() {
         .select("id, descricao, loja, status, categoria, total, criado_em, cliente_id, entregador_id")
         .or(`cliente_id.eq.${u.user.id},entregador_id.eq.${u.user.id}`)
         .order("criado_em", { ascending: false });
-      setRows((data as Row[]) ?? []);
+      setRows(((data as unknown) as Row[]) ?? []);
     })();
   }, []);
 
