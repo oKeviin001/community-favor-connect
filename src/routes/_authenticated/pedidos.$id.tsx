@@ -11,6 +11,10 @@ export const Route = createFileRoute("/_authenticated/pedidos/$id")({
     meta: [
       { title: "Pedido — Pede pro Kevin" },
       { name: "description", content: "Acompanhe o pedido e converse com o entregador." },
+      { property: "og:title", content: "Pedido — Pede pro Kevin" },
+      { property: "og:description", content: "Acompanhe o pedido e converse com o entregador." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PedidoDetail,
@@ -98,6 +102,7 @@ function PedidoDetail() {
 
   const isCliente = userId === order.cliente_id;
   const isEntregador = userId === order.entregador_id;
+  const backTo = isCliente ? "/pedidos" : "/entregador";
   const step = statusIndex(order.status);
   const cat = CATEGORIAS.find((c) => c.id === order.categoria);
 
@@ -107,18 +112,24 @@ function PedidoDetail() {
       .from("orders")
       .update({ status: next, atualizado_em: new Date().toISOString() })
       .eq("id", id);
-    if (error) toast.error(error.message);
+    if (error) return toast.error(error.message);
+    setOrder((prev) => (prev ? { ...prev, status: next, atualizado_em: new Date().toISOString() } : prev));
   }
 
   async function aceitar() {
     if (!userId) return;
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("orders")
       .update({ entregador_id: userId, status: "aceito" })
       .eq("id", id)
-      .is("entregador_id", null);
+      .is("entregador_id", null)
+      .select("*")
+      .maybeSingle();
     if (error) return toast.error(error.message);
+    if (!data) return toast.error("Esse pedido já foi aceito por outro entregador.");
+    setOrder(data as Order);
     toast.success("Pedido aceito!");
+    navigate({ to: "/pedidos/$id", params: { id }, replace: true });
   }
 
   async function enviar(e: React.FormEvent) {
@@ -134,7 +145,8 @@ function PedidoDetail() {
 
   async function confirmar() {
     await updateStatus("confirmado");
-    await supabase.from("payments").update({ status: "liberado" }).eq("order_id", id);
+    const { error } = await supabase.from("payments").update({ status: "liberado" }).eq("order_id", id);
+    if (error) return toast.error(error.message);
     toast.success("Entrega confirmada! Pagamento liberado.");
     navigate({ to: "/pedidos" });
   }
@@ -142,7 +154,7 @@ function PedidoDetail() {
   return (
     <AppShell hideNav>
       <header className="px-6 pt-10 pb-3 flex items-center gap-3 bg-background sticky top-0 z-10">
-        <Link to="/pedidos" className="size-10 rounded-full bg-secondary flex items-center justify-center">
+        <Link to={backTo} className="size-10 rounded-full bg-secondary flex items-center justify-center">
           <ChevronLeft size={20} />
         </Link>
         <div className="flex-1 min-w-0">

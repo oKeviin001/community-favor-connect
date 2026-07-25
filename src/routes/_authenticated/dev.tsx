@@ -1,8 +1,10 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { toast } from "sonner";
+import { deleteDevOrder, listDevData, updateDevOrderStatus } from "@/lib/dev-actions.functions";
 import {
   DEV_EMAIL,
   isGodMode,
@@ -26,6 +28,11 @@ export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
     meta: [
       { title: "Modo Dev — Pede pro Kevin" },
+      { name: "description", content: "Painel interno de testes e manutenção do Pede pro Kevin." },
+      { property: "og:title", content: "Modo Dev — Pede pro Kevin" },
+      { property: "og:description", content: "Painel interno de testes e manutenção do Pede pro Kevin." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -52,6 +59,9 @@ interface ProfileRow {
 const STATUSES = Object.keys(STATUS_LABEL);
 
 function Dev() {
+  const listDevDataFn = useServerFn(listDevData);
+  const deleteDevOrderFn = useServerFn(deleteDevOrder);
+  const updateDevOrderStatusFn = useServerFn(updateDevOrderStatus);
   const [god, setGod] = useState(isGodMode());
   const [ov, setOv] = useState<Overrides>(() => loadOverrides());
   const [orders, setOrders] = useState<OrderRow[]>([]);
@@ -62,12 +72,13 @@ function Dev() {
   async function reload() {
     const { data: u } = await supabase.auth.getUser();
     setMe(u.user?.id ?? "");
-    const [o, p] = await Promise.all([
-      supabase.from("orders").select("*").order("criado_em", { ascending: false }).limit(100),
-      supabase.from("profiles").select("id,nome,tipo,bairro").limit(100),
-    ]);
-    if (o.data) setOrders(o.data as OrderRow[]);
-    if (p.data) setProfiles(p.data as ProfileRow[]);
+    try {
+      const data = await listDevDataFn();
+      setOrders(data.orders as OrderRow[]);
+      setProfiles(data.profiles as ProfileRow[]);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível carregar o Modo Deus");
+    }
   }
   useEffect(() => {
     reload();
@@ -80,33 +91,39 @@ function Dev() {
   }
 
   async function changeStatus(id: string, status: string) {
-    const { error } = await supabase.from("orders").update({ status: status as never }).eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Status atualizado");
-    reload();
+    try {
+      await updateDevOrderStatusFn({ data: { id, status } });
+      toast.success("Status atualizado");
+      reload();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível atualizar");
+    }
   }
 
   async function deleteOrder(id: string) {
     if (!confirm("Apagar este pedido?")) return;
-    await supabase.from("messages").delete().eq("order_id", id);
-    await supabase.from("payments").delete().eq("order_id", id);
-    const { error } = await supabase.from("orders").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Apagado");
-    reload();
+    try {
+      await deleteDevOrderFn({ data: { id } });
+      toast.success("Apagado");
+      reload();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível apagar");
+    }
   }
 
   async function wipeMine() {
     if (!me) return;
     if (!confirm("Apagar TODOS os pedidos do seu usuário?")) return;
     const mine = orders.filter((o) => o.cliente_id === me || o.entregador_id === me);
-    for (const o of mine) {
-      await supabase.from("messages").delete().eq("order_id", o.id);
-      await supabase.from("payments").delete().eq("order_id", o.id);
-      await supabase.from("orders").delete().eq("id", o.id);
+    try {
+      for (const o of mine) {
+        await deleteDevOrderFn({ data: { id: o.id } });
+      }
+      toast.success(`${mine.length} pedidos apagados`);
+      reload();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível apagar tudo");
     }
-    toast.success(`${mine.length} pedidos apagados`);
-    reload();
   }
 
   async function fakeOrder() {

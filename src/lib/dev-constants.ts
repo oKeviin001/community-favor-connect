@@ -1,0 +1,1 @@
+export const DEV_EMAIL = "kevindosgames1@gmail.com";

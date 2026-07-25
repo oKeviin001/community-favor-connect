@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { DEV_EMAIL } from "./dev-constants";
 
-export const DEV_EMAIL = "kevindosgames1@gmail.com";
+export { DEV_EMAIL };
 const LS_GOD = "ppk_god_mode";
 const LS_OVERRIDES = "ppk_overrides_v1";
 
