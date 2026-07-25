@@ -16,7 +16,10 @@ export type Categoria = { id: string; label: string; emoji: string; tint: string
 
 export function getCategorias(): Categoria[] {
   const o = loadOverrides();
-  return [...CATEGORIAS_BASE, ...o.categoriasExtra] as Categoria[];
+  return CATEGORIAS_BASE.map((c) => {
+    const ov = o.categoriaLabels[c.id] ?? {};
+    return { ...c, label: ov.label ?? c.label, emoji: ov.emoji ?? c.emoji };
+  });
 }
 
 // Legacy export kept for any static reference

@@ -10,7 +10,7 @@ export interface Overrides {
   freteMin: number;
   taxaPct: number;
   taxaMin: number;
-  categoriasExtra: { id: string; label: string; emoji: string; tint: string }[];
+  categoriaLabels: Record<string, { label?: string; emoji?: string }>;
 }
 
 export const DEFAULT_OVERRIDES: Overrides = {
@@ -18,7 +18,7 @@ export const DEFAULT_OVERRIDES: Overrides = {
   freteMin: 8,
   taxaPct: 0.05,
   taxaMin: 3,
-  categoriasExtra: [],
+  categoriaLabels: {},
 };
 
 export function loadOverrides(): Overrides {

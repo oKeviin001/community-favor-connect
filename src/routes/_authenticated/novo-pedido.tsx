@@ -3,7 +3,8 @@ import { useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
-import { CATEGORIAS, calcularTaxa, formatBRL, type CategoriaId } from "@/lib/order-helpers";
+import { getCategorias, calcularTaxa, formatBRL, type CategoriaId } from "@/lib/order-helpers";
+import { useGodMode } from "@/lib/dev-mode";
 import { toast } from "sonner";
 import { ChevronLeft } from "lucide-react";
 
@@ -25,6 +26,8 @@ export const Route = createFileRoute("/_authenticated/novo-pedido")({
 function NovoPedido() {
   const { categoria: initialCat } = Route.useSearch();
   const navigate = useNavigate();
+  const god = useGodMode();
+  const categorias = getCategorias();
   const [categoria, setCategoria] = useState<CategoriaId>(initialCat ?? "livre");
   const [descricao, setDescricao] = useState("");
   const [loja, setLoja] = useState("");
@@ -47,13 +50,13 @@ function NovoPedido() {
         .from("orders")
         .insert({
           cliente_id: u.user.id,
-          categoria,
-          descricao,
+          categoria: categoria as never,
+          descricao: descricao || (god ? "(teste dev)" : ""),
           loja: loja || null,
           endereco_loja: enderecoLoja || null,
-          endereco_entrega: enderecoEntrega,
+          endereco_entrega: enderecoEntrega || (god ? "Endereço de teste" : ""),
           observacoes: obs || null,
-          valor_produto: valorNum,
+          valor_produto: valorNum || (god ? 10 : 0),
           valor_frete: frete,
           taxa_servico: taxa,
           status: "aguardando_entregador",
@@ -90,11 +93,11 @@ function NovoPedido() {
             Categoria
           </label>
           <div className="mt-2 grid grid-cols-4 gap-2">
-            {CATEGORIAS.map((c) => (
+            {categorias.map((c) => (
               <button
                 type="button"
                 key={c.id}
-                onClick={() => setCategoria(c.id)}
+                onClick={() => setCategoria(c.id as CategoriaId)}
                 className={`flex flex-col items-center gap-1 py-3 rounded-xl ring-1 text-[11px] font-medium ${
                   categoria === c.id
                     ? "bg-primary/10 ring-primary text-primary"
@@ -110,7 +113,7 @@ function NovoPedido() {
 
         <Field label="O que você precisa?">
           <textarea
-            required
+            required={!god}
             rows={3}
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
@@ -142,7 +145,7 @@ function NovoPedido() {
 
         <Field label="Endereço de entrega">
           <input
-            required
+            required={!god}
             value={enderecoEntrega}
             onChange={(e) => setEnderecoEntrega(e.target.value)}
             maxLength={200}
@@ -153,7 +156,7 @@ function NovoPedido() {
 
         <Field label="Valor estimado dos produtos (R$)">
           <input
-            required
+            required={!god}
             type="number"
             inputMode="decimal"
             min="0"
@@ -186,10 +189,10 @@ function NovoPedido() {
 
         <button
           type="submit"
-          disabled={loading || !descricao || !enderecoEntrega || !valorNum}
+          disabled={loading || (!god && (!descricao || !enderecoEntrega || !valorNum))}
           className="w-full h-14 bg-primary text-primary-foreground rounded-2xl font-medium text-base shadow-lg shadow-primary/10 disabled:opacity-60"
         >
-          {loading ? "Depositando..." : `Depositar ${formatBRL(total)} e publicar`}
+          {loading ? "Depositando..." : god ? "Publicar (dev)" : `Depositar ${formatBRL(total)} e publicar`}
         </button>
         <p className="text-xs text-muted-foreground text-center">
           O valor fica retido pela plataforma até você confirmar a entrega.
