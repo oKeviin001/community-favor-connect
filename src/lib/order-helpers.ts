@@ -1,4 +1,6 @@
-export const CATEGORIAS = [
+import { loadOverrides } from "./dev-mode";
+
+export const CATEGORIAS_BASE = [
   { id: "mercado", label: "Mercado", emoji: "🛒", tint: "bg-orange-50" },
   { id: "farmacia", label: "Farmácia", emoji: "💊", tint: "bg-red-50" },
   { id: "padaria", label: "Padaria", emoji: "🥖", tint: "bg-amber-50" },
@@ -8,7 +10,20 @@ export const CATEGORIAS = [
   { id: "livre", label: "Livre", emoji: "✨", tint: "bg-purple-50" },
 ] as const;
 
-export type CategoriaId = (typeof CATEGORIAS)[number]["id"];
+export type CategoriaId = (typeof CATEGORIAS_BASE)[number]["id"] | string;
+
+export type Categoria = { id: string; label: string; emoji: string; tint: string };
+
+export function getCategorias(): Categoria[] {
+  const o = loadOverrides();
+  return CATEGORIAS_BASE.map((c) => {
+    const ov = o.categoriaLabels[c.id] ?? {};
+    return { ...c, label: ov.label ?? c.label, emoji: ov.emoji ?? c.emoji };
+  });
+}
+
+// Legacy export kept for any static reference
+export const CATEGORIAS = CATEGORIAS_BASE;
 
 export const STATUS_LABEL: Record<string, string> = {
   aguardando_entregador: "Aguardando entregador",
@@ -39,7 +54,8 @@ export function formatBRL(v: number | string | null | undefined): string {
 }
 
 export function calcularTaxa(valorProduto: number): { frete: number; taxa: number; total: number } {
-  const frete = Math.max(8, Math.round(valorProduto * 0.1));
-  const taxa = Math.max(3, Math.round(valorProduto * 0.05));
+  const o = loadOverrides();
+  const frete = Math.max(o.freteMin, Math.round(valorProduto * o.fretePct));
+  const taxa = Math.max(o.taxaMin, Math.round(valorProduto * o.taxaPct));
   return { frete, taxa, total: valorProduto + frete + taxa };
 }

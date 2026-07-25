@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { toast } from "sonner";
-import { LogOut, Star } from "lucide-react";
+import { LogOut, Star, Wand2 } from "lucide-react";
+import { useIsDev } from "@/lib/dev-mode";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -19,6 +21,7 @@ interface P { id: string; nome: string; telefone: string | null; bairro: string 
 
 function Perfil() {
   const navigate = useNavigate();
+  const isDev = useIsDev();
   const [p, setP] = useState<P | null>(null);
   const [nome, setNome] = useState("");
   const [tel, setTel] = useState("");
@@ -65,6 +68,14 @@ function Perfil() {
       </header>
 
       <div className="px-6 space-y-5">
+        {isDev && (
+          <Link
+            to="/dev"
+            className="w-full h-12 bg-primary/10 text-primary ring-1 ring-primary/20 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
+          >
+            <Wand2 size={16} /> Abrir Modo Deus
+          </Link>
+        )}
         <div className="bg-card ring-1 ring-black/5 rounded-2xl p-5 flex items-center gap-4">
           <div className="size-16 rounded-full bg-secondary flex items-center justify-center text-2xl font-semibold">
             {nome.charAt(0).toUpperCase() || "?"}
