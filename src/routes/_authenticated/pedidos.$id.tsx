@@ -59,8 +59,10 @@ function PedidoDetail() {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
     async function load() {
       const { data: o } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
+      if (!mounted) return;
       setOrder((o as unknown) as Order | null);
       if (o) {
         const { data: p } = await supabase
@@ -91,10 +93,24 @@ function PedidoDetail() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
-        (payload) => setOrder((prev) => (prev ? { ...prev, ...((payload.new as unknown) as Order) } : prev)),
+        async (payload) => {
+          const updated = payload.new as unknown as Order;
+          setOrder((prev) => (prev ? { ...prev, ...updated } : prev));
+          if (updated.entregador_id && !entregadorNome) {
+            const { data: p } = await supabase
+              .from("profiles")
+              .select("nome")
+              .eq("id", updated.entregador_id)
+              .maybeSingle();
+            if (p?.nome) setEntregadorNome(p.nome);
+          }
+        },
       )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      mounted = false;
+      supabase.removeChannel(ch);
+    };
   }, [id]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs.length]);
