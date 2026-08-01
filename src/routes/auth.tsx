@@ -27,7 +27,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -37,7 +37,7 @@ function AuthPage() {
         navigate({ to: "/home", replace: true });
         return;
       }
-      setChecking(false);
+      setChecked(true);
     });
     return () => { mounted = false; };
   }, [navigate]);
@@ -84,7 +84,7 @@ function AuthPage() {
     navigate({ to: "/home", replace: true });
   }
 
-  if (checking) {
+  if (!checked) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
         <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
