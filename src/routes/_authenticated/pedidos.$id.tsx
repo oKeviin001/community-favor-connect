@@ -145,6 +145,7 @@ function PedidoDetail() {
   }
 
   async function confirmar() {
+    if (!userId) return;
     await updateStatus("confirmado");
     const { error } = await supabase.from("payments").update({ status: "liberado" }).eq("order_id", id);
     if (error) return toast.error(error.message);
