@@ -149,7 +149,17 @@ function PedidoDetail() {
     const { error } = await supabase.from("payments").update({ status: "liberado" }).eq("order_id", id);
     if (error) return toast.error(error.message);
     toast.success("Entrega confirmada! Pagamento liberado.");
-    navigate({ to: "/pedidos" });
+    const { data: existing } = await supabase
+      .from("reviews")
+      .select("id")
+      .eq("order_id", id)
+      .eq("reviewer_id", userId)
+      .maybeSingle();
+    if (!existing) {
+      navigate({ to: "/pedidos/$id/avaliar", params: { id } });
+    } else {
+      navigate({ to: "/pedidos" });
+    }
   }
 
   return (
