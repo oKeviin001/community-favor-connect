@@ -20,6 +20,8 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     defaultPendingComponent: DefaultPending,
+    defaultPendingMs: 0,
+    defaultPendingMinMs: 0,
   });
 
   return router;
