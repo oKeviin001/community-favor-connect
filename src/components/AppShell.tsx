@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, ClipboardList, MessageCircle, User } from "lucide-react";
+import { Home, ClipboardList, Bike, User } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -10,7 +10,7 @@ interface Props {
 const navItems = [
   { to: "/home", label: "Início", icon: Home },
   { to: "/pedidos", label: "Pedidos", icon: ClipboardList },
-  { to: "/entregador", label: "Entregar", icon: MessageCircle },
+  { to: "/entregador", label: "Entregar", icon: Bike },
   { to: "/perfil", label: "Perfil", icon: User },
 ] as const;
 
