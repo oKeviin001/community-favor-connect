@@ -32,19 +32,48 @@ interface Row {
 
 function Pedidos() {
   const [rows, setRows] = useState<Row[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
+    let mounted = true;
+    async function load() {
       const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
+      if (!u.user || !mounted) return;
       const { data } = await supabase
         .from("orders")
         .select("id, descricao, loja, status, categoria, total, criado_em, cliente_id, entregador_id")
         .or(`cliente_id.eq.${u.user.id},entregador_id.eq.${u.user.id}`)
         .order("criado_em", { ascending: false });
+      if (!mounted) return;
       setRows(((data as unknown) as Row[]) ?? []);
-    })();
+      setLoading(false);
+    }
+    load();
+    const ch = supabase
+      .channel("meus-pedidos")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
+      .subscribe();
+    return () => {
+      mounted = false;
+      supabase.removeChannel(ch);
+    };
   }, []);
+
+  if (loading) {
+    return (
+      <AppShell>
+        <header className="px-6 pt-10 pb-4">
+          <h1 className="text-2xl font-semibold">Meus pedidos</h1>
+          <p className="text-sm text-muted-foreground">Carregando...</p>
+        </header>
+        <div className="px-6 space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-20 bg-card rounded-2xl ring-1 ring-black/5 animate-pulse" />
+          ))}
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
