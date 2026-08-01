@@ -27,6 +27,7 @@ function Entregador() {
   const [rows, setRows] = useState<Row[]>([]);
 
   useEffect(() => {
+    let mounted = true;
     async function load() {
       const { data } = await supabase
         .from("orders")
@@ -34,6 +35,7 @@ function Entregador() {
         .eq("status", "aguardando_entregador")
         .is("entregador_id", null)
         .order("criado_em", { ascending: false });
+      if (!mounted) return;
       setRows(((data as unknown) as Row[]) ?? []);
     }
     load();
@@ -41,7 +43,10 @@ function Entregador() {
       .channel("feed-entregador")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      mounted = false;
+      supabase.removeChannel(ch);
+    };
   }, []);
 
   return (
