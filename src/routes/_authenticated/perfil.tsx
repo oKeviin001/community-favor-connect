@@ -32,6 +32,7 @@ function Perfil() {
   const [bairro, setBairro] = useState("");
   const [tipo, setTipo] = useState<"cliente" | "entregador">("cliente");
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -45,8 +46,19 @@ function Perfil() {
         setBairro(data.bairro ?? "");
         setTipo((data.tipo as "cliente" | "entregador") ?? "cliente");
       }
+      setLoading(false);
     })();
   }, []);
+
+  if (loading) {
+    return (
+      <AppShell>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AppShell>
+    );
+  }
 
   async function salvar() {
     if (!p) return;
