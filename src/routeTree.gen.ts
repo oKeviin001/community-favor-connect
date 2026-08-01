@@ -19,6 +19,7 @@ import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedEntregadorRouteImport } from './routes/_authenticated/entregador'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
+import { Route as AuthenticatedPedidosIdAvaliarRouteImport } from './routes/_authenticated/pedidos.$id.avaliar'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -69,6 +70,12 @@ const AuthenticatedPedidosIdRoute = AuthenticatedPedidosIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedPedidosRoute,
 } as any)
+const AuthenticatedPedidosIdAvaliarRoute =
+  AuthenticatedPedidosIdAvaliarRouteImport.update({
+    id: '/avaliar',
+    path: '/avaliar',
+    getParentRoute: () => AuthenticatedPedidosIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,7 +86,8 @@ export interface FileRoutesByFullPath {
   '/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
-  '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
+  '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -90,7 +98,8 @@ export interface FileRoutesByTo {
   '/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
-  '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
+  '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -103,7 +112,8 @@ export interface FileRoutesById {
   '/_authenticated/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
-  '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
+  '/_authenticated/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/perfil'
     | '/pedidos/$id'
+    | '/pedidos/$id/avaliar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/perfil'
     | '/pedidos/$id'
+    | '/pedidos/$id/avaliar'
   id:
     | '__root__'
     | '/'
@@ -140,6 +152,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pedidos'
     | '/_authenticated/perfil'
     | '/_authenticated/pedidos/$id'
+    | '/_authenticated/pedidos/$id/avaliar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -220,15 +233,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPedidosIdRouteImport
       parentRoute: typeof AuthenticatedPedidosRoute
     }
+    '/_authenticated/pedidos/$id/avaliar': {
+      id: '/_authenticated/pedidos/$id/avaliar'
+      path: '/avaliar'
+      fullPath: '/pedidos/$id/avaliar'
+      preLoaderRoute: typeof AuthenticatedPedidosIdAvaliarRouteImport
+      parentRoute: typeof AuthenticatedPedidosIdRoute
+    }
   }
 }
 
+interface AuthenticatedPedidosIdRouteChildren {
+  AuthenticatedPedidosIdAvaliarRoute: typeof AuthenticatedPedidosIdAvaliarRoute
+}
+
+const AuthenticatedPedidosIdRouteChildren: AuthenticatedPedidosIdRouteChildren =
+  {
+    AuthenticatedPedidosIdAvaliarRoute: AuthenticatedPedidosIdAvaliarRoute,
+  }
+
+const AuthenticatedPedidosIdRouteWithChildren =
+  AuthenticatedPedidosIdRoute._addFileChildren(
+    AuthenticatedPedidosIdRouteChildren,
+  )
+
 interface AuthenticatedPedidosRouteChildren {
-  AuthenticatedPedidosIdRoute: typeof AuthenticatedPedidosIdRoute
+  AuthenticatedPedidosIdRoute: typeof AuthenticatedPedidosIdRouteWithChildren
 }
 
 const AuthenticatedPedidosRouteChildren: AuthenticatedPedidosRouteChildren = {
-  AuthenticatedPedidosIdRoute: AuthenticatedPedidosIdRoute,
+  AuthenticatedPedidosIdRoute: AuthenticatedPedidosIdRouteWithChildren,
 }
 
 const AuthenticatedPedidosRouteWithChildren =
@@ -263,13 +297,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

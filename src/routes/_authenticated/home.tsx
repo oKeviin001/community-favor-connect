@@ -35,33 +35,41 @@ function Home() {
   const [feed, setFeed] = useState<OrderRow[]>([]);
 
   useEffect(() => {
-    (async () => {
+    let mounted = true;
+    async function load() {
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("nome, bairro, tipo")
-        .eq("id", userData.user.id)
-        .maybeSingle();
+      if (!userData.user || !mounted) return;
+      const [{ data: prof }, { data: mine }, { data: recent }] = await Promise.all([
+        supabase.from("profiles").select("nome, bairro, tipo").eq("id", userData.user.id).maybeSingle(),
+        supabase
+          .from("orders")
+          .select("id, descricao, loja, status, categoria, criado_em")
+          .eq("cliente_id", userData.user.id)
+          .not("status", "in", "(entregue,confirmado,cancelado)")
+          .order("criado_em", { ascending: false })
+          .limit(1),
+        supabase
+          .from("orders")
+          .select("id, descricao, loja, status, categoria, criado_em")
+          .eq("status", "aguardando_entregador")
+          .order("criado_em", { ascending: false })
+          .limit(3),
+      ]);
+      if (!mounted) return;
       setProfile(prof as Profile | null);
-
-      const { data: mine } = await supabase
-        .from("orders")
-        .select("id, descricao, loja, status, categoria, criado_em")
-        .eq("cliente_id", userData.user.id)
-        .not("status", "in", "(entregue,confirmado,cancelado)")
-        .order("criado_em", { ascending: false })
-        .limit(1);
       setActive((mine?.[0] as OrderRow) ?? null);
-
-      const { data: recent } = await supabase
-        .from("orders")
-        .select("id, descricao, loja, status, categoria, criado_em")
-        .eq("status", "aguardando_entregador")
-        .order("criado_em", { ascending: false })
-        .limit(3);
       setFeed((recent as OrderRow[]) ?? []);
-    })();
+    }
+    load();
+
+    const ch = supabase
+      .channel("home-feed")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
+      .subscribe();
+    return () => {
+      mounted = false;
+      supabase.removeChannel(ch);
+    };
   }, []);
 
   const firstName = profile?.nome?.split(" ")[0] ?? "";

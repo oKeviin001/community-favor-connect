@@ -59,8 +59,10 @@ function PedidoDetail() {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
     async function load() {
       const { data: o } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
+      if (!mounted) return;
       setOrder((o as unknown) as Order | null);
       if (o) {
         const { data: p } = await supabase
@@ -91,10 +93,24 @@ function PedidoDetail() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
-        (payload) => setOrder((prev) => (prev ? { ...prev, ...((payload.new as unknown) as Order) } : prev)),
+        async (payload) => {
+          const updated = payload.new as unknown as Order;
+          setOrder((prev) => (prev ? { ...prev, ...updated } : prev));
+          if (updated.entregador_id && !entregadorNome) {
+            const { data: p } = await supabase
+              .from("profiles")
+              .select("nome")
+              .eq("id", updated.entregador_id)
+              .maybeSingle();
+            if (p?.nome) setEntregadorNome(p.nome);
+          }
+        },
       )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      mounted = false;
+      supabase.removeChannel(ch);
+    };
   }, [id]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs.length]);
@@ -145,11 +161,22 @@ function PedidoDetail() {
   }
 
   async function confirmar() {
+    if (!userId) return;
     await updateStatus("confirmado");
     const { error } = await supabase.from("payments").update({ status: "liberado" }).eq("order_id", id);
     if (error) return toast.error(error.message);
     toast.success("Entrega confirmada! Pagamento liberado.");
-    navigate({ to: "/pedidos" });
+    const { data: existing } = await supabase
+      .from("reviews")
+      .select("id")
+      .eq("order_id", id)
+      .eq("reviewer_id", userId)
+      .maybeSingle();
+    if (!existing) {
+      navigate({ to: "/pedidos/$id/avaliar", params: { id } });
+    } else {
+      navigate({ to: "/pedidos" });
+    }
   }
 
   return (
