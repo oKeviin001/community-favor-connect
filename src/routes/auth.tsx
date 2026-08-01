@@ -218,5 +218,8 @@ function traduzirErroAuth(msg: string): string {
     "Unable to validate email address: invalid format": "Email inválido.",
     "Signup requires a valid password": "Informe uma senha válida.",
   };
+  if (msg.toLowerCase().includes("password") && msg.toLowerCase().includes("weak")) {
+    return "Senha muito fraca. Escolha uma senha mais forte com letras, números e símbolos.";
+  }
   return map[msg] ?? msg;
 }
