@@ -28,6 +28,7 @@ function useHydrated() {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const hydrated = useHydrated();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [tipo, setTipo] = useState<"cliente" | "entregador">("cliente");
   const [nome, setNome] = useState("");
@@ -45,6 +46,15 @@ function AuthPage() {
     });
     return () => { mounted = false; };
   }, [navigate]);
+
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+        <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
