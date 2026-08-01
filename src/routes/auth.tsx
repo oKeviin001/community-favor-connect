@@ -5,7 +5,6 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Entrar — Pede pro Kevin" },
@@ -16,18 +15,8 @@ export const Route = createFileRoute("/auth")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  pendingComponent: AuthPending,
   component: AuthPage,
 });
-
-function AuthPending() {
-  return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
-      <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      <p className="mt-4 text-sm text-muted-foreground">Verificando sessão...</p>
-    </div>
-  );
-}
 
 function AuthPage() {
   const navigate = useNavigate();
