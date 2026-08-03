@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { toast } from "sonner";
-import { LogOut, Star, Wand2 } from "lucide-react";
-import { useIsDev } from "@/lib/dev-mode";
+import { LogOut, Star, Wand2, Shield } from "lucide-react";
+import { useUser } from "@/lib/use-user";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
@@ -21,16 +21,22 @@ export const Route = createFileRoute("/_authenticated/perfil")({
   component: Perfil,
 });
 
-interface P { id: string; nome: string; telefone: string | null; bairro: string | null; tipo: string; nota_media: number | null; total_avaliacoes: number | null }
+interface P { id: string; nome: string; telefone: string | null; bairro: string | null; tipo: string; nota_media: number | null; total_avaliacoes: number | null; total_entregas?: number | null }
+
+const MODOS = [
+  { id: "cliente", label: "Quero pedir favores", hint: "Você cria pedidos" },
+  { id: "entregador", label: "Quero fazer entregas", hint: "Você aceita pedidos" },
+  { id: "ambos", label: "Quero utilizar ambos", hint: "Pede e entrega" },
+] as const;
 
 function Perfil() {
   const navigate = useNavigate();
-  const isDev = useIsDev();
+  const { isDev, isAdmin, reload } = useUser();
   const [p, setP] = useState<P | null>(null);
   const [nome, setNome] = useState("");
   const [tel, setTel] = useState("");
   const [bairro, setBairro] = useState("");
-  const [tipo, setTipo] = useState<"cliente" | "entregador">("cliente");
+  const [tipo, setTipo] = useState<"cliente" | "entregador" | "ambos">("cliente");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -44,7 +50,7 @@ function Perfil() {
         setNome(data.nome ?? "");
         setTel(data.telefone ?? "");
         setBairro(data.bairro ?? "");
-        setTipo((data.tipo as "cliente" | "entregador") ?? "cliente");
+        setTipo((data.tipo as "cliente" | "entregador" | "ambos") ?? "cliente");
       }
       setLoading(false);
     })();
@@ -69,6 +75,7 @@ function Perfil() {
       .eq("id", p.id);
     setSaving(false);
     if (error) return toast.error(error.message);
+    reload();
     toast.success("Perfil atualizado");
   }
 
@@ -84,6 +91,14 @@ function Perfil() {
       </header>
 
       <div className="px-6 space-y-5">
+        {isAdmin && (
+          <Link
+            to="/admin"
+            className="w-full h-12 bg-card ring-1 ring-black/5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
+          >
+            <Shield size={16} /> Painel administrativo
+          </Link>
+        )}
         {isDev && (
           <Link
             to="/dev"
@@ -103,33 +118,48 @@ function Perfil() {
               <span>{(p?.nota_media ?? 0).toFixed(1)}</span>
               <span>· {p?.total_avaliacoes ?? 0} avaliações</span>
             </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {p?.total_entregas ?? 0} entregas concluídas
+            </p>
           </div>
         </div>
 
         <Field label="Nome">
           <input value={nome} onChange={(e) => setNome(e.target.value)} className="input" />
         </Field>
-        <Field label="Telefone">
+        <Field label="Telefone (WhatsApp)">
           <input value={tel} onChange={(e) => setTel(e.target.value)} className="input" placeholder="(11) 90000-0000" />
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Usado para abrir a conversa no WhatsApp durante o pedido.
+          </p>
         </Field>
         <Field label="Bairro">
           <input value={bairro} onChange={(e) => setBairro(e.target.value)} className="input" placeholder="Vila Mariana" />
         </Field>
 
-        <Field label="Como você usa o app">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setTipo("cliente")}
-              className={`flex-1 h-12 rounded-2xl text-sm font-medium ring-1 ${
-                tipo === "cliente" ? "bg-primary text-primary-foreground ring-primary" : "bg-card ring-black/5"
-              }`}
-            >Peço favores</button>
-            <button
-              onClick={() => setTipo("entregador")}
-              className={`flex-1 h-12 rounded-2xl text-sm font-medium ring-1 ${
-                tipo === "entregador" ? "bg-primary text-primary-foreground ring-primary" : "bg-card ring-black/5"
-              }`}
-            >Faço entregas</button>
+        <Field label="Modo de utilização">
+          <div className="space-y-2">
+            {MODOS.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setTipo(m.id)}
+                className={`w-full flex items-center gap-3 px-4 h-14 rounded-2xl text-left ring-1 ${
+                  tipo === m.id ? "bg-primary/10 ring-primary" : "bg-card ring-black/5"
+                }`}
+              >
+                <span
+                  className={`size-5 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                    tipo === m.id ? "border-primary" : "border-border"
+                  }`}
+                >
+                  {tipo === m.id && <span className="size-2.5 rounded-full bg-primary" />}
+                </span>
+                <span className="flex-1">
+                  <span className="block text-sm font-medium">{m.label}</span>
+                  <span className="block text-xs text-muted-foreground">{m.hint}</span>
+                </span>
+              </button>
+            ))}
           </div>
         </Field>
 

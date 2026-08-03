@@ -1,21 +1,25 @@
 import type { ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, ClipboardList, Bike, User } from "lucide-react";
+import { Home, ClipboardList, Bike, User, Shield } from "lucide-react";
+import { useUser } from "@/lib/use-user";
 
 interface Props {
   children: ReactNode;
   hideNav?: boolean;
 }
 
-const navItems = [
-  { to: "/home", label: "Início", icon: Home },
-  { to: "/pedidos", label: "Pedidos", icon: ClipboardList },
-  { to: "/entregador", label: "Entregar", icon: Bike },
-  { to: "/perfil", label: "Perfil", icon: User },
-] as const;
-
 export function AppShell({ children, hideNav }: Props) {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { canDeliver, isAdmin } = useUser();
+
+  const navItems = [
+    { to: "/home", label: "Início", icon: Home },
+    { to: "/pedidos", label: "Pedidos", icon: ClipboardList },
+    ...(canDeliver ? [{ to: "/entregador", label: "Entregar", icon: Bike }] : []),
+    ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield }] : []),
+    { to: "/perfil", label: "Perfil", icon: User },
+  ] as const;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="pb-24">{children}</div>

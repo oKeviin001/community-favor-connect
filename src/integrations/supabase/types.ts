@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      disputes: {
+        Row: {
+          aberto_por: string
+          atualizado_em: string
+          criado_em: string
+          descricao: string | null
+          id: string
+          motivo: string
+          order_id: string
+          resposta_admin: string | null
+          status: string
+        }
+        Insert: {
+          aberto_por: string
+          atualizado_em?: string
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          motivo: string
+          order_id: string
+          resposta_admin?: string | null
+          status?: string
+        }
+        Update: {
+          aberto_por?: string
+          atualizado_em?: string
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          motivo?: string
+          order_id?: string
+          resposta_admin?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_aberto_por_fkey"
+            columns: ["aberto_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           criado_em: string
@@ -53,8 +104,96 @@ export type Database = {
           },
         ]
       }
+      order_attachments: {
+        Row: {
+          criado_em: string
+          descricao: string | null
+          id: string
+          order_id: string
+          path: string
+          tipo: string
+          uploader_id: string
+        }
+        Insert: {
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          order_id: string
+          path: string
+          tipo?: string
+          uploader_id: string
+        }
+        Update: {
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          order_id?: string
+          path?: string
+          tipo?: string
+          uploader_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_attachments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_attachments_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_events: {
+        Row: {
+          autor_id: string | null
+          criado_em: string
+          id: string
+          nota: string | null
+          order_id: string
+          status: Database["public"]["Enums"]["order_status"]
+        }
+        Insert: {
+          autor_id?: string | null
+          criado_em?: string
+          id?: string
+          nota?: string | null
+          order_id: string
+          status: Database["public"]["Enums"]["order_status"]
+        }
+        Update: {
+          autor_id?: string | null
+          criado_em?: string
+          id?: string
+          nota?: string | null
+          order_id?: string
+          status?: Database["public"]["Enums"]["order_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_events_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
+          aceito_em: string | null
           atualizado_em: string
           categoria: Database["public"]["Enums"]["order_category"]
           cliente_id: string
@@ -73,6 +212,7 @@ export type Database = {
           valor_produto: number
         }
         Insert: {
+          aceito_em?: string | null
           atualizado_em?: string
           categoria?: Database["public"]["Enums"]["order_category"]
           cliente_id: string
@@ -91,6 +231,7 @@ export type Database = {
           valor_produto?: number
         }
         Update: {
+          aceito_em?: string | null
           atualizado_em?: string
           categoria?: Database["public"]["Enums"]["order_category"]
           cliente_id?: string
@@ -164,63 +305,84 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bairro: string | null
+          bloqueado: boolean
           criado_em: string
           id: string
           nome: string
           nota_media: number | null
+          suspenso: boolean
           telefone: string | null
           tipo: Database["public"]["Enums"]["user_role"]
           total_avaliacoes: number | null
+          total_entregas: number
         }
         Insert: {
           avatar_url?: string | null
           bairro?: string | null
+          bloqueado?: boolean
           criado_em?: string
           id: string
           nome: string
           nota_media?: number | null
+          suspenso?: boolean
           telefone?: string | null
           tipo?: Database["public"]["Enums"]["user_role"]
           total_avaliacoes?: number | null
+          total_entregas?: number
         }
         Update: {
           avatar_url?: string | null
           bairro?: string | null
+          bloqueado?: boolean
           criado_em?: string
           id?: string
           nome?: string
           nota_media?: number | null
+          suspenso?: boolean
           telefone?: string | null
           tipo?: Database["public"]["Enums"]["user_role"]
           total_avaliacoes?: number | null
+          total_entregas?: number
         }
         Relationships: []
       }
       reviews: {
         Row: {
           comentario: string | null
+          comunicacao: number | null
+          confiabilidade: number | null
           criado_em: string
+          educacao: number | null
           id: string
           nota: number
           order_id: string
+          rapidez: number | null
           reviewee_id: string
           reviewer_id: string
         }
         Insert: {
           comentario?: string | null
+          comunicacao?: number | null
+          confiabilidade?: number | null
           criado_em?: string
+          educacao?: number | null
           id?: string
           nota: number
           order_id: string
+          rapidez?: number | null
           reviewee_id: string
           reviewer_id: string
         }
         Update: {
           comentario?: string | null
+          comunicacao?: number | null
+          confiabilidade?: number | null
           criado_em?: string
+          educacao?: number | null
           id?: string
           nota?: number
           order_id?: string
+          rapidez?: number | null
           reviewee_id?: string
           reviewer_id?: string
         }
@@ -281,6 +443,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
@@ -295,6 +458,7 @@ export type Database = {
       order_status:
         | "aguardando_entregador"
         | "aceito"
+        | "indo_loja"
         | "em_compra"
         | "compra_finalizada"
         | "em_entrega"
@@ -303,7 +467,7 @@ export type Database = {
         | "cancelado"
         | "em_disputa"
       payment_status: "depositado" | "liberado" | "reembolsado" | "cancelado"
-      user_role: "cliente" | "entregador"
+      user_role: "cliente" | "entregador" | "ambos"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -444,6 +608,7 @@ export const Constants = {
       order_status: [
         "aguardando_entregador",
         "aceito",
+        "indo_loja",
         "em_compra",
         "compra_finalizada",
         "em_entrega",
@@ -453,7 +618,7 @@ export const Constants = {
         "em_disputa",
       ],
       payment_status: ["depositado", "liberado", "reembolsado", "cancelado"],
-      user_role: ["cliente", "entregador"],
+      user_role: ["cliente", "entregador", "ambos"],
     },
   },
 } as const

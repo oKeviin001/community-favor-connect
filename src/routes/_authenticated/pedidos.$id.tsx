@@ -1,18 +1,30 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
-import { STATUS_LABEL, TIMELINE_STEPS, statusIndex, formatBRL, CATEGORIAS } from "@/lib/order-helpers";
+import { Comprovantes } from "@/components/Comprovantes";
+import {
+  STATUS_LABEL,
+  TIMELINE_STEPS,
+  statusIndex,
+  formatBRL,
+  CATEGORIAS,
+  whatsappLink,
+  type OrderStatus,
+} from "@/lib/order-helpers";
+import { useUser } from "@/lib/use-user";
+import { confirmDelivery } from "@/lib/orders.functions";
 import { toast } from "sonner";
-import { ChevronLeft, Send } from "lucide-react";
+import { ChevronLeft, MessageCircle, Phone, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/pedidos/$id")({
   head: () => ({
     meta: [
       { title: "Pedido — Pede pro Kevin" },
-      { name: "description", content: "Acompanhe o pedido e converse com o entregador." },
+      { name: "description", content: "Central de trabalho do pedido: status, contato e comprovantes." },
       { property: "og:title", content: "Pedido — Pede pro Kevin" },
-      { property: "og:description", content: "Acompanhe o pedido e converse com o entregador." },
+      { property: "og:description", content: "Central de trabalho do pedido: status, contato e comprovantes." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -36,148 +48,143 @@ interface Order {
   total: string | number | null;
   status: string;
   criado_em: string;
-  atualizado_em?: string;
+  aceito_em?: string | null;
+  atualizado_em?: string | null;
 }
-interface Msg { id: string; sender_id: string; texto: string; criado_em: string }
+interface Pessoa { id: string; nome: string; telefone: string | null }
+interface Evento { id: string; status: string; criado_em: string; nota: string | null }
+
+const NEXT_STEPS: { from: string; to: OrderStatus; label: string }[] = [
+  { from: "aceito", to: "indo_loja", label: "Estou indo para a loja" },
+  { from: "indo_loja", to: "em_compra", label: "Comecei a comprar" },
+  { from: "em_compra", to: "compra_finalizada", label: "Compra concluída" },
+  { from: "compra_finalizada", to: "em_entrega", label: "Saí para entrega" },
+  { from: "em_entrega", to: "entregue", label: "Marcar como entregue" },
+];
 
 function PedidoDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { userId, canDeliver, isAdmin } = useUser();
+  const confirmar = useServerFn(confirmDelivery);
   const [order, setOrder] = useState<Order | null>(null);
-  const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [text, setText] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
-  const [entregadorNome, setEntregadorNome] = useState<string | null>(null);
-  const [clienteNome, setClienteNome] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
+  const [cliente, setCliente] = useState<Pessoa | null>(null);
+  const [entregador, setEntregador] = useState<Pessoa | null>(null);
+  const [eventos, setEventos] = useState<Evento[]>([]);
 
-  useEffect(() => {
-    (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      setUserId(u.user?.id ?? null);
-    })();
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      const { data: o } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
-      if (!mounted) return;
-      setOrder((o as unknown) as Order | null);
-      if (o) {
-        const { data: p } = await supabase
-          .from("profiles")
-          .select("id, nome")
-          .in("id", [o.cliente_id, o.entregador_id].filter(Boolean) as string[]);
-        p?.forEach((pf) => {
-          if (pf.id === o.cliente_id) setClienteNome(pf.nome);
-          if (pf.id === o.entregador_id) setEntregadorNome(pf.nome);
-        });
-      }
-      const { data: m } = await supabase
-        .from("messages")
-        .select("id, sender_id, texto, criado_em")
-        .eq("order_id", id)
-        .order("criado_em");
-      setMsgs((m as Msg[]) ?? []);
+  const load = useCallback(async () => {
+    const { data: o } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
+    const ord = (o as unknown) as Order | null;
+    setOrder(ord);
+    setLoading(false);
+    if (ord) {
+      const ids = [ord.cliente_id, ord.entregador_id].filter(Boolean) as string[];
+      const { data: p } = await supabase.from("profiles").select("id, nome, telefone").in("id", ids);
+      (p as Pessoa[] | null)?.forEach((pf) => {
+        if (pf.id === ord.cliente_id) setCliente(pf);
+        if (pf.id === ord.entregador_id) setEntregador(pf);
+      });
     }
-    load();
-
-    const ch = supabase
-      .channel(`order-${id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `order_id=eq.${id}` },
-        (payload) => setMsgs((prev) => [...prev, payload.new as Msg]),
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
-        async (payload) => {
-          const updated = payload.new as unknown as Order;
-          setOrder((prev) => (prev ? { ...prev, ...updated } : prev));
-          if (updated.entregador_id && !entregadorNome) {
-            const { data: p } = await supabase
-              .from("profiles")
-              .select("nome")
-              .eq("id", updated.entregador_id)
-              .maybeSingle();
-            if (p?.nome) setEntregadorNome(p.nome);
-          }
-        },
-      )
-      .subscribe();
-    return () => {
-      mounted = false;
-      supabase.removeChannel(ch);
-    };
+    const { data: ev } = await supabase
+      .from("order_events")
+      .select("id, status, criado_em, nota")
+      .eq("order_id", id)
+      .order("criado_em");
+    setEventos((ev as Evento[]) ?? []);
   }, [id]);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs.length]);
+  useEffect(() => {
+    load();
+    const ch = supabase
+      .channel(`order-${id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `id=eq.${id}` }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "order_events", filter: `order_id=eq.${id}` }, load)
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [id, load]);
 
-  if (!order) return <AppShell hideNav><div className="p-6">Carregando...</div></AppShell>;
+  if (loading) {
+    return (
+      <AppShell hideNav>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AppShell>
+    );
+  }
+  if (!order) {
+    return (
+      <AppShell hideNav>
+        <div className="p-8 text-center">
+          <p className="text-sm text-muted-foreground">Pedido não encontrado.</p>
+          <Link to="/pedidos" className="text-primary text-sm font-semibold mt-3 inline-block">
+            Voltar
+          </Link>
+        </div>
+      </AppShell>
+    );
+  }
 
   const isCliente = userId === order.cliente_id;
   const isEntregador = userId === order.entregador_id;
+  const participa = isCliente || isEntregador || isAdmin;
   const backTo = isCliente ? "/pedidos" : "/entregador";
   const step = statusIndex(order.status);
   const cat = CATEGORIAS.find((c) => c.id === order.categoria);
+  const outro = isCliente ? entregador : cliente;
+  const wa = whatsappLink(
+    outro?.telefone,
+    `Olá! Falo sobre o pedido "${order.loja || order.descricao}" no Pede pro Kevin.`,
+  );
 
-  type OrderStatus = "aceito" | "aguardando_entregador" | "cancelado" | "compra_finalizada" | "confirmado" | "em_compra" | "em_disputa" | "em_entrega" | "entregue";
-  async function updateStatus(next: OrderStatus) {
+  async function registrar(next: OrderStatus) {
+    const now = new Date().toISOString();
     const { error } = await supabase
       .from("orders")
-      .update({ status: next, atualizado_em: new Date().toISOString() })
+      .update({ status: next, atualizado_em: now })
       .eq("id", id);
     if (error) return toast.error(error.message);
-    setOrder((prev) => (prev ? { ...prev, status: next, atualizado_em: new Date().toISOString() } : prev));
+    if (userId) {
+      await supabase.from("order_events").insert({ order_id: id, autor_id: userId, status: next });
+    }
+    load();
   }
 
   async function aceitar() {
     if (!userId) return;
+    if (!canDeliver) {
+      toast.error("Ative o modo entregador no seu perfil para aceitar pedidos.");
+      return;
+    }
+    const now = new Date().toISOString();
     const { data, error } = await supabase
       .from("orders")
-      .update({ entregador_id: userId, status: "aceito" })
+      .update({ entregador_id: userId, status: "aceito", aceito_em: now, atualizado_em: now })
       .eq("id", id)
       .is("entregador_id", null)
       .select("*")
       .maybeSingle();
     if (error) return toast.error(error.message);
     if (!data) return toast.error("Esse pedido já foi aceito por outro entregador.");
-    setOrder((data as unknown) as Order);
-    toast.success("Pedido aceito!");
-    navigate({ to: "/pedidos/$id", params: { id }, replace: true });
+    await supabase.from("order_events").insert({ order_id: id, autor_id: userId, status: "aceito" });
+    toast.success("Pedido aceito! Fale com o cliente pelo WhatsApp.");
+    load();
   }
 
-  async function enviar(e: React.FormEvent) {
-    e.preventDefault();
-    if (!text.trim() || !userId) return;
-    const value = text;
-    setText("");
-    const { error } = await supabase.from("messages").insert({
-      order_id: id, sender_id: userId, texto: value,
-    });
-    if (error) { toast.error(error.message); setText(value); }
-  }
-
-  async function confirmar() {
-    if (!userId) return;
-    await updateStatus("confirmado");
-    const { error } = await supabase.from("payments").update({ status: "liberado" }).eq("order_id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Entrega confirmada! Pagamento liberado.");
-    const { data: existing } = await supabase
-      .from("reviews")
-      .select("id")
-      .eq("order_id", id)
-      .eq("reviewer_id", userId)
-      .maybeSingle();
-    if (!existing) {
+  async function confirmarEntrega() {
+    try {
+      await confirmar({ data: { orderId: id } });
+      toast.success("Entrega confirmada!");
       navigate({ to: "/pedidos/$id/avaliar", params: { id } });
-    } else {
-      navigate({ to: "/pedidos" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível confirmar");
     }
   }
+
+  const proximo = NEXT_STEPS.find((s) => s.from === order.status);
 
   return (
     <AppShell hideNav>
@@ -197,7 +204,7 @@ function PedidoDetail() {
             <div>
               <h2 className="text-base font-semibold">{STATUS_LABEL[order.status]}</h2>
               <p className="text-sm text-muted-foreground">
-                {order.entregador_id ? `Com ${entregadorNome ?? "entregador"}` : "Aguardando entregador"}
+                {order.entregador_id ? `Com ${entregador?.nome ?? "entregador"}` : "Aguardando entregador"}
               </p>
             </div>
             <span className="bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-medium">
@@ -209,7 +216,7 @@ function PedidoDetail() {
               <div className="absolute top-2 left-0 w-full h-0.5 bg-border" />
               <div
                 className="absolute top-2 left-0 h-0.5 bg-primary transition-all"
-                style={{ width: `${step / (TIMELINE_STEPS.length - 1) * 100}%` }}
+                style={{ width: `${(step / (TIMELINE_STEPS.length - 1)) * 100}%` }}
               />
               {TIMELINE_STEPS.map((s, i) => (
                 <div key={s} className="relative z-10 flex flex-col items-center gap-2">
@@ -224,6 +231,41 @@ function PedidoDetail() {
         </div>
       </section>
 
+      {participa && order.entregador_id && outro && (
+        <section className="px-6 pt-6">
+          <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">
+            {isCliente ? "Entregador" : "Cliente"}
+          </h3>
+          <div className="bg-card rounded-2xl ring-1 ring-black/5 p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="size-11 rounded-full bg-secondary flex items-center justify-center font-semibold">
+                {outro.nome?.charAt(0).toUpperCase() ?? "?"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate">{outro.nome}</p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Phone size={12} /> {outro.telefone ?? "Telefone não informado"}
+                </p>
+              </div>
+            </div>
+            {wa ? (
+              <a
+                href={wa}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full h-12 rounded-2xl bg-[#25D366] text-white font-medium text-sm flex items-center justify-center gap-2"
+              >
+                <MessageCircle size={16} /> Conversar no WhatsApp
+              </a>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center">
+                Sem telefone cadastrado para abrir o WhatsApp.
+              </p>
+            )}
+          </div>
+        </section>
+      )}
+
       <section className="px-6 pt-6">
         <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">Detalhes</h3>
         <div className="bg-card rounded-2xl p-4 ring-1 ring-black/5 space-y-3 text-sm">
@@ -232,6 +274,7 @@ function PedidoDetail() {
           {order.endereco_loja && <Detail label="Endereço da loja" value={order.endereco_loja} />}
           <Detail label="Entregar em" value={order.endereco_entrega} />
           {order.observacoes && <Detail label="Observações" value={order.observacoes} />}
+          <Detail label="Criado em" value={new Date(order.criado_em).toLocaleString("pt-BR")} />
           <div className="pt-2 border-t border-border/60 grid grid-cols-3 text-center gap-2">
             <Money label="Produto" v={order.valor_produto} />
             <Money label="Frete" v={order.valor_frete} />
@@ -240,68 +283,58 @@ function PedidoDetail() {
         </div>
       </section>
 
-      {(isCliente || isEntregador) && order.entregador_id && (
+      {eventos.length > 0 && (
         <section className="px-6 pt-6">
-          <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">Conversa</h3>
-          <div className="bg-card rounded-2xl p-3 ring-1 ring-black/5 max-h-80 overflow-y-auto space-y-2">
-            {msgs.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center py-6">
-                Sem mensagens ainda. Diga oi 👋
-              </p>
-            )}
-            {msgs.map((m) => {
-              const mine = m.sender_id === userId;
-              return (
-                <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${
-                      mine ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-secondary text-foreground rounded-bl-sm"
-                    }`}
-                  >
-                    {m.texto}
-                  </div>
+          <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">
+            Linha do tempo
+          </h3>
+          <div className="bg-card rounded-2xl ring-1 ring-black/5 p-4 space-y-3">
+            {eventos.map((e) => (
+              <div key={e.id} className="flex gap-3 items-start">
+                <span className="text-xs font-semibold tabular-nums text-muted-foreground w-12 shrink-0">
+                  {new Date(e.criado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+                <div className="flex-1">
+                  <p className="text-sm">{STATUS_LABEL[e.status] ?? e.status}</p>
+                  {e.nota && <p className="text-xs text-muted-foreground">{e.nota}</p>}
                 </div>
-              );
-            })}
-            <div ref={bottomRef} />
+              </div>
+            ))}
           </div>
-          <form onSubmit={enviar} className="mt-3 flex gap-2">
-            <input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              maxLength={500}
-              placeholder="Escreva uma mensagem..."
-              className="flex-1 h-12 px-4 rounded-full bg-card ring-1 ring-black/5 focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-            />
-            <button
-              type="submit"
-              className="size-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
-            >
-              <Send size={18} />
-            </button>
-          </form>
         </section>
       )}
 
+      {participa && (
+        <Comprovantes orderId={id} userId={userId} canUpload={isCliente || isEntregador} />
+      )}
+
       <section className="px-6 pt-6 pb-10 space-y-3">
-        {isEntregador && order.status === "aceito" && (
-          <PrimaryBtn onClick={() => updateStatus("em_compra")}>Iniciei a compra</PrimaryBtn>
-        )}
-        {isEntregador && order.status === "em_compra" && (
-          <PrimaryBtn onClick={() => updateStatus("em_entrega")}>Saí para entrega</PrimaryBtn>
-        )}
-        {isEntregador && order.status === "em_entrega" && (
-          <PrimaryBtn onClick={() => updateStatus("entregue")}>Marcar como entregue</PrimaryBtn>
+        {isEntregador && proximo && (
+          <PrimaryBtn onClick={() => registrar(proximo.to)}>{proximo.label}</PrimaryBtn>
         )}
         {isCliente && order.status === "entregue" && (
-          <PrimaryBtn onClick={confirmar}>Confirmar entrega e liberar pagamento</PrimaryBtn>
+          <PrimaryBtn onClick={confirmarEntrega}>Recebi meu pedido</PrimaryBtn>
         )}
-        {!isCliente && !isEntregador && order.status === "aguardando_entregador" && (
+        {!isCliente && !isEntregador && order.status === "aguardando_entregador" && canDeliver && (
           <PrimaryBtn onClick={aceitar}>Aceitar este pedido</PrimaryBtn>
         )}
-        {isCliente && ["aguardando_entregador"].includes(order.status) && (
+        {!isCliente && !isEntregador && order.status === "aguardando_entregador" && !canDeliver && (
+          <p className="text-xs text-muted-foreground text-center">
+            Ative "Quero fazer entregas" no perfil para aceitar pedidos.
+          </p>
+        )}
+        {isCliente && ["entregue", "em_entrega", "compra_finalizada", "em_compra"].includes(order.status) && (
+          <Link
+            to="/pedidos/$id/disputa"
+            params={{ id }}
+            className="w-full h-12 rounded-2xl bg-card ring-1 ring-black/5 text-destructive text-sm font-medium flex items-center justify-center gap-2"
+          >
+            <AlertTriangle size={16} /> Reportar problema
+          </Link>
+        )}
+        {isCliente && order.status === "aguardando_entregador" && (
           <button
-            onClick={() => updateStatus("cancelado")}
+            onClick={() => registrar("cancelado")}
             className="w-full h-12 rounded-2xl bg-card ring-1 ring-black/5 text-destructive text-sm font-medium"
           >
             Cancelar pedido
@@ -316,7 +349,7 @@ function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-[10px] uppercase text-muted-foreground tracking-wider">{label}</p>
-      <p className="text-foreground">{value}</p>
+      <p className="text-foreground whitespace-pre-line">{value}</p>
     </div>
   );
 }
