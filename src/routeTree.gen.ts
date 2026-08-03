@@ -18,7 +18,9 @@ import { Route as AuthenticatedNovoPedidoRouteImport } from './routes/_authentic
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedEntregadorRouteImport } from './routes/_authenticated/entregador'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
+import { Route as AuthenticatedPedidosIdDisputaRouteImport } from './routes/_authenticated/pedidos.$id.disputa'
 import { Route as AuthenticatedPedidosIdAvaliarRouteImport } from './routes/_authenticated/pedidos.$id.avaliar'
 
 const AuthRoute = AuthRouteImport.update({
@@ -65,11 +67,22 @@ const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
   path: '/dev',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPedidosIdRoute = AuthenticatedPedidosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AuthenticatedPedidosRoute,
 } as any)
+const AuthenticatedPedidosIdDisputaRoute =
+  AuthenticatedPedidosIdDisputaRouteImport.update({
+    id: '/disputa',
+    path: '/disputa',
+    getParentRoute: () => AuthenticatedPedidosIdRoute,
+  } as any)
 const AuthenticatedPedidosIdAvaliarRoute =
   AuthenticatedPedidosIdAvaliarRouteImport.update({
     id: '/avaliar',
@@ -80,6 +93,7 @@ const AuthenticatedPedidosIdAvaliarRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dev': typeof AuthenticatedDevRoute
   '/entregador': typeof AuthenticatedEntregadorRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -88,10 +102,12 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof AuthenticatedPerfilRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
+  '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dev': typeof AuthenticatedDevRoute
   '/entregador': typeof AuthenticatedEntregadorRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -100,12 +116,14 @@ export interface FileRoutesByTo {
   '/perfil': typeof AuthenticatedPerfilRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
+  '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/entregador': typeof AuthenticatedEntregadorRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
@@ -114,12 +132,14 @@ export interface FileRoutesById {
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/_authenticated/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
+  '/_authenticated/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/admin'
     | '/dev'
     | '/entregador'
     | '/home'
@@ -128,10 +148,12 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/pedidos/$id'
     | '/pedidos/$id/avaliar'
+    | '/pedidos/$id/disputa'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/admin'
     | '/dev'
     | '/entregador'
     | '/home'
@@ -140,11 +162,13 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/pedidos/$id'
     | '/pedidos/$id/avaliar'
+    | '/pedidos/$id/disputa'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/admin'
     | '/_authenticated/dev'
     | '/_authenticated/entregador'
     | '/_authenticated/home'
@@ -153,6 +177,7 @@ export interface FileRouteTypes {
     | '/_authenticated/perfil'
     | '/_authenticated/pedidos/$id'
     | '/_authenticated/pedidos/$id/avaliar'
+    | '/_authenticated/pedidos/$id/disputa'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -226,12 +251,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDevRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/pedidos/$id': {
       id: '/_authenticated/pedidos/$id'
       path: '/$id'
       fullPath: '/pedidos/$id'
       preLoaderRoute: typeof AuthenticatedPedidosIdRouteImport
       parentRoute: typeof AuthenticatedPedidosRoute
+    }
+    '/_authenticated/pedidos/$id/disputa': {
+      id: '/_authenticated/pedidos/$id/disputa'
+      path: '/disputa'
+      fullPath: '/pedidos/$id/disputa'
+      preLoaderRoute: typeof AuthenticatedPedidosIdDisputaRouteImport
+      parentRoute: typeof AuthenticatedPedidosIdRoute
     }
     '/_authenticated/pedidos/$id/avaliar': {
       id: '/_authenticated/pedidos/$id/avaliar'
@@ -245,11 +284,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedPedidosIdRouteChildren {
   AuthenticatedPedidosIdAvaliarRoute: typeof AuthenticatedPedidosIdAvaliarRoute
+  AuthenticatedPedidosIdDisputaRoute: typeof AuthenticatedPedidosIdDisputaRoute
 }
 
 const AuthenticatedPedidosIdRouteChildren: AuthenticatedPedidosIdRouteChildren =
   {
     AuthenticatedPedidosIdAvaliarRoute: AuthenticatedPedidosIdAvaliarRoute,
+    AuthenticatedPedidosIdDisputaRoute: AuthenticatedPedidosIdDisputaRoute,
   }
 
 const AuthenticatedPedidosIdRouteWithChildren =
@@ -269,6 +310,7 @@ const AuthenticatedPedidosRouteWithChildren =
   AuthenticatedPedidosRoute._addFileChildren(AuthenticatedPedidosRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedEntregadorRoute: typeof AuthenticatedEntregadorRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
@@ -278,6 +320,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedEntregadorRoute: AuthenticatedEntregadorRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,

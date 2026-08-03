@@ -38,6 +38,12 @@ function Avaliar() {
   const [order, setOrder] = useState<Order | null>(null);
   const [entregadorNome, setEntregadorNome] = useState<string>("");
   const [nota, setNota] = useState<number>(5);
+  const [criterios, setCriterios] = useState({
+    comunicacao: 5,
+    rapidez: 5,
+    educacao: 5,
+    confiabilidade: 5,
+  });
   const [comentario, setComentario] = useState("");
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(true);
@@ -75,7 +81,7 @@ function Avaliar() {
     e.preventDefault();
     setLoading(true);
     try {
-      await submitReviewFn({ data: { orderId: id, nota, comentario } });
+      await submitReviewFn({ data: { orderId: id, nota, comentario, criterios } });
       toast.success("Avaliação enviada!");
       navigate({ to: "/pedidos" });
     } catch (err: unknown) {
@@ -148,6 +154,40 @@ function Avaliar() {
             <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
               Comentário (opcional)
             </label>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium block">
+              Critérios
+            </label>
+            {([
+              ["comunicacao", "Comunicação"],
+              ["rapidez", "Rapidez"],
+              ["educacao", "Educação"],
+              ["confiabilidade", "Confiabilidade"],
+            ] as const).map(([key, label]) => (
+              <div key={key} className="flex items-center justify-between bg-card ring-1 ring-black/5 rounded-2xl px-4 py-3">
+                <span className="text-sm">{label}</span>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      aria-label={`${label} ${n}`}
+                      onClick={() => setCriterios((c) => ({ ...c, [key]: n }))}
+                    >
+                      <Star
+                        size={18}
+                        className={n <= criterios[key] ? "fill-accent text-accent" : "text-muted-foreground"}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div>
             <textarea
               rows={4}
               value={comentario}

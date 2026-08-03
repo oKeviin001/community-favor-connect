@@ -6,14 +6,27 @@ type AuthContext = {
   userId: string;
 };
 
+export interface ReviewCriterios {
+  comunicacao: number;
+  rapidez: number;
+  educacao: number;
+  confiabilidade: number;
+}
+
 export async function submitReviewFor(
   context: AuthContext,
   orderId: string,
   nota: number,
   comentario: string,
+  criterios?: ReviewCriterios,
 ) {
   if (!Number.isInteger(nota) || nota < 1 || nota > 5) {
     throw new Error("Nota deve ser entre 1 e 5");
+  }
+  if (criterios) {
+    for (const v of Object.values(criterios)) {
+      if (!Number.isInteger(v) || v < 1 || v > 5) throw new Error("Critérios devem ser entre 1 e 5");
+    }
   }
 
   const { data: order, error: orderError } = await context.supabase
@@ -38,6 +51,7 @@ export async function submitReviewFor(
     reviewee_id: revieweeId,
     nota,
     comentario: comentario.trim() || null,
+    ...(criterios ?? {}),
   });
 
   if (insertError) {
