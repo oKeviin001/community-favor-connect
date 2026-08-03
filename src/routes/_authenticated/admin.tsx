@@ -83,7 +83,9 @@ function Admin() {
   }
 
   async function toggleFlag(p: ProfileRow, field: "bloqueado" | "suspenso") {
-    const { error } = await supabase.from("profiles").update({ [field]: !p[field] }).eq("id", p.id);
+    const patch =
+      field === "bloqueado" ? { bloqueado: !p.bloqueado } : { suspenso: !p.suspenso };
+    const { error } = await supabase.from("profiles").update(patch).eq("id", p.id);
     if (error) return toast.error(error.message);
     load();
   }
