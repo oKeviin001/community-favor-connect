@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { CATEGORIAS, formatBRL } from "@/lib/order-helpers";
 
-export const Route = createFileRoute("/_authenticated/entregador")({
+export const Route = createFileRoute("/_authenticated/entregador/")({
   head: () => ({
     meta: [
       { title: "Entregar — Pede pro Kevin" },
