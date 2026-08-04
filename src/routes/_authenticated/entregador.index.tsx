@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AppShell } from "@/components/AppShell";
+import { CourierShell } from "@/components/CourierShell";
 import { CATEGORIAS, formatBRL } from "@/lib/order-helpers";
 
 export const Route = createFileRoute("/_authenticated/entregador/")({
@@ -50,7 +50,7 @@ function Entregador() {
   }, []);
 
   return (
-    <AppShell>
+    <CourierShell>
       <header className="px-6 pt-10 pb-4">
         <p className="text-accent font-medium text-sm tracking-wide uppercase">Vizinhança</p>
         <h1 className="text-2xl font-semibold">Pedidos disponíveis</h1>
@@ -66,7 +66,7 @@ function Entregador() {
         {rows.map((o) => {
           const cat = CATEGORIAS.find((c) => c.id === o.categoria);
           return (
-            <Link key={o.id} to="/pedidos/$id" params={{ id: o.id }}>
+            <Link key={o.id} to="/entregador/pedido/$id" params={{ id: o.id }}>
               <div className="bg-card rounded-2xl ring-1 ring-black/5 p-4">
                 <div className="flex items-start gap-4">
                   <div className={`size-12 ${cat?.tint ?? "bg-secondary"} rounded-xl flex items-center justify-center text-2xl shrink-0`}>
@@ -79,7 +79,7 @@ function Entregador() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold">{formatBRL(o.total)}</p>
-                    <span className="text-[10px] uppercase text-primary font-semibold">Ver pedido</span>
+                    <span className="text-[10px] uppercase text-primary font-semibold">Ver</span>
                   </div>
                 </div>
               </div>
@@ -87,6 +87,6 @@ function Entregador() {
           );
         })}
       </div>
-    </AppShell>
+    </CourierShell>
   );
 }
