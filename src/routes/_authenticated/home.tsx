@@ -32,7 +32,6 @@ interface OrderRow {
 function Home() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [active, setActive] = useState<OrderRow | null>(null);
-  const [feed, setFeed] = useState<OrderRow[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -177,34 +176,6 @@ function Home() {
         </div>
       </section>
 
-      {profile?.tipo === "entregador" && feed.length > 0 && (
-        <section className="px-6 py-8">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-              Pedidos por perto
-            </h3>
-            <Link to="/entregador" className="text-primary text-sm font-semibold">
-              Ver todos
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {feed.map((o) => (
-              <Link key={o.id} to="/pedidos/$id" params={{ id: o.id }}>
-                <div className="flex items-center gap-4 p-4 bg-card rounded-2xl ring-1 ring-black/5">
-                  <div className="size-12 rounded-xl bg-secondary shrink-0 flex items-center justify-center text-xl">
-                    {CATEGORIAS.find((c) => c.id === o.categoria)?.emoji ?? "📦"}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{o.loja || o.descricao}</p>
-                    <p className="text-xs text-muted-foreground truncate">{o.descricao}</p>
-                  </div>
-                  <span className="px-3 py-2 bg-secondary rounded-lg text-xs font-bold uppercase">Ver</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
     </AppShell>
   );
 }
