@@ -21,6 +21,7 @@ import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/de
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedEntregadorIndexRouteImport } from './routes/_authenticated/entregador.index'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
+import { Route as AuthenticatedEntregadorAceitosRouteImport } from './routes/_authenticated/entregador.aceitos'
 import { Route as AuthenticatedPedidosIdDisputaRouteImport } from './routes/_authenticated/pedidos.$id.disputa'
 import { Route as AuthenticatedPedidosIdAvaliarRouteImport } from './routes/_authenticated/pedidos.$id.avaliar'
 
@@ -84,6 +85,12 @@ const AuthenticatedPedidosIdRoute = AuthenticatedPedidosIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedPedidosRoute,
 } as any)
+const AuthenticatedEntregadorAceitosRoute =
+  AuthenticatedEntregadorAceitosRouteImport.update({
+    id: '/aceitos',
+    path: '/aceitos',
+    getParentRoute: () => AuthenticatedEntregadorRoute,
+  } as any)
 const AuthenticatedPedidosIdDisputaRoute =
   AuthenticatedPedidosIdDisputaRouteImport.update({
     id: '/disputa',
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/entregador/': typeof AuthenticatedEntregadorIndexRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
@@ -121,6 +129,7 @@ export interface FileRoutesByTo {
   '/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/entregador': typeof AuthenticatedEntregadorIndexRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
@@ -138,6 +147,7 @@ export interface FileRoutesById {
   '/_authenticated/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/_authenticated/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/_authenticated/entregador/': typeof AuthenticatedEntregadorIndexRoute
   '/_authenticated/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/novo-pedido'
     | '/pedidos'
     | '/perfil'
+    | '/entregador/aceitos'
     | '/pedidos/$id'
     | '/entregador/'
     | '/pedidos/$id/avaliar'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/novo-pedido'
     | '/pedidos'
     | '/perfil'
+    | '/entregador/aceitos'
     | '/pedidos/$id'
     | '/entregador'
     | '/pedidos/$id/avaliar'
@@ -185,6 +197,7 @@ export interface FileRouteTypes {
     | '/_authenticated/novo-pedido'
     | '/_authenticated/pedidos'
     | '/_authenticated/perfil'
+    | '/_authenticated/entregador/aceitos'
     | '/_authenticated/pedidos/$id'
     | '/_authenticated/entregador/'
     | '/_authenticated/pedidos/$id/avaliar'
@@ -283,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPedidosIdRouteImport
       parentRoute: typeof AuthenticatedPedidosRoute
     }
+    '/_authenticated/entregador/aceitos': {
+      id: '/_authenticated/entregador/aceitos'
+      path: '/aceitos'
+      fullPath: '/entregador/aceitos'
+      preLoaderRoute: typeof AuthenticatedEntregadorAceitosRouteImport
+      parentRoute: typeof AuthenticatedEntregadorRoute
+    }
     '/_authenticated/pedidos/$id/disputa': {
       id: '/_authenticated/pedidos/$id/disputa'
       path: '/disputa'
@@ -301,11 +321,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedEntregadorRouteChildren {
+  AuthenticatedEntregadorAceitosRoute: typeof AuthenticatedEntregadorAceitosRoute
   AuthenticatedEntregadorIndexRoute: typeof AuthenticatedEntregadorIndexRoute
 }
 
 const AuthenticatedEntregadorRouteChildren: AuthenticatedEntregadorRouteChildren =
   {
+    AuthenticatedEntregadorAceitosRoute: AuthenticatedEntregadorAceitosRoute,
     AuthenticatedEntregadorIndexRoute: AuthenticatedEntregadorIndexRoute,
   }
 

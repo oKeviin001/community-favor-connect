@@ -23,7 +23,7 @@ interface Row {
   status: string; total: number | null; endereco_entrega: string; criado_em: string;
 }
 
-const ATIVOS = ["aceito", "indo_loja", "em_compra", "compra_finalizada", "em_entrega", "em_disputa"];
+const ATIVOS = ["aceito", "indo_loja", "em_compra", "compra_finalizada", "em_entrega", "em_disputa"] as const;
 
 function Aceitos() {
   const [rows, setRows] = useState<Row[]>([]);
