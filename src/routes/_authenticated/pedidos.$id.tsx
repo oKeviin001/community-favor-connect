@@ -95,6 +95,13 @@ function PedidoDetail() {
   }, [id]);
 
   useEffect(() => {
+    if (!order || !userId) return;
+    if (order.cliente_id !== userId && !isAdmin) {
+      navigate({ to: "/entregador/pedido/$id", params: { id }, replace: true });
+    }
+  }, [order, userId, isAdmin, id, navigate]);
+
+  useEffect(() => {
     load();
     const ch = supabase
       .channel(`order-${id}`)
