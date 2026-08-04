@@ -19,9 +19,13 @@ import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedEntregadorRouteImport } from './routes/_authenticated/entregador'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedEntregadorIndexRouteImport } from './routes/_authenticated/entregador.index'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
+import { Route as AuthenticatedEntregadorHistoricoRouteImport } from './routes/_authenticated/entregador.historico'
+import { Route as AuthenticatedEntregadorAceitosRouteImport } from './routes/_authenticated/entregador.aceitos'
 import { Route as AuthenticatedPedidosIdDisputaRouteImport } from './routes/_authenticated/pedidos.$id.disputa'
 import { Route as AuthenticatedPedidosIdAvaliarRouteImport } from './routes/_authenticated/pedidos.$id.avaliar'
+import { Route as AuthenticatedEntregadorPedidoIdRouteImport } from './routes/_authenticated/entregador.pedido.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -72,11 +76,29 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEntregadorIndexRoute =
+  AuthenticatedEntregadorIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedEntregadorRoute,
+  } as any)
 const AuthenticatedPedidosIdRoute = AuthenticatedPedidosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AuthenticatedPedidosRoute,
 } as any)
+const AuthenticatedEntregadorHistoricoRoute =
+  AuthenticatedEntregadorHistoricoRouteImport.update({
+    id: '/historico',
+    path: '/historico',
+    getParentRoute: () => AuthenticatedEntregadorRoute,
+  } as any)
+const AuthenticatedEntregadorAceitosRoute =
+  AuthenticatedEntregadorAceitosRouteImport.update({
+    id: '/aceitos',
+    path: '/aceitos',
+    getParentRoute: () => AuthenticatedEntregadorRoute,
+  } as any)
 const AuthenticatedPedidosIdDisputaRoute =
   AuthenticatedPedidosIdDisputaRouteImport.update({
     id: '/disputa',
@@ -89,18 +111,28 @@ const AuthenticatedPedidosIdAvaliarRoute =
     path: '/avaliar',
     getParentRoute: () => AuthenticatedPedidosIdRoute,
   } as any)
+const AuthenticatedEntregadorPedidoIdRoute =
+  AuthenticatedEntregadorPedidoIdRouteImport.update({
+    id: '/pedido/$id',
+    path: '/pedido/$id',
+    getParentRoute: () => AuthenticatedEntregadorRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dev': typeof AuthenticatedDevRoute
-  '/entregador': typeof AuthenticatedEntregadorRoute
+  '/entregador': typeof AuthenticatedEntregadorRouteWithChildren
   '/home': typeof AuthenticatedHomeRoute
   '/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
+  '/entregador/historico': typeof AuthenticatedEntregadorHistoricoRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
+  '/entregador/': typeof AuthenticatedEntregadorIndexRoute
+  '/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
 }
@@ -109,12 +141,15 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dev': typeof AuthenticatedDevRoute
-  '/entregador': typeof AuthenticatedEntregadorRoute
   '/home': typeof AuthenticatedHomeRoute
   '/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
+  '/entregador/historico': typeof AuthenticatedEntregadorHistoricoRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
+  '/entregador': typeof AuthenticatedEntregadorIndexRoute
+  '/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
 }
@@ -125,12 +160,16 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
-  '/_authenticated/entregador': typeof AuthenticatedEntregadorRoute
+  '/_authenticated/entregador': typeof AuthenticatedEntregadorRouteWithChildren
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/_authenticated/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
+  '/_authenticated/entregador/historico': typeof AuthenticatedEntregadorHistoricoRoute
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
+  '/_authenticated/entregador/': typeof AuthenticatedEntregadorIndexRoute
+  '/_authenticated/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
   '/_authenticated/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/_authenticated/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
 }
@@ -146,7 +185,11 @@ export interface FileRouteTypes {
     | '/novo-pedido'
     | '/pedidos'
     | '/perfil'
+    | '/entregador/aceitos'
+    | '/entregador/historico'
     | '/pedidos/$id'
+    | '/entregador/'
+    | '/entregador/pedido/$id'
     | '/pedidos/$id/avaliar'
     | '/pedidos/$id/disputa'
   fileRoutesByTo: FileRoutesByTo
@@ -155,12 +198,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/dev'
-    | '/entregador'
     | '/home'
     | '/novo-pedido'
     | '/pedidos'
     | '/perfil'
+    | '/entregador/aceitos'
+    | '/entregador/historico'
     | '/pedidos/$id'
+    | '/entregador'
+    | '/entregador/pedido/$id'
     | '/pedidos/$id/avaliar'
     | '/pedidos/$id/disputa'
   id:
@@ -175,7 +221,11 @@ export interface FileRouteTypes {
     | '/_authenticated/novo-pedido'
     | '/_authenticated/pedidos'
     | '/_authenticated/perfil'
+    | '/_authenticated/entregador/aceitos'
+    | '/_authenticated/entregador/historico'
     | '/_authenticated/pedidos/$id'
+    | '/_authenticated/entregador/'
+    | '/_authenticated/entregador/pedido/$id'
     | '/_authenticated/pedidos/$id/avaliar'
     | '/_authenticated/pedidos/$id/disputa'
   fileRoutesById: FileRoutesById
@@ -258,12 +308,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/entregador/': {
+      id: '/_authenticated/entregador/'
+      path: '/'
+      fullPath: '/entregador/'
+      preLoaderRoute: typeof AuthenticatedEntregadorIndexRouteImport
+      parentRoute: typeof AuthenticatedEntregadorRoute
+    }
     '/_authenticated/pedidos/$id': {
       id: '/_authenticated/pedidos/$id'
       path: '/$id'
       fullPath: '/pedidos/$id'
       preLoaderRoute: typeof AuthenticatedPedidosIdRouteImport
       parentRoute: typeof AuthenticatedPedidosRoute
+    }
+    '/_authenticated/entregador/historico': {
+      id: '/_authenticated/entregador/historico'
+      path: '/historico'
+      fullPath: '/entregador/historico'
+      preLoaderRoute: typeof AuthenticatedEntregadorHistoricoRouteImport
+      parentRoute: typeof AuthenticatedEntregadorRoute
+    }
+    '/_authenticated/entregador/aceitos': {
+      id: '/_authenticated/entregador/aceitos'
+      path: '/aceitos'
+      fullPath: '/entregador/aceitos'
+      preLoaderRoute: typeof AuthenticatedEntregadorAceitosRouteImport
+      parentRoute: typeof AuthenticatedEntregadorRoute
     }
     '/_authenticated/pedidos/$id/disputa': {
       id: '/_authenticated/pedidos/$id/disputa'
@@ -279,8 +350,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPedidosIdAvaliarRouteImport
       parentRoute: typeof AuthenticatedPedidosIdRoute
     }
+    '/_authenticated/entregador/pedido/$id': {
+      id: '/_authenticated/entregador/pedido/$id'
+      path: '/pedido/$id'
+      fullPath: '/entregador/pedido/$id'
+      preLoaderRoute: typeof AuthenticatedEntregadorPedidoIdRouteImport
+      parentRoute: typeof AuthenticatedEntregadorRoute
+    }
   }
 }
+
+interface AuthenticatedEntregadorRouteChildren {
+  AuthenticatedEntregadorAceitosRoute: typeof AuthenticatedEntregadorAceitosRoute
+  AuthenticatedEntregadorHistoricoRoute: typeof AuthenticatedEntregadorHistoricoRoute
+  AuthenticatedEntregadorIndexRoute: typeof AuthenticatedEntregadorIndexRoute
+  AuthenticatedEntregadorPedidoIdRoute: typeof AuthenticatedEntregadorPedidoIdRoute
+}
+
+const AuthenticatedEntregadorRouteChildren: AuthenticatedEntregadorRouteChildren =
+  {
+    AuthenticatedEntregadorAceitosRoute: AuthenticatedEntregadorAceitosRoute,
+    AuthenticatedEntregadorHistoricoRoute:
+      AuthenticatedEntregadorHistoricoRoute,
+    AuthenticatedEntregadorIndexRoute: AuthenticatedEntregadorIndexRoute,
+    AuthenticatedEntregadorPedidoIdRoute: AuthenticatedEntregadorPedidoIdRoute,
+  }
+
+const AuthenticatedEntregadorRouteWithChildren =
+  AuthenticatedEntregadorRoute._addFileChildren(
+    AuthenticatedEntregadorRouteChildren,
+  )
 
 interface AuthenticatedPedidosIdRouteChildren {
   AuthenticatedPedidosIdAvaliarRoute: typeof AuthenticatedPedidosIdAvaliarRoute
@@ -312,7 +411,7 @@ const AuthenticatedPedidosRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
-  AuthenticatedEntregadorRoute: typeof AuthenticatedEntregadorRoute
+  AuthenticatedEntregadorRoute: typeof AuthenticatedEntregadorRouteWithChildren
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedNovoPedidoRoute: typeof AuthenticatedNovoPedidoRoute
   AuthenticatedPedidosRoute: typeof AuthenticatedPedidosRouteWithChildren
@@ -322,7 +421,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
-  AuthenticatedEntregadorRoute: AuthenticatedEntregadorRoute,
+  AuthenticatedEntregadorRoute: AuthenticatedEntregadorRouteWithChildren,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedNovoPedidoRoute: AuthenticatedNovoPedidoRoute,
   AuthenticatedPedidosRoute: AuthenticatedPedidosRouteWithChildren,

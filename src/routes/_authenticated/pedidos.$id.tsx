@@ -54,18 +54,10 @@ interface Order {
 interface Pessoa { id: string; nome: string; telefone: string | null }
 interface Evento { id: string; status: string; criado_em: string; nota: string | null }
 
-const NEXT_STEPS: { from: string; to: OrderStatus; label: string }[] = [
-  { from: "aceito", to: "indo_loja", label: "Estou indo para a loja" },
-  { from: "indo_loja", to: "em_compra", label: "Comecei a comprar" },
-  { from: "em_compra", to: "compra_finalizada", label: "Compra concluída" },
-  { from: "compra_finalizada", to: "em_entrega", label: "Saí para entrega" },
-  { from: "em_entrega", to: "entregue", label: "Marcar como entregue" },
-];
-
 function PedidoDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const { userId, canDeliver, isAdmin } = useUser();
+  const { userId, isAdmin } = useUser();
   const confirmar = useServerFn(confirmDelivery);
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,6 +85,13 @@ function PedidoDetail() {
       .order("criado_em");
     setEventos((ev as Evento[]) ?? []);
   }, [id]);
+
+  useEffect(() => {
+    if (!order || !userId) return;
+    if (order.cliente_id !== userId && !isAdmin) {
+      navigate({ to: "/entregador/pedido/$id", params: { id }, replace: true });
+    }
+  }, [order, userId, isAdmin, id, navigate]);
 
   useEffect(() => {
     load();
@@ -131,7 +130,7 @@ function PedidoDetail() {
   const isCliente = userId === order.cliente_id;
   const isEntregador = userId === order.entregador_id;
   const participa = isCliente || isEntregador || isAdmin;
-  const backTo = isCliente ? "/pedidos" : "/entregador";
+  const backTo = "/pedidos";
   const step = statusIndex(order.status);
   const cat = CATEGORIAS.find((c) => c.id === order.categoria);
   const outro = isCliente ? entregador : cliente;
@@ -153,27 +152,6 @@ function PedidoDetail() {
     load();
   }
 
-  async function aceitar() {
-    if (!userId) return;
-    if (!canDeliver) {
-      toast.error("Ative o modo entregador no seu perfil para aceitar pedidos.");
-      return;
-    }
-    const now = new Date().toISOString();
-    const { data, error } = await supabase
-      .from("orders")
-      .update({ entregador_id: userId, status: "aceito", aceito_em: now, atualizado_em: now })
-      .eq("id", id)
-      .is("entregador_id", null)
-      .select("*")
-      .maybeSingle();
-    if (error) return toast.error(error.message);
-    if (!data) return toast.error("Esse pedido já foi aceito por outro entregador.");
-    await supabase.from("order_events").insert({ order_id: id, autor_id: userId, status: "aceito" });
-    toast.success("Pedido aceito! Fale com o cliente pelo WhatsApp.");
-    load();
-  }
-
   async function confirmarEntrega() {
     try {
       await confirmar({ data: { orderId: id } });
@@ -183,8 +161,6 @@ function PedidoDetail() {
       toast.error(e instanceof Error ? e.message : "Não foi possível confirmar");
     }
   }
-
-  const proximo = NEXT_STEPS.find((s) => s.from === order.status);
 
   return (
     <AppShell hideNav>
@@ -309,19 +285,8 @@ function PedidoDetail() {
       )}
 
       <section className="px-6 pt-6 pb-10 space-y-3">
-        {isEntregador && proximo && (
-          <PrimaryBtn onClick={() => registrar(proximo.to)}>{proximo.label}</PrimaryBtn>
-        )}
         {isCliente && order.status === "entregue" && (
           <PrimaryBtn onClick={confirmarEntrega}>Recebi meu pedido</PrimaryBtn>
-        )}
-        {!isCliente && !isEntregador && order.status === "aguardando_entregador" && canDeliver && (
-          <PrimaryBtn onClick={aceitar}>Aceitar este pedido</PrimaryBtn>
-        )}
-        {!isCliente && !isEntregador && order.status === "aguardando_entregador" && !canDeliver && (
-          <p className="text-xs text-muted-foreground text-center">
-            Ative "Quero fazer entregas" no perfil para aceitar pedidos.
-          </p>
         )}
         {isCliente && ["entregue", "em_entrega", "compra_finalizada", "em_compra"].includes(order.status) && (
           <Link

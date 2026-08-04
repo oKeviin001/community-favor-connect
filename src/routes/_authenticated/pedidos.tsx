@@ -42,7 +42,7 @@ function Pedidos() {
       const { data } = await supabase
         .from("orders")
         .select("id, descricao, loja, status, categoria, total, criado_em, cliente_id, entregador_id")
-        .or(`cliente_id.eq.${u.user.id},entregador_id.eq.${u.user.id}`)
+        .eq("cliente_id", u.user.id)
         .order("criado_em", { ascending: false });
       if (!mounted) return;
       setRows(((data as unknown) as Row[]) ?? []);
