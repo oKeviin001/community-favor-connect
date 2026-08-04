@@ -39,7 +39,7 @@ function Home() {
     async function load() {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user || !mounted) return;
-      const [{ data: prof }, { data: mine }, { data: recent }] = await Promise.all([
+      const [{ data: prof }, { data: mine }] = await Promise.all([
         supabase.from("profiles").select("nome, bairro, tipo").eq("id", userData.user.id).maybeSingle(),
         supabase
           .from("orders")
@@ -48,17 +48,10 @@ function Home() {
           .not("status", "in", "(entregue,confirmado,cancelado)")
           .order("criado_em", { ascending: false })
           .limit(1),
-        supabase
-          .from("orders")
-          .select("id, descricao, loja, status, categoria, criado_em")
-          .eq("status", "aguardando_entregador")
-          .order("criado_em", { ascending: false })
-          .limit(3),
       ]);
       if (!mounted) return;
       setProfile(prof as Profile | null);
       setActive((mine?.[0] as OrderRow) ?? null);
-      setFeed((recent as OrderRow[]) ?? []);
     }
     load();
 
