@@ -227,7 +227,7 @@ function Dev() {
               return (
                 <div key={c.id} className="flex gap-2 items-center">
                   <input
-                    className="w-14 h-11 rounded-xl bg-card ring-1 ring-black/5 text-center text-lg"
+                    className="w-14 h-11 rounded-xl bg-card border border-border text-center text-lg"
                     value={cur.emoji ?? c.emoji}
                     onChange={(e) =>
                       updateOv({
@@ -239,7 +239,7 @@ function Dev() {
                     }
                   />
                   <input
-                    className="flex-1 h-11 px-3 rounded-xl bg-card ring-1 ring-black/5"
+                    className="flex-1 h-11 px-3 rounded-xl bg-card border border-border"
                     value={cur.label ?? c.label}
                     onChange={(e) =>
                       updateOv({
@@ -256,7 +256,7 @@ function Dev() {
           </Section>
 
           <Section title="Ações rápidas">
-            <button onClick={fakeOrder} className="w-full h-11 rounded-xl bg-card ring-1 ring-black/5 text-sm font-medium">
+            <button onClick={fakeOrder} className="w-full h-11 rounded-xl bg-card border border-border text-sm font-medium">
               + Criar pedido fake
             </button>
             <button
@@ -272,7 +272,7 @@ function Dev() {
       {tab === "orders" && (
         <div className="px-6 space-y-2 pb-8">
           {orders.map((o) => (
-            <div key={o.id} className="bg-card ring-1 ring-black/5 rounded-2xl p-4 space-y-2">
+            <div key={o.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
               <div className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{o.descricao}</p>
@@ -315,7 +315,7 @@ function Dev() {
       {tab === "users" && (
         <div className="px-6 space-y-2 pb-8">
           {profiles.map((p) => (
-            <div key={p.id} className="bg-card ring-1 ring-black/5 rounded-2xl p-4">
+            <div key={p.id} className="bg-card border border-border rounded-2xl p-4">
               <p className="text-sm font-medium">{p.nome} {p.id === me && <span className="text-primary text-[10px]">(você)</span>}</p>
               <p className="text-[11px] text-muted-foreground">
                 {p.tipo} · {p.bairro ?? "sem bairro"}
@@ -347,7 +347,7 @@ function NumField({ label, value, onChange }: { label: string; value: number; on
         step="0.01"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-28 h-10 px-3 rounded-xl bg-card ring-1 ring-black/5 text-right"
+        className="w-28 h-10 px-3 rounded-xl bg-card border border-border text-right"
       />
     </label>
   );

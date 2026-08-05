@@ -87,14 +87,14 @@ function Perfil() {
   return (
     <AppShell>
       <header className="px-6 pt-10 pb-4">
-        <h1 className="text-2xl font-semibold">Perfil</h1>
+        <h1 className="text-[26px] font-semibold">Perfil</h1>
       </header>
 
       <div className="px-6 space-y-5">
         {isAdmin && (
           <Link
             to="/admin"
-            className="w-full h-12 bg-card ring-1 ring-black/5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
+            className="w-full h-12 bg-card border border-border rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
           >
             <Shield size={16} /> Painel administrativo
           </Link>
@@ -107,8 +107,8 @@ function Perfil() {
             <Wand2 size={16} /> Abrir Modo Deus
           </Link>
         )}
-        <div className="bg-card ring-1 ring-black/5 rounded-2xl p-5 flex items-center gap-4">
-          <div className="size-16 rounded-full bg-secondary flex items-center justify-center text-2xl font-semibold">
+        <div className="surface p-6 flex items-center gap-4">
+          <div className="size-20 rounded-full bg-secondary border border-border flex items-center justify-center text-2xl font-semibold text-foreground">
             {nome.charAt(0).toUpperCase() || "?"}
           </div>
           <div className="flex-1">
@@ -166,20 +166,20 @@ function Perfil() {
         <button
           onClick={salvar}
           disabled={saving}
-          className="w-full h-14 bg-primary text-primary-foreground rounded-2xl font-medium disabled:opacity-60"
+          className="btn-base btn-base-active w-full bg-primary text-primary-foreground disabled:opacity-60"
         >
           {saving ? "Salvando..." : "Salvar alterações"}
         </button>
 
         <button
           onClick={sair}
-          className="w-full h-12 bg-card ring-1 ring-black/5 rounded-2xl text-destructive text-sm font-medium flex items-center justify-center gap-2"
+          className="w-full h-12 bg-card border border-border rounded-2xl text-destructive text-sm font-medium flex items-center justify-center gap-2"
         >
           <LogOut size={16} /> Sair
         </button>
       </div>
 
-      <style>{`.input{width:100%;height:48px;padding:0 16px;border-radius:16px;background:var(--card);box-shadow:inset 0 0 0 1px rgba(0,0,0,0.05);font-size:16px;outline:none}.input:focus{box-shadow:inset 0 0 0 2px var(--primary)}`}</style>
+      <style>{`.input{width:100%;height:52px;padding:0 16px;border-radius:16px;background:var(--card);border:1px solid var(--border);font-size:16px;outline:none;color:var(--foreground)}.input:focus{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in oklab, var(--primary) 14%, transparent)}`}</style>
     </AppShell>
   );
 }
@@ -187,7 +187,7 @@ function Perfil() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{label}</label>
+      <label className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground font-semibold">{label}</label>
       <div className="mt-2">{children}</div>
     </div>
   );

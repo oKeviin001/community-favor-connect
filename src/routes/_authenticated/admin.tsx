@@ -126,7 +126,7 @@ function Admin() {
               key={o.id}
               to="/pedidos/$id"
               params={{ id: o.id }}
-              className="block bg-card ring-1 ring-black/5 rounded-2xl p-4"
+              className="block bg-card border border-border rounded-2xl p-4"
             >
               <div className="flex justify-between gap-3">
                 <p className="text-sm font-semibold truncate">{o.loja || o.descricao}</p>
@@ -143,7 +143,7 @@ function Admin() {
         )}
         {tab === "disputas" &&
           disputes.map((d) => (
-            <div key={d.id} className="bg-card ring-1 ring-black/5 rounded-2xl p-4 space-y-2">
+            <div key={d.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
               <div className="flex justify-between gap-2">
                 <p className="text-sm font-semibold">{d.motivo}</p>
                 <span className="text-[11px] uppercase text-accent">{d.status}</span>
@@ -165,7 +165,7 @@ function Admin() {
 
         {tab === "usuarios" &&
           profiles.map((p) => (
-            <div key={p.id} className="bg-card ring-1 ring-black/5 rounded-2xl p-4 space-y-2">
+            <div key={p.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
               <div className="flex justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold truncate">{p.nome}</p>
@@ -200,7 +200,7 @@ function Admin() {
 
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
-    <div className="bg-card ring-1 ring-black/5 rounded-2xl p-3">
+    <div className="bg-card border border-border rounded-2xl p-3">
       <div className="flex items-center gap-1 text-muted-foreground text-[10px] uppercase tracking-wider">
         {icon} {label}
       </div>

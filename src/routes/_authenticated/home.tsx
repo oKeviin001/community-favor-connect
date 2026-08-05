@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { CATEGORIAS, STATUS_LABEL, statusIndex, TIMELINE_STEPS } from "@/lib/order-helpers";
-import { Plus, MessageCircle } from "lucide-react";
+import { Plus, ChevronRight } from "lucide-react";
+import heroImg from "@/assets/hero-community.png";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({
@@ -72,38 +73,53 @@ function Home() {
       <header className="px-6 pt-10 pb-4">
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-accent font-medium text-sm tracking-wide uppercase">
+            <p className="text-muted-foreground font-medium text-[11px] tracking-[0.18em] uppercase">
               {profile?.bairro ?? "Sua vizinhança"}
             </p>
-            <h1 className="text-2xl font-semibold leading-tight text-foreground text-balance max-w-[20ch]">
+            <h1 className="text-[26px] font-semibold leading-tight text-foreground text-balance max-w-[20ch] mt-1">
               Olá, {firstName || "vizinho"}
             </h1>
           </div>
           <Link
             to="/perfil"
-            className="size-12 rounded-full bg-secondary ring-1 ring-black/5 flex items-center justify-center text-lg font-medium text-foreground"
+            className="size-12 rounded-full bg-secondary border border-border flex items-center justify-center text-base font-semibold text-foreground"
           >
             {firstName.charAt(0).toUpperCase() || "?"}
           </Link>
         </div>
       </header>
 
-      <div className="px-6 py-4">
-        <Link
-          to="/novo-pedido"
-          className="w-full h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-primary/10"
-        >
-          <div className="size-6 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-            <Plus size={16} />
+      <section className="px-6 pt-2">
+        <div className="surface overflow-hidden">
+          <div className="bg-secondary/60 px-5 pt-4">
+            <img
+              src={heroImg}
+              alt="Vizinhos ajudando vizinhos com compras e entregas"
+              width={1024}
+              height={768}
+              loading="lazy"
+              className="w-full h-32 object-contain"
+            />
           </div>
-          <span className="text-lg font-medium">Fazer novo pedido</span>
-        </Link>
-      </div>
+          <div className="p-5">
+            <h2 className="text-base font-semibold">Precisa de alguma coisa?</h2>
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+              Um vizinho da sua região resolve para você em poucos minutos.
+            </p>
+            <Link
+              to="/novo-pedido"
+              className="btn-base btn-base-active w-full bg-primary text-primary-foreground mt-4"
+            >
+              <Plus size={18} /> Fazer novo pedido
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {active && (
         <section className="px-6 py-6">
           <Link to="/pedidos/$id" params={{ id: active.id }}>
-            <div className="bg-secondary rounded-[20px] p-5 ring-1 ring-black/5">
+            <div className="surface p-5">
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h2 className="text-base font-semibold">Pedido em andamento</h2>
@@ -111,7 +127,7 @@ function Home() {
                     {active.loja || active.descricao}
                   </p>
                 </div>
-                <span className="bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-medium">
+                <span className="bg-secondary text-foreground border border-border px-3 py-1 rounded-full text-[11px] font-semibold">
                   {STATUS_LABEL[active.status]}
                 </span>
               </div>
@@ -126,7 +142,7 @@ function Home() {
                   return (
                     <div key={step} className="relative z-10 flex flex-col items-center gap-2">
                       <div
-                        className={`size-4 rounded-full ring-4 ring-secondary ${
+                        className={`size-4 rounded-full ring-4 ring-card ${
                           done ? "bg-primary" : "bg-border"
                         }`}
                       />
@@ -142,13 +158,11 @@ function Home() {
                 })}
               </div>
               <div className="mt-6 pt-4 border-t border-border/60 flex items-center gap-3">
-                <div className="size-10 rounded-full bg-secondary ring-1 ring-black/5 flex items-center justify-center">
-                  <MessageCircle size={18} className="text-muted-foreground" />
-                </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">Abrir pedido</p>
-                  <p className="text-xs text-muted-foreground">Ver detalhes e conversar</p>
+                  <p className="text-sm font-semibold">Abrir pedido</p>
+                  <p className="text-xs text-muted-foreground">Ver detalhes e acompanhar</p>
                 </div>
+                <ChevronRight size={18} className="text-muted-foreground" />
               </div>
             </div>
           </Link>
@@ -156,7 +170,7 @@ function Home() {
       )}
 
       <section className="px-6 py-4">
-        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">
+        <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.16em] mb-4">
           Categorias
         </h3>
         <div className="grid grid-cols-3 gap-3">
@@ -165,12 +179,12 @@ function Home() {
               key={c.id}
               to="/novo-pedido"
               search={{ categoria: c.id }}
-              className="flex flex-col items-center gap-3 p-4 bg-card rounded-2xl ring-1 ring-black/5 aspect-square justify-center"
+              className="flex flex-col items-center gap-2.5 p-4 surface aspect-square justify-center"
             >
-              <div className={`size-10 ${c.tint} rounded-xl flex items-center justify-center text-2xl`}>
+              <div className={`size-10 ${c.tint} border border-border rounded-xl flex items-center justify-center text-xl`}>
                 {c.emoji}
               </div>
-              <span className="text-xs font-medium">{c.label}</span>
+              <span className="text-xs font-semibold">{c.label}</span>
             </Link>
           ))}
         </div>

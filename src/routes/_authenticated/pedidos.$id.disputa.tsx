@@ -101,7 +101,7 @@ function Disputa() {
 
       <div className="px-6 py-4">
         {existing ? (
-          <div className="bg-card ring-1 ring-black/5 rounded-2xl p-5 space-y-2">
+          <div className="bg-card border border-border rounded-2xl p-5 space-y-2">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Disputa aberta</p>
             <p className="font-semibold">{existing.motivo}</p>
             {existing.descricao && <p className="text-sm text-muted-foreground">{existing.descricao}</p>}
@@ -148,7 +148,7 @@ function Disputa() {
                 onChange={(e) => setDescricao(e.target.value)}
                 maxLength={1000}
                 placeholder="Descreva o problema com detalhes..."
-                className="w-full mt-2 px-4 py-3 rounded-2xl bg-card ring-1 ring-black/5 text-base focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full mt-2 px-4 py-3 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 

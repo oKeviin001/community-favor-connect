@@ -114,7 +114,7 @@ function Avaliar() {
       </header>
 
       <div className="px-6 py-4">
-        <div className="bg-secondary rounded-2xl p-5 ring-1 ring-black/5 mb-6">
+        <div className="bg-secondary rounded-2xl p-5 border border-border mb-6">
           <p className="text-sm text-muted-foreground">Pedido</p>
           <p className="font-semibold">{order.loja || order.descricao}</p>
           <p className="text-xs text-accent mt-1">{STATUS_LABEL[order.status]}</p>
@@ -166,7 +166,7 @@ function Avaliar() {
               ["educacao", "Educação"],
               ["confiabilidade", "Confiabilidade"],
             ] as const).map(([key, label]) => (
-              <div key={key} className="flex items-center justify-between bg-card ring-1 ring-black/5 rounded-2xl px-4 py-3">
+              <div key={key} className="flex items-center justify-between bg-card border border-border rounded-2xl px-4 py-3">
                 <span className="text-sm">{label}</span>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((n) => (
@@ -194,7 +194,7 @@ function Avaliar() {
               onChange={(e) => setComentario(e.target.value)}
               maxLength={300}
               placeholder="Conte como foi a experiência..."
-              className="w-full mt-2 px-4 py-3 rounded-2xl bg-card ring-1 ring-black/5 text-base placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full mt-2 px-4 py-3 rounded-2xl bg-card border border-border text-base placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 

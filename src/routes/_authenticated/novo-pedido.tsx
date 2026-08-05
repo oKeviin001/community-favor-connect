@@ -123,7 +123,7 @@ function NovoPedido() {
             onChange={(e) => setDescricao(e.target.value)}
             maxLength={500}
             placeholder="Ex: 2 pães franceses, 1 litro de leite integral e requeijão"
-            className="w-full px-4 py-3 rounded-2xl bg-card ring-1 ring-black/5 text-base placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-3 rounded-2xl bg-card border border-border text-base placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </Field>
 
@@ -133,7 +133,7 @@ function NovoPedido() {
             onChange={(e) => setLoja(e.target.value)}
             maxLength={120}
             placeholder="Padaria do Zé"
-            className="w-full h-12 px-4 rounded-2xl bg-card ring-1 ring-black/5 text-base focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full h-12 px-4 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </Field>
 
@@ -143,7 +143,7 @@ function NovoPedido() {
             onChange={(e) => setEnderecoLoja(e.target.value)}
             maxLength={200}
             placeholder="Rua, número, bairro"
-            className="w-full h-12 px-4 rounded-2xl bg-card ring-1 ring-black/5 text-base focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full h-12 px-4 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </Field>
 
@@ -154,7 +154,7 @@ function NovoPedido() {
             onChange={(e) => setEnderecoEntrega(e.target.value)}
             maxLength={200}
             placeholder="Rua, número, complemento"
-            className="w-full h-12 px-4 rounded-2xl bg-card ring-1 ring-black/5 text-base focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full h-12 px-4 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </Field>
 
@@ -168,7 +168,7 @@ function NovoPedido() {
             value={valor}
             onChange={(e) => setValor(e.target.value)}
             placeholder="0,00"
-            className="w-full h-12 px-4 rounded-2xl bg-card ring-1 ring-black/5 text-base focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full h-12 px-4 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </Field>
 
@@ -179,11 +179,11 @@ function NovoPedido() {
             onChange={(e) => setObs(e.target.value)}
             maxLength={300}
             placeholder="Preferências, marca, troco..."
-            className="w-full px-4 py-3 rounded-2xl bg-card ring-1 ring-black/5 text-base focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-3 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </Field>
 
-        <div className="bg-secondary rounded-2xl p-4 space-y-2 ring-1 ring-black/5">
+        <div className="bg-secondary rounded-2xl p-4 space-y-2 border border-border">
           <Row label="Produtos" value={formatBRL(valorNum)} />
           <Row label="Frete" value={formatBRL(frete)} />
           <Row label="Taxa da plataforma" value={formatBRL(taxa)} />
