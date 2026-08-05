@@ -63,7 +63,7 @@ function Pedidos() {
     return (
       <AppShell>
         <header className="px-6 pt-10 pb-4">
-          <h1 className="text-2xl font-semibold">Meus pedidos</h1>
+          <h1 className="text-[26px] font-semibold">Meus pedidos</h1>
           <p className="text-sm text-muted-foreground">Carregando...</p>
         </header>
         <div className="px-6 space-y-3">
@@ -78,13 +78,13 @@ function Pedidos() {
   return (
     <AppShell>
       <header className="px-6 pt-10 pb-4">
-        <h1 className="text-2xl font-semibold">Meus pedidos</h1>
+        <h1 className="text-[26px] font-semibold">Meus pedidos</h1>
         <p className="text-sm text-muted-foreground">Ativos e histórico</p>
       </header>
 
       <div className="px-6 space-y-3">
         {rows.length === 0 && (
-          <div className="bg-card rounded-2xl border border-border p-8 text-center">
+          <div className="surface p-8 text-center">
             <p className="text-muted-foreground text-sm">Nenhum pedido ainda.</p>
             <Link to="/novo-pedido" className="mt-4 inline-block text-primary font-semibold text-sm">
               Criar meu primeiro pedido
@@ -93,18 +93,22 @@ function Pedidos() {
         )}
         {rows.map((o) => (
           <Link key={o.id} to="/pedidos/$id" params={{ id: o.id }}>
-            <div className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-border">
-              <div className="size-12 rounded-xl bg-secondary shrink-0 flex items-center justify-center text-xl">
+            <div className="flex items-center gap-4 p-4 surface">
+              <div className="size-12 rounded-xl bg-secondary border border-border shrink-0 flex items-center justify-center text-lg">
                 {CATEGORIAS.find((c) => c.id === o.categoria)?.emoji ?? "📦"}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{o.loja || o.descricao}</p>
-                <p className="text-xs text-muted-foreground truncate">{STATUS_LABEL[o.status]}</p>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{o.descricao}</p>
+                <span className="inline-flex mt-1.5 items-center rounded-full bg-secondary border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {STATUS_LABEL[o.status]}
+                </span>
               </div>
               <div className="text-right">
                 <p className="text-sm font-semibold">{formatBRL(o.total)}</p>
-                <p className="text-[10px] text-muted-foreground uppercase">
-                  {new Date(o.criado_em).toLocaleDateString("pt-BR")}
+                <p className="text-[10px] text-muted-foreground uppercase mt-0.5">
+                  {new Date(o.criado_em).toLocaleDateString("pt-BR")} ·{" "}
+                  {new Date(o.criado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
             </div>
