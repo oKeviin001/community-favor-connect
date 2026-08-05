@@ -57,16 +57,16 @@ function Historico() {
 
       <div className="px-6 space-y-3">
         {loading && [...Array(2)].map((_, i) => (
-          <div key={i} className="h-20 bg-card rounded-2xl ring-1 ring-black/5 animate-pulse" />
+          <div key={i} className="h-20 bg-card rounded-2xl border border-border animate-pulse" />
         ))}
         {!loading && rows.length === 0 && (
-          <div className="bg-card rounded-2xl ring-1 ring-black/5 p-8 text-center">
+          <div className="bg-card rounded-2xl border border-border p-8 text-center">
             <p className="text-muted-foreground text-sm">Nenhuma entrega concluída ainda.</p>
           </div>
         )}
         {rows.map((o) => (
           <Link key={o.id} to="/entregador/pedido/$id" params={{ id: o.id }}>
-            <div className="bg-card rounded-2xl ring-1 ring-black/5 p-4 flex items-center gap-4">
+            <div className="bg-card rounded-2xl border border-border p-4 flex items-center gap-4">
               <div className="size-12 rounded-xl bg-secondary flex items-center justify-center text-xl shrink-0">
                 {CATEGORIAS.find((c) => c.id === o.categoria)?.emoji ?? "📦"}
               </div>

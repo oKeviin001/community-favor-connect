@@ -187,7 +187,7 @@ function PedidoEntregador() {
       </header>
 
       <section className="px-6 pt-4">
-        <div className="bg-secondary rounded-[20px] p-5 ring-1 ring-black/5">
+        <div className="bg-secondary rounded-2xl p-5 border border-border">
           <h2 className="text-base font-semibold">{STATUS_LABEL[order.status]}</h2>
           <p className="text-sm text-muted-foreground mb-5">
             {disponivel ? "Disponível para aceite" : meu ? "Você é o entregador deste pedido" : "Já atribuído a outro entregador"}
@@ -214,7 +214,7 @@ function PedidoEntregador() {
 
       <section className="px-6 pt-6">
         <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">Cliente</h3>
-        <div className="bg-card rounded-2xl ring-1 ring-black/5 p-4 space-y-3">
+        <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
           <div className="flex items-center gap-3">
             <div className="size-11 rounded-full bg-secondary flex items-center justify-center font-semibold">
               {cliente?.nome?.charAt(0).toUpperCase() ?? "?"}
@@ -249,7 +249,7 @@ function PedidoEntregador() {
         <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">
           O que fazer
         </h3>
-        <div className="bg-card rounded-2xl ring-1 ring-black/5 p-4 space-y-4 text-sm">
+        <div className="bg-card rounded-2xl border border-border p-4 space-y-4 text-sm">
           <Info icon={<StickyNote size={14} />} label="Descrição completa" value={order.descricao} />
           {order.loja && <Info icon={<Store size={14} />} label="Loja" value={order.loja} />}
           {order.endereco_loja && (
@@ -296,7 +296,7 @@ function PedidoEntregador() {
         {!meu && !disponivel && (
           <Link
             to="/entregador"
-            className="w-full h-12 rounded-2xl bg-card ring-1 ring-black/5 text-sm font-medium flex items-center justify-center"
+            className="w-full h-12 rounded-2xl bg-card border border-border text-sm font-medium flex items-center justify-center"
           >
             Ver outros pedidos disponíveis
           </Link>

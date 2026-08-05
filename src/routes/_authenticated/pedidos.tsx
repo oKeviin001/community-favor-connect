@@ -68,7 +68,7 @@ function Pedidos() {
         </header>
         <div className="px-6 space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-20 bg-card rounded-2xl ring-1 ring-black/5 animate-pulse" />
+            <div key={i} className="h-20 bg-card rounded-2xl border border-border animate-pulse" />
           ))}
         </div>
       </AppShell>
@@ -84,7 +84,7 @@ function Pedidos() {
 
       <div className="px-6 space-y-3">
         {rows.length === 0 && (
-          <div className="bg-card rounded-2xl ring-1 ring-black/5 p-8 text-center">
+          <div className="bg-card rounded-2xl border border-border p-8 text-center">
             <p className="text-muted-foreground text-sm">Nenhum pedido ainda.</p>
             <Link to="/novo-pedido" className="mt-4 inline-block text-primary font-semibold text-sm">
               Criar meu primeiro pedido
@@ -93,7 +93,7 @@ function Pedidos() {
         )}
         {rows.map((o) => (
           <Link key={o.id} to="/pedidos/$id" params={{ id: o.id }}>
-            <div className="flex items-center gap-4 p-4 bg-card rounded-2xl ring-1 ring-black/5">
+            <div className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-border">
               <div className="size-12 rounded-xl bg-secondary shrink-0 flex items-center justify-center text-xl">
                 {CATEGORIAS.find((c) => c.id === o.categoria)?.emoji ?? "📦"}
               </div>

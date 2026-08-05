@@ -85,7 +85,7 @@ export function Comprovantes({
       <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">
         Comprovantes
       </h3>
-      <div className="bg-card rounded-2xl ring-1 ring-black/5 p-4 space-y-3">
+      <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
         {items.length === 0 && (
           <p className="text-xs text-muted-foreground text-center py-2">
             Nenhum comprovante anexado ainda.

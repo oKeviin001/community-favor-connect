@@ -175,7 +175,7 @@ function PedidoDetail() {
       </header>
 
       <section className="px-6 pt-4">
-        <div className="bg-secondary rounded-[20px] p-5 ring-1 ring-black/5">
+        <div className="bg-secondary rounded-2xl p-5 border border-border">
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-base font-semibold">{STATUS_LABEL[order.status]}</h2>
@@ -212,7 +212,7 @@ function PedidoDetail() {
           <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">
             {isCliente ? "Entregador" : "Cliente"}
           </h3>
-          <div className="bg-card rounded-2xl ring-1 ring-black/5 p-4 space-y-3">
+          <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
             <div className="flex items-center gap-3">
               <div className="size-11 rounded-full bg-secondary flex items-center justify-center font-semibold">
                 {outro.nome?.charAt(0).toUpperCase() ?? "?"}
@@ -244,7 +244,7 @@ function PedidoDetail() {
 
       <section className="px-6 pt-6">
         <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">Detalhes</h3>
-        <div className="bg-card rounded-2xl p-4 ring-1 ring-black/5 space-y-3 text-sm">
+        <div className="bg-card rounded-2xl p-4 border border-border space-y-3 text-sm">
           <Detail label="Descrição" value={order.descricao} />
           {order.loja && <Detail label="Loja" value={order.loja} />}
           {order.endereco_loja && <Detail label="Endereço da loja" value={order.endereco_loja} />}
@@ -264,7 +264,7 @@ function PedidoDetail() {
           <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">
             Linha do tempo
           </h3>
-          <div className="bg-card rounded-2xl ring-1 ring-black/5 p-4 space-y-3">
+          <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
             {eventos.map((e) => (
               <div key={e.id} className="flex gap-3 items-start">
                 <span className="text-xs font-semibold tabular-nums text-muted-foreground w-12 shrink-0">
@@ -292,7 +292,7 @@ function PedidoDetail() {
           <Link
             to="/pedidos/$id/disputa"
             params={{ id }}
-            className="w-full h-12 rounded-2xl bg-card ring-1 ring-black/5 text-destructive text-sm font-medium flex items-center justify-center gap-2"
+            className="w-full h-12 rounded-2xl bg-card border border-border text-destructive text-sm font-medium flex items-center justify-center gap-2"
           >
             <AlertTriangle size={16} /> Reportar problema
           </Link>
@@ -300,7 +300,7 @@ function PedidoDetail() {
         {isCliente && order.status === "aguardando_entregador" && (
           <button
             onClick={() => registrar("cancelado")}
-            className="w-full h-12 rounded-2xl bg-card ring-1 ring-black/5 text-destructive text-sm font-medium"
+            className="w-full h-12 rounded-2xl bg-card border border-border text-destructive text-sm font-medium"
           >
             Cancelar pedido
           </button>

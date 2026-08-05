@@ -1,13 +1,13 @@
 import { loadOverrides } from "./dev-mode";
 
 export const CATEGORIAS_BASE = [
-  { id: "mercado", label: "Mercado", emoji: "🛒", tint: "bg-orange-50" },
-  { id: "farmacia", label: "Farmácia", emoji: "💊", tint: "bg-red-50" },
-  { id: "padaria", label: "Padaria", emoji: "🥖", tint: "bg-amber-50" },
-  { id: "lojas", label: "Lojas", emoji: "🛍️", tint: "bg-blue-50" },
-  { id: "retirada", label: "Retirada", emoji: "📦", tint: "bg-zinc-100" },
-  { id: "favor", label: "Favor", emoji: "🤝", tint: "bg-emerald-50" },
-  { id: "livre", label: "Livre", emoji: "✨", tint: "bg-purple-50" },
+  { id: "mercado", label: "Mercado", emoji: "🛒", tint: "bg-secondary" },
+  { id: "farmacia", label: "Farmácia", emoji: "💊", tint: "bg-secondary" },
+  { id: "padaria", label: "Padaria", emoji: "🥖", tint: "bg-secondary" },
+  { id: "lojas", label: "Lojas", emoji: "🛍️", tint: "bg-secondary" },
+  { id: "retirada", label: "Retirada", emoji: "📦", tint: "bg-secondary" },
+  { id: "favor", label: "Favor", emoji: "🤝", tint: "bg-secondary" },
+  { id: "livre", label: "Livre", emoji: "✨", tint: "bg-secondary" },
 ] as const;
 
 export type CategoriaId = (typeof CATEGORIAS_BASE)[number]["id"] | string;

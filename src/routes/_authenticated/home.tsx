@@ -81,7 +81,7 @@ function Home() {
           </div>
           <Link
             to="/perfil"
-            className="size-12 rounded-full bg-secondary ring-1 ring-black/5 flex items-center justify-center text-lg font-medium text-foreground"
+            className="size-12 rounded-full bg-secondary border border-border flex items-center justify-center text-lg font-medium text-foreground"
           >
             {firstName.charAt(0).toUpperCase() || "?"}
           </Link>
@@ -103,7 +103,7 @@ function Home() {
       {active && (
         <section className="px-6 py-6">
           <Link to="/pedidos/$id" params={{ id: active.id }}>
-            <div className="bg-secondary rounded-[20px] p-5 ring-1 ring-black/5">
+            <div className="bg-secondary rounded-2xl p-5 border border-border">
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h2 className="text-base font-semibold">Pedido em andamento</h2>
@@ -142,7 +142,7 @@ function Home() {
                 })}
               </div>
               <div className="mt-6 pt-4 border-t border-border/60 flex items-center gap-3">
-                <div className="size-10 rounded-full bg-secondary ring-1 ring-black/5 flex items-center justify-center">
+                <div className="size-10 rounded-full bg-secondary border border-border flex items-center justify-center">
                   <MessageCircle size={18} className="text-muted-foreground" />
                 </div>
                 <div className="flex-1">
@@ -165,7 +165,7 @@ function Home() {
               key={c.id}
               to="/novo-pedido"
               search={{ categoria: c.id }}
-              className="flex flex-col items-center gap-3 p-4 bg-card rounded-2xl ring-1 ring-black/5 aspect-square justify-center"
+              className="flex flex-col items-center gap-3 p-4 bg-card rounded-2xl border border-border aspect-square justify-center"
             >
               <div className={`size-10 ${c.tint} rounded-xl flex items-center justify-center text-2xl`}>
                 {c.emoji}

@@ -94,7 +94,7 @@ function Perfil() {
         {isAdmin && (
           <Link
             to="/admin"
-            className="w-full h-12 bg-card ring-1 ring-black/5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
+            className="w-full h-12 bg-card border border-border rounded-2xl text-sm font-semibold flex items-center justify-center gap-2"
           >
             <Shield size={16} /> Painel administrativo
           </Link>
@@ -107,7 +107,7 @@ function Perfil() {
             <Wand2 size={16} /> Abrir Modo Deus
           </Link>
         )}
-        <div className="bg-card ring-1 ring-black/5 rounded-2xl p-5 flex items-center gap-4">
+        <div className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4">
           <div className="size-16 rounded-full bg-secondary flex items-center justify-center text-2xl font-semibold">
             {nome.charAt(0).toUpperCase() || "?"}
           </div>
@@ -173,7 +173,7 @@ function Perfil() {
 
         <button
           onClick={sair}
-          className="w-full h-12 bg-card ring-1 ring-black/5 rounded-2xl text-destructive text-sm font-medium flex items-center justify-center gap-2"
+          className="w-full h-12 bg-card border border-border rounded-2xl text-destructive text-sm font-medium flex items-center justify-center gap-2"
         >
           <LogOut size={16} /> Sair
         </button>

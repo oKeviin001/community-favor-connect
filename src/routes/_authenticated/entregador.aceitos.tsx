@@ -65,10 +65,10 @@ function Aceitos() {
 
       <div className="px-6 space-y-3">
         {loading && [...Array(2)].map((_, i) => (
-          <div key={i} className="h-20 bg-card rounded-2xl ring-1 ring-black/5 animate-pulse" />
+          <div key={i} className="h-20 bg-card rounded-2xl border border-border animate-pulse" />
         ))}
         {!loading && rows.length === 0 && (
-          <div className="bg-card rounded-2xl ring-1 ring-black/5 p-8 text-center">
+          <div className="bg-card rounded-2xl border border-border p-8 text-center">
             <p className="text-muted-foreground text-sm">Você ainda não aceitou nenhum pedido.</p>
             <Link to="/entregador" className="mt-3 inline-block text-primary text-sm font-semibold">
               Ver pedidos disponíveis
@@ -79,7 +79,7 @@ function Aceitos() {
           const cat = CATEGORIAS.find((c) => c.id === o.categoria);
           return (
             <Link key={o.id} to="/entregador/pedido/$id" params={{ id: o.id }}>
-              <div className="bg-card rounded-2xl ring-1 ring-black/5 p-4 flex items-start gap-4">
+              <div className="bg-card rounded-2xl border border-border p-4 flex items-start gap-4">
                 <div className={`size-12 ${cat?.tint ?? "bg-secondary"} rounded-xl flex items-center justify-center text-2xl shrink-0`}>
                   {cat?.emoji ?? "📦"}
                 </div>
