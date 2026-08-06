@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
 import { APP_SLUG, APP_VERSAO, KEVIN_PROTOCOL, TIPOS_IDS, type TipoDado } from "./kevin/shared";
 
 type AuthContext = {
@@ -808,7 +810,7 @@ export async function carregarPainelFor(context: AuthContext) {
     recebidos: inbox.data ?? [],
     pendentes: fila.count ?? 0,
   };
-  return JSON.parse(JSON.stringify(payload)) as Record<string, unknown>;
+  return JSON.parse(JSON.stringify(payload)) as Record<string, JsonValue>;
 }
 
 /* -------------------------------- autoteste -------------------------------- */
