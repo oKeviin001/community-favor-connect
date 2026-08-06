@@ -187,7 +187,7 @@ function Transferencia() {
 
   const refresh = useCallback(async () => {
     try {
-      const data = (await carregar()) as Painel;
+      const data = (await carregar()) as unknown as Painel;
       setPainel(data);
       setConexaoSel((atual) => atual || data.conexoes[0]?.id || "");
     } catch (e) {

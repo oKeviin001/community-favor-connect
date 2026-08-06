@@ -799,15 +799,16 @@ export async function carregarPainelFor(context: AuthContext) {
     supabaseAdmin.from("kevin_sync_queue").select("id", { count: "exact", head: true }).is("processado_em", null),
   ]);
 
-  return {
+  const payload = {
     manifesto: identity,
     codigos: codigos.data ?? [],
-    conexoes: (conexoes.data ?? []) as KevinConnection[],
+    conexoes: conexoes.data ?? [],
     historico: historico.data ?? [],
     backups: backups.data ?? [],
     recebidos: inbox.data ?? [],
     pendentes: fila.count ?? 0,
   };
+  return JSON.parse(JSON.stringify(payload)) as Record<string, unknown>;
 }
 
 /* -------------------------------- autoteste -------------------------------- */
