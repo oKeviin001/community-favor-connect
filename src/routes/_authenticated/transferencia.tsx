@@ -61,7 +61,7 @@ interface Conexao {
   ultimo_erro: string | null;
   conectado_em: string;
   ultima_sync: string | null;
-  estrutura: unknown;
+  estrutura: Record<string, unknown> | null;
 }
 interface Codigo {
   id: string;
@@ -203,7 +203,7 @@ function Transferencia() {
   useEffect(() => {
     if (!isAdmin) return;
     const id = setInterval(() => {
-      sincronizar({ data: {} })
+      sincronizar()
         .then(() => refresh())
         .catch(() => undefined);
     }, 60_000);
@@ -547,7 +547,7 @@ function Transferencia() {
             <h2 className="text-sm font-semibold flex items-center gap-2"><Database size={15} /> Backups</h2>
             <button
               disabled={busy === "backup"}
-              onClick={() => run("backup", () => backupFn({ data: {} }), "Backup criado")}
+              onClick={() => run("backup", () => backupFn(), "Backup criado")}
               className="w-full h-11 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-60"
             >
               {busy === "backup" ? "Gerando..." : "Criar backup agora"}
@@ -593,7 +593,7 @@ function Transferencia() {
               </p>
               <button
                 disabled={busy === "sync"}
-                onClick={() => run("sync", () => sincronizar({ data: {} }), "Sincronização verificada")}
+                onClick={() => run("sync", () => sincronizar(), "Sincronização verificada")}
                 className="w-full h-11 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-60"
               >
                 {busy === "sync" ? "Sincronizando..." : "Sincronizar agora"}

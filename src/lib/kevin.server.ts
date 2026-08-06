@@ -161,8 +161,8 @@ export interface KevinConnection {
   token_entrada: string | null;
   token_saida: string | null;
   permissoes: string[];
-  manifesto: unknown;
-  estrutura: unknown;
+  manifesto: Record<string, unknown> | null;
+  estrutura: Record<string, unknown> | null;
   status: string;
   ultimo_erro: string | null;
   conectado_em: string;
