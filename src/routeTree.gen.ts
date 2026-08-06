@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermosRouteImport } from './routes/termos'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -33,6 +35,16 @@ import { Route as AuthenticatedPedidosIdDisputaRouteImport } from './routes/_aut
 import { Route as AuthenticatedPedidosIdAvaliarRouteImport } from './routes/_authenticated/pedidos.$id.avaliar'
 import { Route as AuthenticatedEntregadorPedidoIdRouteImport } from './routes/_authenticated/entregador.pedido.$id'
 
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -158,6 +170,8 @@ const AuthenticatedEntregadorPedidoIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dev': typeof AuthenticatedDevRoute
   '/entregador': typeof AuthenticatedEntregadorRouteWithChildren
@@ -182,6 +196,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dev': typeof AuthenticatedDevRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -207,6 +223,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/entregador': typeof AuthenticatedEntregadorRouteWithChildren
@@ -233,6 +251,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/privacidade'
+    | '/termos'
     | '/admin'
     | '/dev'
     | '/entregador'
@@ -257,6 +277,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/privacidade'
+    | '/termos'
     | '/admin'
     | '/dev'
     | '/home'
@@ -281,6 +303,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/privacidade'
+    | '/termos'
     | '/_authenticated/admin'
     | '/_authenticated/dev'
     | '/_authenticated/entregador'
@@ -307,6 +331,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
+  TermosRoute: typeof TermosRoute
   ApiPublicKevinExportRoute: typeof ApiPublicKevinExportRoute
   ApiPublicKevinHandshakeRoute: typeof ApiPublicKevinHandshakeRoute
   ApiPublicKevinLearnRoute: typeof ApiPublicKevinLearnRoute
@@ -316,6 +342,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -557,6 +597,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
+  TermosRoute: TermosRoute,
   ApiPublicKevinExportRoute: ApiPublicKevinExportRoute,
   ApiPublicKevinHandshakeRoute: ApiPublicKevinHandshakeRoute,
   ApiPublicKevinLearnRoute: ApiPublicKevinLearnRoute,
