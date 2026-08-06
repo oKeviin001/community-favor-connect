@@ -99,6 +99,18 @@ function Admin() {
         <h1 className="text-2xl font-semibold">Painel administrativo</h1>
       </header>
 
+      <div className="px-6 mb-4 flex flex-wrap gap-2">
+        <Link to="/transferencia" className="h-9 px-3 rounded-2xl bg-primary text-primary-foreground text-xs font-semibold inline-flex items-center">
+          Transferência
+        </Link>
+        <Link to="/termos" className="h-9 px-3 rounded-2xl bg-card ring-1 ring-black/5 text-xs font-semibold inline-flex items-center">
+          Termos de Uso
+        </Link>
+        <Link to="/privacidade" className="h-9 px-3 rounded-2xl bg-card ring-1 ring-black/5 text-xs font-semibold inline-flex items-center">
+          Privacidade
+        </Link>
+      </div>
+
       <div className="px-6 grid grid-cols-3 gap-2 mb-5">
         <Stat icon={<Package size={14} />} label="Pedidos" value={orders.length} />
         <Stat icon={<AlertTriangle size={14} />} label="Disputas" value={abertas} />

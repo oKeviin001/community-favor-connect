@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_deletion_requests: {
+        Row: {
+          atendido_em: string | null
+          criado_em: string
+          id: string
+          motivo: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          atendido_em?: string | null
+          criado_em?: string
+          id?: string
+          motivo?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          atendido_em?: string | null
+          criado_em?: string
+          id?: string
+          motivo?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_deletion_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disputes: {
         Row: {
           aberto_por: string
@@ -61,6 +96,294 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kevin_app_identity: {
+        Row: {
+          app_nome: string
+          app_slug: string
+          app_uuid: string
+          base_url: string | null
+          criado_em: string
+          id: string
+          versao: string
+        }
+        Insert: {
+          app_nome: string
+          app_slug: string
+          app_uuid?: string
+          base_url?: string | null
+          criado_em?: string
+          id?: string
+          versao?: string
+        }
+        Update: {
+          app_nome?: string
+          app_slug?: string
+          app_uuid?: string
+          base_url?: string | null
+          criado_em?: string
+          id?: string
+          versao?: string
+        }
+        Relationships: []
+      }
+      kevin_backups: {
+        Row: {
+          conteudo: Json
+          criado_em: string
+          id: string
+          itens: Json
+          origem: string
+          registros: number
+          status: string
+          tamanho_bytes: number
+        }
+        Insert: {
+          conteudo: Json
+          criado_em?: string
+          id?: string
+          itens?: Json
+          origem: string
+          registros?: number
+          status?: string
+          tamanho_bytes?: number
+        }
+        Update: {
+          conteudo?: Json
+          criado_em?: string
+          id?: string
+          itens?: Json
+          origem?: string
+          registros?: number
+          status?: string
+          tamanho_bytes?: number
+        }
+        Relationships: []
+      }
+      kevin_connections: {
+        Row: {
+          conectado_em: string
+          direcao: string
+          estrutura: Json | null
+          id: string
+          manifesto: Json | null
+          permissoes: Json
+          remote_base_url: string | null
+          remote_nome: string
+          remote_slug: string | null
+          remote_uuid: string
+          remote_versao: string | null
+          status: string
+          token_entrada: string | null
+          token_saida: string | null
+          ultima_sync: string | null
+          ultimo_erro: string | null
+        }
+        Insert: {
+          conectado_em?: string
+          direcao?: string
+          estrutura?: Json | null
+          id?: string
+          manifesto?: Json | null
+          permissoes?: Json
+          remote_base_url?: string | null
+          remote_nome: string
+          remote_slug?: string | null
+          remote_uuid: string
+          remote_versao?: string | null
+          status?: string
+          token_entrada?: string | null
+          token_saida?: string | null
+          ultima_sync?: string | null
+          ultimo_erro?: string | null
+        }
+        Update: {
+          conectado_em?: string
+          direcao?: string
+          estrutura?: Json | null
+          id?: string
+          manifesto?: Json | null
+          permissoes?: Json
+          remote_base_url?: string | null
+          remote_nome?: string
+          remote_slug?: string | null
+          remote_uuid?: string
+          remote_versao?: string | null
+          status?: string
+          token_entrada?: string | null
+          token_saida?: string | null
+          ultima_sync?: string | null
+          ultimo_erro?: string | null
+        }
+        Relationships: []
+      }
+      kevin_inbox: {
+        Row: {
+          conexao_id: string | null
+          id: string
+          origem: string
+          payload: Json
+          recebido_em: string
+          remote_id: string
+          tipo: string
+        }
+        Insert: {
+          conexao_id?: string | null
+          id?: string
+          origem: string
+          payload: Json
+          recebido_em?: string
+          remote_id: string
+          tipo: string
+        }
+        Update: {
+          conexao_id?: string | null
+          id?: string
+          origem?: string
+          payload?: Json
+          recebido_em?: string
+          remote_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kevin_inbox_conexao_id_fkey"
+            columns: ["conexao_id"]
+            isOneToOne: false
+            referencedRelation: "kevin_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kevin_pairing_codes: {
+        Row: {
+          codigo: string
+          criado_em: string
+          criado_por: string | null
+          expira_em: string
+          id: string
+          permissoes: Json
+          status: string
+          token_emitido: string | null
+          usado_em: string | null
+          usado_por_nome: string | null
+          usado_por_uuid: string | null
+        }
+        Insert: {
+          codigo: string
+          criado_em?: string
+          criado_por?: string | null
+          expira_em: string
+          id?: string
+          permissoes?: Json
+          status?: string
+          token_emitido?: string | null
+          usado_em?: string | null
+          usado_por_nome?: string | null
+          usado_por_uuid?: string | null
+        }
+        Update: {
+          codigo?: string
+          criado_em?: string
+          criado_por?: string | null
+          expira_em?: string
+          id?: string
+          permissoes?: Json
+          status?: string
+          token_emitido?: string | null
+          usado_em?: string | null
+          usado_por_nome?: string | null
+          usado_por_uuid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kevin_pairing_codes_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kevin_sync_queue: {
+        Row: {
+          criado_em: string
+          evento: string
+          id: number
+          processado_em: string | null
+          registro_id: string
+          tipo: string
+        }
+        Insert: {
+          criado_em?: string
+          evento: string
+          id?: number
+          processado_em?: string | null
+          registro_id: string
+          tipo: string
+        }
+        Update: {
+          criado_em?: string
+          evento?: string
+          id?: number
+          processado_em?: string | null
+          registro_id?: string
+          tipo?: string
+        }
+        Relationships: []
+      }
+      kevin_transfer_log: {
+        Row: {
+          conexao_id: string | null
+          criado_em: string
+          destino: string
+          detalhes: Json | null
+          direcao: string
+          erro: string | null
+          id: string
+          operacao: string
+          origem: string
+          registros: number
+          status: string
+          tipos: Json
+        }
+        Insert: {
+          conexao_id?: string | null
+          criado_em?: string
+          destino: string
+          detalhes?: Json | null
+          direcao: string
+          erro?: string | null
+          id?: string
+          operacao: string
+          origem: string
+          registros?: number
+          status?: string
+          tipos?: Json
+        }
+        Update: {
+          conexao_id?: string | null
+          criado_em?: string
+          destino?: string
+          detalhes?: Json | null
+          direcao?: string
+          erro?: string | null
+          id?: string
+          operacao?: string
+          origem?: string
+          registros?: number
+          status?: string
+          tipos?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kevin_transfer_log_conexao_id_fkey"
+            columns: ["conexao_id"]
+            isOneToOne: false
+            referencedRelation: "kevin_connections"
             referencedColumns: ["id"]
           },
         ]
@@ -404,6 +727,38 @@ export type Database = {
           {
             foreignKeyName: "reviews_reviewer_id_fkey"
             columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_consents: {
+        Row: {
+          aceito_em: string
+          id: string
+          privacidade_versao: string
+          termos_versao: string
+          user_id: string
+        }
+        Insert: {
+          aceito_em?: string
+          id?: string
+          privacidade_versao: string
+          termos_versao: string
+          user_id: string
+        }
+        Update: {
+          aceito_em?: string
+          id?: string
+          privacidade_versao?: string
+          termos_versao?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_consents_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
