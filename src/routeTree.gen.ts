@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTransferenciaRouteImport } from './routes/_authenticated/transferencia'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
 import { Route as AuthenticatedNovoPedidoRouteImport } from './routes/_authenticated/novo-pedido'
@@ -46,6 +47,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTransferenciaRoute =
+  AuthenticatedTransferenciaRouteImport.update({
+    id: '/transferencia',
+    path: '/transferencia',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
@@ -158,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/transferencia': typeof AuthenticatedTransferenciaRoute
   '/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
   '/entregador/historico': typeof AuthenticatedEntregadorHistoricoRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
@@ -180,6 +188,7 @@ export interface FileRoutesByTo {
   '/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/transferencia': typeof AuthenticatedTransferenciaRoute
   '/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
   '/entregador/historico': typeof AuthenticatedEntregadorHistoricoRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
@@ -205,6 +214,7 @@ export interface FileRoutesById {
   '/_authenticated/novo-pedido': typeof AuthenticatedNovoPedidoRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRouteWithChildren
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/_authenticated/transferencia': typeof AuthenticatedTransferenciaRoute
   '/_authenticated/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
   '/_authenticated/entregador/historico': typeof AuthenticatedEntregadorHistoricoRoute
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/novo-pedido'
     | '/pedidos'
     | '/perfil'
+    | '/transferencia'
     | '/entregador/aceitos'
     | '/entregador/historico'
     | '/pedidos/$id'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/novo-pedido'
     | '/pedidos'
     | '/perfil'
+    | '/transferencia'
     | '/entregador/aceitos'
     | '/entregador/historico'
     | '/pedidos/$id'
@@ -276,6 +288,7 @@ export interface FileRouteTypes {
     | '/_authenticated/novo-pedido'
     | '/_authenticated/pedidos'
     | '/_authenticated/perfil'
+    | '/_authenticated/transferencia'
     | '/_authenticated/entregador/aceitos'
     | '/_authenticated/entregador/historico'
     | '/_authenticated/pedidos/$id'
@@ -323,6 +336,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/transferencia': {
+      id: '/_authenticated/transferencia'
+      path: '/transferencia'
+      fullPath: '/transferencia'
+      preLoaderRoute: typeof AuthenticatedTransferenciaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/perfil': {
       id: '/_authenticated/perfil'
@@ -516,6 +536,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNovoPedidoRoute: typeof AuthenticatedNovoPedidoRoute
   AuthenticatedPedidosRoute: typeof AuthenticatedPedidosRouteWithChildren
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
+  AuthenticatedTransferenciaRoute: typeof AuthenticatedTransferenciaRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -526,6 +547,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNovoPedidoRoute: AuthenticatedNovoPedidoRoute,
   AuthenticatedPedidosRoute: AuthenticatedPedidosRouteWithChildren,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
+  AuthenticatedTransferenciaRoute: AuthenticatedTransferenciaRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
