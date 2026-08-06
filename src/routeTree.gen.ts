@@ -23,6 +23,11 @@ import { Route as AuthenticatedEntregadorIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
 import { Route as AuthenticatedEntregadorHistoricoRouteImport } from './routes/_authenticated/entregador.historico'
 import { Route as AuthenticatedEntregadorAceitosRouteImport } from './routes/_authenticated/entregador.aceitos'
+import { Route as ApiPublicKevinReceiveRouteImport } from './routes/api/public/kevin/receive'
+import { Route as ApiPublicKevinManifestRouteImport } from './routes/api/public/kevin/manifest'
+import { Route as ApiPublicKevinLearnRouteImport } from './routes/api/public/kevin/learn'
+import { Route as ApiPublicKevinHandshakeRouteImport } from './routes/api/public/kevin/handshake'
+import { Route as ApiPublicKevinExportRouteImport } from './routes/api/public/kevin/export'
 import { Route as AuthenticatedPedidosIdDisputaRouteImport } from './routes/_authenticated/pedidos.$id.disputa'
 import { Route as AuthenticatedPedidosIdAvaliarRouteImport } from './routes/_authenticated/pedidos.$id.avaliar'
 import { Route as AuthenticatedEntregadorPedidoIdRouteImport } from './routes/_authenticated/entregador.pedido.$id'
@@ -99,6 +104,31 @@ const AuthenticatedEntregadorAceitosRoute =
     path: '/aceitos',
     getParentRoute: () => AuthenticatedEntregadorRoute,
   } as any)
+const ApiPublicKevinReceiveRoute = ApiPublicKevinReceiveRouteImport.update({
+  id: '/api/public/kevin/receive',
+  path: '/api/public/kevin/receive',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKevinManifestRoute = ApiPublicKevinManifestRouteImport.update({
+  id: '/api/public/kevin/manifest',
+  path: '/api/public/kevin/manifest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKevinLearnRoute = ApiPublicKevinLearnRouteImport.update({
+  id: '/api/public/kevin/learn',
+  path: '/api/public/kevin/learn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKevinHandshakeRoute = ApiPublicKevinHandshakeRouteImport.update({
+  id: '/api/public/kevin/handshake',
+  path: '/api/public/kevin/handshake',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKevinExportRoute = ApiPublicKevinExportRouteImport.update({
+  id: '/api/public/kevin/export',
+  path: '/api/public/kevin/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedPedidosIdDisputaRoute =
   AuthenticatedPedidosIdDisputaRouteImport.update({
     id: '/disputa',
@@ -135,6 +165,11 @@ export interface FileRoutesByFullPath {
   '/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
+  '/api/public/kevin/export': typeof ApiPublicKevinExportRoute
+  '/api/public/kevin/handshake': typeof ApiPublicKevinHandshakeRoute
+  '/api/public/kevin/learn': typeof ApiPublicKevinLearnRoute
+  '/api/public/kevin/manifest': typeof ApiPublicKevinManifestRoute
+  '/api/public/kevin/receive': typeof ApiPublicKevinReceiveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -152,6 +187,11 @@ export interface FileRoutesByTo {
   '/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
+  '/api/public/kevin/export': typeof ApiPublicKevinExportRoute
+  '/api/public/kevin/handshake': typeof ApiPublicKevinHandshakeRoute
+  '/api/public/kevin/learn': typeof ApiPublicKevinLearnRoute
+  '/api/public/kevin/manifest': typeof ApiPublicKevinManifestRoute
+  '/api/public/kevin/receive': typeof ApiPublicKevinReceiveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -172,6 +212,11 @@ export interface FileRoutesById {
   '/_authenticated/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
   '/_authenticated/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/_authenticated/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
+  '/api/public/kevin/export': typeof ApiPublicKevinExportRoute
+  '/api/public/kevin/handshake': typeof ApiPublicKevinHandshakeRoute
+  '/api/public/kevin/learn': typeof ApiPublicKevinLearnRoute
+  '/api/public/kevin/manifest': typeof ApiPublicKevinManifestRoute
+  '/api/public/kevin/receive': typeof ApiPublicKevinReceiveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -192,6 +237,11 @@ export interface FileRouteTypes {
     | '/entregador/pedido/$id'
     | '/pedidos/$id/avaliar'
     | '/pedidos/$id/disputa'
+    | '/api/public/kevin/export'
+    | '/api/public/kevin/handshake'
+    | '/api/public/kevin/learn'
+    | '/api/public/kevin/manifest'
+    | '/api/public/kevin/receive'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -209,6 +259,11 @@ export interface FileRouteTypes {
     | '/entregador/pedido/$id'
     | '/pedidos/$id/avaliar'
     | '/pedidos/$id/disputa'
+    | '/api/public/kevin/export'
+    | '/api/public/kevin/handshake'
+    | '/api/public/kevin/learn'
+    | '/api/public/kevin/manifest'
+    | '/api/public/kevin/receive'
   id:
     | '__root__'
     | '/'
@@ -228,12 +283,22 @@ export interface FileRouteTypes {
     | '/_authenticated/entregador/pedido/$id'
     | '/_authenticated/pedidos/$id/avaliar'
     | '/_authenticated/pedidos/$id/disputa'
+    | '/api/public/kevin/export'
+    | '/api/public/kevin/handshake'
+    | '/api/public/kevin/learn'
+    | '/api/public/kevin/manifest'
+    | '/api/public/kevin/receive'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicKevinExportRoute: typeof ApiPublicKevinExportRoute
+  ApiPublicKevinHandshakeRoute: typeof ApiPublicKevinHandshakeRoute
+  ApiPublicKevinLearnRoute: typeof ApiPublicKevinLearnRoute
+  ApiPublicKevinManifestRoute: typeof ApiPublicKevinManifestRoute
+  ApiPublicKevinReceiveRoute: typeof ApiPublicKevinReceiveRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -336,6 +401,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntregadorAceitosRouteImport
       parentRoute: typeof AuthenticatedEntregadorRoute
     }
+    '/api/public/kevin/receive': {
+      id: '/api/public/kevin/receive'
+      path: '/api/public/kevin/receive'
+      fullPath: '/api/public/kevin/receive'
+      preLoaderRoute: typeof ApiPublicKevinReceiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kevin/manifest': {
+      id: '/api/public/kevin/manifest'
+      path: '/api/public/kevin/manifest'
+      fullPath: '/api/public/kevin/manifest'
+      preLoaderRoute: typeof ApiPublicKevinManifestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kevin/learn': {
+      id: '/api/public/kevin/learn'
+      path: '/api/public/kevin/learn'
+      fullPath: '/api/public/kevin/learn'
+      preLoaderRoute: typeof ApiPublicKevinLearnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kevin/handshake': {
+      id: '/api/public/kevin/handshake'
+      path: '/api/public/kevin/handshake'
+      fullPath: '/api/public/kevin/handshake'
+      preLoaderRoute: typeof ApiPublicKevinHandshakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kevin/export': {
+      id: '/api/public/kevin/export'
+      path: '/api/public/kevin/export'
+      fullPath: '/api/public/kevin/export'
+      preLoaderRoute: typeof ApiPublicKevinExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/pedidos/$id/disputa': {
       id: '/_authenticated/pedidos/$id/disputa'
       path: '/disputa'
@@ -435,17 +535,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicKevinExportRoute: ApiPublicKevinExportRoute,
+  ApiPublicKevinHandshakeRoute: ApiPublicKevinHandshakeRoute,
+  ApiPublicKevinLearnRoute: ApiPublicKevinLearnRoute,
+  ApiPublicKevinManifestRoute: ApiPublicKevinManifestRoute,
+  ApiPublicKevinReceiveRoute: ApiPublicKevinReceiveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
