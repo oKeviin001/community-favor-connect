@@ -1,12 +1,21 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
-import { getCategorias, calcularTaxa, formatBRL, type CategoriaId } from "@/lib/order-helpers";
+import { Field, PageHeader, SectionTitle } from "@/components/kit";
+import {
+  CATEGORIAS_PRINCIPAIS,
+  calcularTaxa,
+  faixaEstimada,
+  formatBRL,
+  formatFaixa,
+  getCategorias,
+  type CategoriaId,
+} from "@/lib/order-helpers";
 import { useGodMode } from "@/lib/dev-mode";
 import { toast } from "sonner";
-import { ChevronLeft } from "lucide-react";
+import { Check, Info, MapPin, Navigation, ShoppingBag, Wallet } from "lucide-react";
 
 const searchSchema = z.object({
   categoria: z.enum(["mercado", "farmacia", "padaria", "lojas", "retirada", "favor", "livre"]).optional(),
@@ -17,9 +26,9 @@ export const Route = createFileRoute("/_authenticated/novo-pedido")({
   head: () => ({
     meta: [
       { title: "Novo pedido — Pede pro Kevin" },
-      { name: "description", content: "Descreva seu pedido e um vizinho entregará." },
+      { name: "description", content: "Escolha o serviço, descreva o que precisa e receba um valor estimado." },
       { property: "og:title", content: "Novo pedido — Pede pro Kevin" },
-      { property: "og:description", content: "Descreva seu pedido e um vizinho entregará." },
+      { property: "og:description", content: "Escolha o serviço, descreva o que precisa e receba um valor estimado." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -32,48 +41,59 @@ function NovoPedido() {
   const navigate = useNavigate();
   const god = useGodMode();
   const categorias = getCategorias();
-  const [categoria, setCategoria] = useState<CategoriaId>(initialCat ?? "livre");
+  const cards = useMemo(
+    () => CATEGORIAS_PRINCIPAIS.map((id) => categorias.find((c) => c.id === id)!).filter(Boolean),
+    [categorias],
+  );
+
+  const [categoria, setCategoria] = useState<CategoriaId | null>(initialCat ?? null);
   const [descricao, setDescricao] = useState("");
-  const [loja, setLoja] = useState("");
-  const [enderecoLoja, setEnderecoLoja] = useState("");
-  const [enderecoEntrega, setEnderecoEntrega] = useState("");
+  const [origem, setOrigem] = useState("");
+  const [destino, setDestino] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [referencia, setReferencia] = useState("");
   const [obs, setObs] = useState("");
   const [valor, setValor] = useState("");
   const [loading, setLoading] = useState(false);
 
   const valorNum = Number(valor.replace(",", ".")) || 0;
   const { frete, taxa, total } = calcularTaxa(valorNum);
+  const faixa = faixaEstimada(valorNum);
+  const catSel = categorias.find((c) => c.id === categoria);
+
+  const podeEnviar = god || Boolean(categoria && descricao.trim() && destino.trim() && valorNum > 0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!podeEnviar) return;
     setLoading(true);
     try {
       const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error("Faça login");
+      if (!u.user) throw new Error("Faça login para continuar.");
       const { data, error } = await supabase
         .from("orders")
         .insert({
           cliente_id: u.user.id,
-          categoria: categoria as never,
-          descricao: descricao || (god ? "(teste dev)" : ""),
-          loja: loja || null,
-          endereco_loja: enderecoLoja || null,
-          endereco_entrega: enderecoEntrega || (god ? "Endereço de teste" : ""),
-          observacoes: obs || null,
-          valor_produto: valorNum || (god ? 10 : 0),
+          categoria: (categoria ?? "livre") as never,
+          descricao: descricao.trim() || (god ? "(teste dev)" : ""),
+          loja: origem.trim() || null,
+          endereco_loja: origem.trim() || null,
+          endereco_entrega: destino.trim() || (god ? "Endereço de teste" : ""),
+          bairro: bairro.trim() || null,
+          referencia: referencia.trim() || null,
+          observacoes: obs.trim() || null,
+          valor_produto: valorNum,
           valor_frete: frete,
           taxa_servico: taxa,
+          valor_estimado_min: faixa.min,
+          valor_estimado_max: faixa.max,
           status: "aguardando_entregador",
         })
         .select("id")
         .single();
       if (error) throw error;
-      await supabase.from("payments").insert({
-        order_id: data.id,
-        valor: total,
-        status: "depositado",
-      });
-      toast.success("Pedido criado! Depósito registrado.");
+      await supabase.from("payments").insert({ order_id: data.id, valor: total, status: "depositado" });
+      toast.success("Pedido solicitado! Já está visível para os entregadores.");
       navigate({ to: "/pedidos/$id", params: { id: data.id } });
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erro ao criar pedido");
@@ -84,142 +104,206 @@ function NovoPedido() {
 
   return (
     <AppShell hideNav>
-      <header className="px-6 pt-10 pb-2 flex items-center gap-3">
-        <Link to="/home" className="size-10 rounded-full bg-secondary flex items-center justify-center">
-          <ChevronLeft size={20} />
-        </Link>
-        <h1 className="text-xl font-semibold">Novo pedido</h1>
-      </header>
+      <PageHeader
+        backTo="/home"
+        kicker="Novo pedido"
+        title="O que você precisa hoje?"
+        subtitle="Escolha o tipo de serviço e faça seu pedido."
+      />
 
-      <form onSubmit={handleSubmit} className="px-6 py-4 space-y-5">
-        <div>
-          <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-            Categoria
-          </label>
-          <div className="mt-2 grid grid-cols-4 gap-2">
-            {categorias.map((c) => (
-              <button
-                type="button"
-                key={c.id}
-                onClick={() => setCategoria(c.id as CategoriaId)}
-                className={`flex flex-col items-center gap-1 py-3 rounded-xl ring-1 text-[11px] font-medium ${
-                  categoria === c.id
-                    ? "bg-primary/10 ring-primary text-primary"
-                    : "bg-card ring-black/5 text-muted-foreground"
-                }`}
-              >
-                <span className="text-xl">{c.emoji}</span>
-                {c.label}
-              </button>
-            ))}
+      <form onSubmit={handleSubmit} className="px-6 pb-10 space-y-8">
+        {/* 1 — Tipo de serviço */}
+        <section className="fade-rise">
+          <SectionTitle index={1}>Escolha o tipo de serviço</SectionTitle>
+          <div className="grid grid-cols-2 gap-3">
+            {cards.map((c) => {
+              const ativo = categoria === c.id;
+              return (
+                <button
+                  type="button"
+                  key={c.id}
+                  onClick={() => setCategoria(c.id as CategoriaId)}
+                  className={`text-left p-4 rounded-2xl border transition-all ${
+                    ativo
+                      ? "border-primary bg-primary/5 shadow-soft"
+                      : "border-border bg-card hover:bg-secondary/60"
+                  }`}
+                >
+                  <div
+                    className={`size-11 rounded-2xl flex items-center justify-center text-xl mb-3 bg-${c.color}/12 border border-${c.color}/25`}
+                  >
+                    {c.emoji}
+                  </div>
+                  <p className={`text-sm font-semibold ${ativo ? "text-primary" : ""}`}>{c.label}</p>
+                  <p className="text-[11px] text-muted-foreground leading-snug mt-1">{c.descricao}</p>
+                  {ativo && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary mt-2">
+                      <Check size={12} strokeWidth={3} /> Selecionado
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
+        </section>
+
+        {/* 2 — Descrição */}
+        <section className="fade-rise">
+          <SectionTitle index={2}>Descrição do pedido</SectionTitle>
+          <div className="surface p-4">
+            <Field label="O que você precisa?" required>
+              <textarea
+                rows={5}
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                maxLength={500}
+                placeholder="Ex: 2 pacotes de arroz, 1 óleo, 1 refrigerante..."
+                className="field-textarea"
+              />
+            </Field>
+            <p className="text-[11px] text-muted-foreground text-right mt-1.5">{descricao.length}/500</p>
+          </div>
+        </section>
+
+        {/* 3 — Localização */}
+        <section className="fade-rise">
+          <SectionTitle index={3}>Localização</SectionTitle>
+          <div className="surface p-4 space-y-4">
+            <Field label="Origem (onde buscar)" hint="Loja, mercado, farmácia ou endereço de retirada.">
+              <div className="relative">
+                <ShoppingBag size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={origem}
+                  onChange={(e) => setOrigem(e.target.value)}
+                  maxLength={200}
+                  placeholder="Padaria do Zé — Rua das Flores, 12"
+                  className="field-input pl-11"
+                />
+              </div>
+            </Field>
+            <Field label="Destino (endereço de entrega)" required>
+              <div className="relative">
+                <Navigation size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={destino}
+                  onChange={(e) => setDestino(e.target.value)}
+                  maxLength={200}
+                  placeholder="Rua, número e complemento"
+                  className="field-input pl-11"
+                />
+              </div>
+            </Field>
+            <Field label="Bairro / região">
+              <div className="relative">
+                <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={bairro}
+                  onChange={(e) => setBairro(e.target.value)}
+                  maxLength={80}
+                  placeholder="Centro"
+                  className="field-input pl-11"
+                />
+              </div>
+            </Field>
+            <Field label="Referências">
+              <input
+                value={referencia}
+                onChange={(e) => setReferencia(e.target.value)}
+                maxLength={160}
+                placeholder="Portão azul, ao lado da praça"
+                className="field-input"
+              />
+            </Field>
+            <Field label="Observações">
+              <textarea
+                rows={3}
+                value={obs}
+                onChange={(e) => setObs(e.target.value)}
+                maxLength={300}
+                placeholder="Marca preferida, troco, horário..."
+                className="field-textarea"
+              />
+            </Field>
+          </div>
+        </section>
+
+        {/* 4 — Valor estimado */}
+        <section className="fade-rise">
+          <SectionTitle index={4}>Valor estimado</SectionTitle>
+          <div className="surface p-4 space-y-4">
+            <Field label="Quanto você estima gastar com os produtos?" required>
+              <div className="relative">
+                <Wallet size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={valor}
+                  onChange={(e) => setValor(e.target.value)}
+                  placeholder="0,00"
+                  className="field-input pl-11"
+                />
+              </div>
+            </Field>
+
+            <div className="rounded-2xl bg-secondary border border-border p-4">
+              <p className="label-kicker">Valor estimado</p>
+              <p className="text-2xl font-semibold text-primary mt-1.5">
+                {valorNum > 0 ? formatFaixa(faixa.min, faixa.max) : "R$ --,-- a R$ --,--"}
+              </p>
+              <div className="mt-3 space-y-1.5 text-[12px] text-muted-foreground">
+                <div className="flex justify-between"><span>Produtos (estimado)</span><span>{formatBRL(valorNum)}</span></div>
+                <div className="flex justify-between"><span>Entrega (estimada)</span><span>{formatBRL(frete)}</span></div>
+                <div className="flex justify-between"><span>Taxa da plataforma</span><span>{formatBRL(taxa)}</span></div>
+              </div>
+            </div>
+
+            <p className="flex items-start gap-2 text-[11px] text-muted-foreground">
+              <Info size={13} className="shrink-0 mt-px" />
+              O valor final pode variar conforme distância, quantidade de itens, complexidade e tempo necessário.
+            </p>
+          </div>
+        </section>
+
+        {/* 5 — Resumo */}
+        <section className="fade-rise">
+          <SectionTitle index={5}>Resumo</SectionTitle>
+          <div className="surface p-4 space-y-3">
+            <ResumoLinha label="Tipo de serviço" value={catSel?.label ?? "Não selecionado"} />
+            <ResumoLinha label="Origem" value={origem || "Não informada"} />
+            <ResumoLinha label="Destino" value={destino || "Não informado"} />
+            <ResumoLinha label="Região" value={bairro || "Não informada"} />
+            <ResumoLinha
+              label="Valor estimado"
+              value={valorNum > 0 ? formatFaixa(faixa.min, faixa.max) : "A calcular"}
+            />
+            <ResumoLinha label="Observações" value={obs || "Nenhuma"} />
+          </div>
+        </section>
+
+        <div className="space-y-3">
+          <button
+            type="submit"
+            disabled={loading || !podeEnviar}
+            className="btn-base btn-base-active btn-primary-solid w-full h-14"
+          >
+            {loading ? "Enviando..." : "Solicitar pedido"}
+          </button>
+          <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+            O valor fica retido pela plataforma até você confirmar a entrega.
+          </p>
         </div>
-
-        <Field label="O que você precisa?">
-          <textarea
-            required={!god}
-            rows={3}
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            maxLength={500}
-            placeholder="Ex: 2 pães franceses, 1 litro de leite integral e requeijão"
-            className="w-full px-4 py-3 rounded-2xl bg-card border border-border text-base placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </Field>
-
-        <Field label="Loja / estabelecimento (opcional)">
-          <input
-            value={loja}
-            onChange={(e) => setLoja(e.target.value)}
-            maxLength={120}
-            placeholder="Padaria do Zé"
-            className="w-full h-12 px-4 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </Field>
-
-        <Field label="Endereço da loja (opcional)">
-          <input
-            value={enderecoLoja}
-            onChange={(e) => setEnderecoLoja(e.target.value)}
-            maxLength={200}
-            placeholder="Rua, número, bairro"
-            className="w-full h-12 px-4 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </Field>
-
-        <Field label="Endereço de entrega">
-          <input
-            required={!god}
-            value={enderecoEntrega}
-            onChange={(e) => setEnderecoEntrega(e.target.value)}
-            maxLength={200}
-            placeholder="Rua, número, complemento"
-            className="w-full h-12 px-4 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </Field>
-
-        <Field label="Valor estimado dos produtos (R$)">
-          <input
-            required={!god}
-            type="number"
-            inputMode="decimal"
-            min="0"
-            step="0.01"
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
-            placeholder="0,00"
-            className="w-full h-12 px-4 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </Field>
-
-        <Field label="Observações (opcional)">
-          <textarea
-            rows={2}
-            value={obs}
-            onChange={(e) => setObs(e.target.value)}
-            maxLength={300}
-            placeholder="Preferências, marca, troco..."
-            className="w-full px-4 py-3 rounded-2xl bg-card border border-border text-base focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </Field>
-
-        <div className="bg-secondary rounded-2xl p-4 space-y-2 border border-border">
-          <Row label="Produtos" value={formatBRL(valorNum)} />
-          <Row label="Frete" value={formatBRL(frete)} />
-          <Row label="Taxa da plataforma" value={formatBRL(taxa)} />
-          <div className="h-px bg-border my-2" />
-          <Row label="Total (depósito)" value={formatBRL(total)} bold />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading || (!god && (!descricao || !enderecoEntrega || !valorNum))}
-          className="w-full h-14 bg-primary text-primary-foreground rounded-2xl font-medium text-base shadow-lg shadow-primary/10 disabled:opacity-60"
-        >
-          {loading ? "Depositando..." : god ? "Publicar (dev)" : `Depositar ${formatBRL(total)} e publicar`}
-        </button>
-        <p className="text-xs text-muted-foreground text-center">
-          O valor fica retido pela plataforma até você confirmar a entrega.
-        </p>
       </form>
     </AppShell>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function ResumoLinha({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{label}</label>
-      <div className="mt-2">{children}</div>
-    </div>
-  );
-}
-
-function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
-  return (
-    <div className={`flex justify-between text-sm ${bold ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
-      <span>{label}</span>
-      <span>{value}</span>
+    <div className="flex items-start justify-between gap-4 text-sm">
+      <span className="text-muted-foreground shrink-0">{label}</span>
+      <span className="font-medium text-right break-words max-w-[62%]">{value}</span>
     </div>
   );
 }
