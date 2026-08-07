@@ -7,6 +7,7 @@ import { Field, PageHeader, SectionTitle } from "@/components/kit";
 import {
   CATEGORIAS_PRINCIPAIS,
   calcularTaxa,
+  corClasses,
   faixaEstimada,
   formatBRL,
   formatFaixa,
@@ -130,7 +131,7 @@ function NovoPedido() {
                   }`}
                 >
                   <div
-                    className={`size-11 rounded-2xl flex items-center justify-center text-xl mb-3 bg-${c.color}/12 border border-${c.color}/25`}
+                    className={`size-11 rounded-2xl flex items-center justify-center text-xl mb-3 border ${corClasses(c.color)}`}
                   >
                     {c.emoji}
                   </div>
