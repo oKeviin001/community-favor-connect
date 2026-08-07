@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
-import { Phone, Mail, Lock, User as UserIcon, ShieldCheck } from "lucide-react";
+import { Phone, Mail, Lock, User as UserIcon, ShieldCheck, Check, ChevronRight } from "lucide-react";
+import { TERMOS_VERSAO, PRIVACIDADE_VERSAO } from "@/lib/kevin/shared";
 import heroImg from "@/assets/hero-community.png";
 
 export const Route = createFileRoute("/auth")({
@@ -50,6 +51,9 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
+  const [aceitaTermos, setAceitaTermos] = useState(false);
+  const [aceitaPrivacidade, setAceitaPrivacidade] = useState(false);
+  const consentimentoOk = aceitaTermos && aceitaPrivacidade;
 
   useEffect(() => {
     let mounted = true;
@@ -76,6 +80,9 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
+        if (!consentimentoOk) {
+          throw new Error("É necessário aceitar os Termos de Uso e a Política de Privacidade.");
+        }
         const digitos = soDigitos(telefone);
         if (digitos.length < 10) throw new Error("Informe um telefone válido com DDD.");
         const emailFinal = email.trim() || `${digitos}@telefone.pedeprokevin.app`;
@@ -94,6 +101,11 @@ function AuthPage() {
             .from("profiles")
             .update({ nome, telefone: formatarTelefone(telefone) })
             .eq("id", sess.user.id);
+          await supabase.from("user_consents").insert({
+            user_id: sess.user.id,
+            termos_versao: TERMOS_VERSAO,
+            privacidade_versao: PRIVACIDADE_VERSAO,
+          });
         }
         toast.success("Conta criada! Bem-vindo ao Pede pro Kevin.");
       } else {
