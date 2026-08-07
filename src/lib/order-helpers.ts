@@ -1,18 +1,95 @@
 import { loadOverrides } from "./dev-mode";
 
+/**
+ * Cada categoria carrega a identidade visual oficial: um ícone, uma cor de marca
+ * e uma descrição curta usada nos cartões grandes de seleção de serviço.
+ */
 export const CATEGORIAS_BASE = [
-  { id: "mercado", label: "Mercado", emoji: "🛒", tint: "bg-secondary" },
-  { id: "farmacia", label: "Farmácia", emoji: "💊", tint: "bg-secondary" },
-  { id: "padaria", label: "Padaria", emoji: "🥖", tint: "bg-secondary" },
-  { id: "lojas", label: "Lojas", emoji: "🛍️", tint: "bg-secondary" },
-  { id: "retirada", label: "Retirada", emoji: "📦", tint: "bg-secondary" },
-  { id: "favor", label: "Favor", emoji: "🤝", tint: "bg-secondary" },
-  { id: "livre", label: "Livre", emoji: "✨", tint: "bg-secondary" },
+  {
+    id: "mercado",
+    label: "Fazer compras",
+    emoji: "🛒",
+    descricao: "Um entregador vai ao mercado ou loja e faz as compras para você.",
+    color: "brand-green",
+    tint: "bg-secondary",
+  },
+  {
+    id: "retirada",
+    label: "Buscar e entregar",
+    emoji: "📦",
+    descricao: "Buscamos um item em qualquer lugar e entregamos para você.",
+    color: "brand-blue",
+    tint: "bg-secondary",
+  },
+  {
+    id: "farmacia",
+    label: "Farmácia",
+    emoji: "💊",
+    descricao: "Medicamentos, itens de higiene e produtos farmacêuticos.",
+    color: "brand-purple",
+    tint: "bg-secondary",
+  },
+  {
+    id: "padaria",
+    label: "Alimentação",
+    emoji: "🍔",
+    descricao: "Padaria, lanches, doces e tudo que você precisar para comer.",
+    color: "brand-orange",
+    tint: "bg-secondary",
+  },
+  {
+    id: "favor",
+    label: "Resolver algo",
+    emoji: "📄",
+    descricao: "Pagamentos, documentos e pequenas resoluções do dia a dia.",
+    color: "brand-amber",
+    tint: "bg-secondary",
+  },
+  {
+    id: "livre",
+    label: "Outro favor",
+    emoji: "📍",
+    descricao: "Descreva o que você precisa e veremos como ajudar.",
+    color: "brand-pink",
+    tint: "bg-secondary",
+  },
+  {
+    id: "lojas",
+    label: "Lojas",
+    emoji: "🛍️",
+    descricao: "Compras em lojas físicas da sua região.",
+    color: "brand-blue",
+    tint: "bg-secondary",
+  },
 ] as const;
 
 export type CategoriaId = (typeof CATEGORIAS_BASE)[number]["id"] | string;
 
-export type Categoria = { id: string; label: string; emoji: string; tint: string };
+export type Categoria = {
+  id: string;
+  label: string;
+  emoji: string;
+  descricao: string;
+  color: string;
+  tint: string;
+};
+
+/** As 6 categorias exibidas como cartões grandes na criação de pedido. */
+export const CATEGORIAS_PRINCIPAIS = ["mercado", "retirada", "farmacia", "padaria", "favor", "livre"];
+
+/** Classes literais por cor de marca (Tailwind não compila classes montadas em runtime). */
+export const COR_CLASSES: Record<string, string> = {
+  "brand-green": "bg-brand-green/10 border-brand-green/25 text-brand-green",
+  "brand-blue": "bg-brand-blue/10 border-brand-blue/25 text-brand-blue",
+  "brand-purple": "bg-brand-purple/10 border-brand-purple/25 text-brand-purple",
+  "brand-orange": "bg-brand-orange/10 border-brand-orange/25 text-brand-orange",
+  "brand-amber": "bg-brand-amber/15 border-brand-amber/30 text-brand-amber",
+  "brand-pink": "bg-brand-pink/10 border-brand-pink/25 text-brand-pink",
+};
+
+export function corClasses(color: string): string {
+  return COR_CLASSES[color] ?? COR_CLASSES["brand-blue"];
+}
 
 export function getCategorias(): Categoria[] {
   const o = loadOverrides();
@@ -20,6 +97,19 @@ export function getCategorias(): Categoria[] {
     const ov = o.categoriaLabels[c.id] ?? {};
     return { ...c, label: ov.label ?? c.label, emoji: ov.emoji ?? c.emoji };
   });
+}
+
+export function getCategoria(id: string | null | undefined): Categoria {
+  return (
+    getCategorias().find((c) => c.id === id) ?? {
+      id: id ?? "livre",
+      label: "Pedido",
+      emoji: "📦",
+      descricao: "",
+      color: "brand-blue",
+      tint: "bg-secondary",
+    }
+  );
 }
 
 // Legacy export kept for any static reference
@@ -84,3 +174,33 @@ export function calcularTaxa(valorProduto: number): { frete: number; taxa: numbe
   const taxa = Math.max(o.taxaMin, Math.round(valorProduto * o.taxaPct));
   return { frete, taxa, total: valorProduto + frete + taxa };
 }
+
+/**
+ * O valor final varia conforme distância, quantidade de itens, complexidade e
+ * tempo necessário — por isso o app sempre mostra uma faixa estimada, nunca um total fechado.
+ */
+export function faixaEstimada(valorProduto: number): { min: number; max: number } {
+  const { total } = calcularTaxa(valorProduto);
+  const min = Math.max(1, Math.floor(total * 0.9));
+  const max = Math.ceil(total * 1.3);
+  return { min, max };
+}
+
+export function formatFaixa(min: number | null | undefined, max: number | null | undefined): string {
+  if (min == null || max == null || (min === 0 && max === 0)) return "A combinar";
+  if (min === max) return formatBRL(min);
+  return `${formatBRL(min)} a ${formatBRL(max)}`;
+}
+
+export const STATUS_TONE: Record<string, "neutral" | "info" | "success" | "warning" | "danger"> = {
+  aguardando_entregador: "warning",
+  aceito: "info",
+  indo_loja: "info",
+  em_compra: "info",
+  compra_finalizada: "info",
+  em_entrega: "info",
+  entregue: "success",
+  confirmado: "success",
+  cancelado: "neutral",
+  em_disputa: "danger",
+};

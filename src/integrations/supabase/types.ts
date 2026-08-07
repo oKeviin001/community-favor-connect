@@ -49,6 +49,90 @@ export type Database = {
           },
         ]
       }
+      courier_applications: {
+        Row: {
+          atualizado_em: string
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          complemento: string | null
+          comprovante_residencia_url: string | null
+          cpf: string
+          criado_em: string
+          data_nascimento: string | null
+          dias_semana: string[]
+          doc_frente_url: string | null
+          doc_selfie_url: string | null
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          horarios: string[]
+          id: string
+          nome_completo: string
+          numero: string | null
+          observacoes: string | null
+          regiao_atuacao: string | null
+          status: string
+          telefone: string
+          transporte: string
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          comprovante_residencia_url?: string | null
+          cpf: string
+          criado_em?: string
+          data_nascimento?: string | null
+          dias_semana?: string[]
+          doc_frente_url?: string | null
+          doc_selfie_url?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          horarios?: string[]
+          id?: string
+          nome_completo: string
+          numero?: string | null
+          observacoes?: string | null
+          regiao_atuacao?: string | null
+          status?: string
+          telefone: string
+          transporte?: string
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          comprovante_residencia_url?: string | null
+          cpf?: string
+          criado_em?: string
+          data_nascimento?: string | null
+          dias_semana?: string[]
+          doc_frente_url?: string | null
+          doc_selfie_url?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          horarios?: string[]
+          id?: string
+          nome_completo?: string
+          numero?: string | null
+          observacoes?: string | null
+          regiao_atuacao?: string | null
+          status?: string
+          telefone?: string
+          transporte?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       disputes: {
         Row: {
           aberto_por: string
@@ -518,6 +602,7 @@ export type Database = {
         Row: {
           aceito_em: string | null
           atualizado_em: string
+          bairro: string | null
           categoria: Database["public"]["Enums"]["order_category"]
           cliente_id: string
           criado_em: string
@@ -528,15 +613,19 @@ export type Database = {
           id: string
           loja: string | null
           observacoes: string | null
+          referencia: string | null
           status: Database["public"]["Enums"]["order_status"]
           taxa_servico: number
           total: number | null
+          valor_estimado_max: number | null
+          valor_estimado_min: number | null
           valor_frete: number
           valor_produto: number
         }
         Insert: {
           aceito_em?: string | null
           atualizado_em?: string
+          bairro?: string | null
           categoria?: Database["public"]["Enums"]["order_category"]
           cliente_id: string
           criado_em?: string
@@ -547,15 +636,19 @@ export type Database = {
           id?: string
           loja?: string | null
           observacoes?: string | null
+          referencia?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           taxa_servico?: number
           total?: number | null
+          valor_estimado_max?: number | null
+          valor_estimado_min?: number | null
           valor_frete?: number
           valor_produto?: number
         }
         Update: {
           aceito_em?: string | null
           atualizado_em?: string
+          bairro?: string | null
           categoria?: Database["public"]["Enums"]["order_category"]
           cliente_id?: string
           criado_em?: string
@@ -566,9 +659,12 @@ export type Database = {
           id?: string
           loja?: string | null
           observacoes?: string | null
+          referencia?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           taxa_servico?: number
           total?: number | null
+          valor_estimado_max?: number | null
+          valor_estimado_min?: number | null
           valor_frete?: number
           valor_produto?: number
         }

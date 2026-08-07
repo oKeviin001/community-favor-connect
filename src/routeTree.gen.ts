@@ -25,6 +25,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedEntregadorIndexRouteImport } from './routes/_authenticated/entregador.index'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
 import { Route as AuthenticatedEntregadorHistoricoRouteImport } from './routes/_authenticated/entregador.historico'
+import { Route as AuthenticatedEntregadorCadastroRouteImport } from './routes/_authenticated/entregador.cadastro'
 import { Route as AuthenticatedEntregadorAceitosRouteImport } from './routes/_authenticated/entregador.aceitos'
 import { Route as ApiPublicKevinReceiveRouteImport } from './routes/api/public/kevin/receive'
 import { Route as ApiPublicKevinManifestRouteImport } from './routes/api/public/kevin/manifest'
@@ -117,6 +118,12 @@ const AuthenticatedEntregadorHistoricoRoute =
     path: '/historico',
     getParentRoute: () => AuthenticatedEntregadorRoute,
   } as any)
+const AuthenticatedEntregadorCadastroRoute =
+  AuthenticatedEntregadorCadastroRouteImport.update({
+    id: '/cadastro',
+    path: '/cadastro',
+    getParentRoute: () => AuthenticatedEntregadorRoute,
+  } as any)
 const AuthenticatedEntregadorAceitosRoute =
   AuthenticatedEntregadorAceitosRouteImport.update({
     id: '/aceitos',
@@ -181,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof AuthenticatedPerfilRoute
   '/transferencia': typeof AuthenticatedTransferenciaRoute
   '/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
+  '/entregador/cadastro': typeof AuthenticatedEntregadorCadastroRoute
   '/entregador/historico': typeof AuthenticatedEntregadorHistoricoRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/entregador/': typeof AuthenticatedEntregadorIndexRoute
@@ -206,6 +214,7 @@ export interface FileRoutesByTo {
   '/perfil': typeof AuthenticatedPerfilRoute
   '/transferencia': typeof AuthenticatedTransferenciaRoute
   '/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
+  '/entregador/cadastro': typeof AuthenticatedEntregadorCadastroRoute
   '/entregador/historico': typeof AuthenticatedEntregadorHistoricoRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/entregador': typeof AuthenticatedEntregadorIndexRoute
@@ -234,6 +243,7 @@ export interface FileRoutesById {
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/transferencia': typeof AuthenticatedTransferenciaRoute
   '/_authenticated/entregador/aceitos': typeof AuthenticatedEntregadorAceitosRoute
+  '/_authenticated/entregador/cadastro': typeof AuthenticatedEntregadorCadastroRoute
   '/_authenticated/entregador/historico': typeof AuthenticatedEntregadorHistoricoRoute
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/_authenticated/entregador/': typeof AuthenticatedEntregadorIndexRoute
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/transferencia'
     | '/entregador/aceitos'
+    | '/entregador/cadastro'
     | '/entregador/historico'
     | '/pedidos/$id'
     | '/entregador/'
@@ -287,6 +298,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/transferencia'
     | '/entregador/aceitos'
+    | '/entregador/cadastro'
     | '/entregador/historico'
     | '/pedidos/$id'
     | '/entregador'
@@ -314,6 +326,7 @@ export interface FileRouteTypes {
     | '/_authenticated/perfil'
     | '/_authenticated/transferencia'
     | '/_authenticated/entregador/aceitos'
+    | '/_authenticated/entregador/cadastro'
     | '/_authenticated/entregador/historico'
     | '/_authenticated/pedidos/$id'
     | '/_authenticated/entregador/'
@@ -454,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntregadorHistoricoRouteImport
       parentRoute: typeof AuthenticatedEntregadorRoute
     }
+    '/_authenticated/entregador/cadastro': {
+      id: '/_authenticated/entregador/cadastro'
+      path: '/cadastro'
+      fullPath: '/entregador/cadastro'
+      preLoaderRoute: typeof AuthenticatedEntregadorCadastroRouteImport
+      parentRoute: typeof AuthenticatedEntregadorRoute
+    }
     '/_authenticated/entregador/aceitos': {
       id: '/_authenticated/entregador/aceitos'
       path: '/aceitos'
@@ -522,6 +542,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedEntregadorRouteChildren {
   AuthenticatedEntregadorAceitosRoute: typeof AuthenticatedEntregadorAceitosRoute
+  AuthenticatedEntregadorCadastroRoute: typeof AuthenticatedEntregadorCadastroRoute
   AuthenticatedEntregadorHistoricoRoute: typeof AuthenticatedEntregadorHistoricoRoute
   AuthenticatedEntregadorIndexRoute: typeof AuthenticatedEntregadorIndexRoute
   AuthenticatedEntregadorPedidoIdRoute: typeof AuthenticatedEntregadorPedidoIdRoute
@@ -530,6 +551,7 @@ interface AuthenticatedEntregadorRouteChildren {
 const AuthenticatedEntregadorRouteChildren: AuthenticatedEntregadorRouteChildren =
   {
     AuthenticatedEntregadorAceitosRoute: AuthenticatedEntregadorAceitosRoute,
+    AuthenticatedEntregadorCadastroRoute: AuthenticatedEntregadorCadastroRoute,
     AuthenticatedEntregadorHistoricoRoute:
       AuthenticatedEntregadorHistoricoRoute,
     AuthenticatedEntregadorIndexRoute: AuthenticatedEntregadorIndexRoute,
