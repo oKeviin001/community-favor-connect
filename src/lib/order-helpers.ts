@@ -77,6 +77,20 @@ export type Categoria = {
 /** As 6 categorias exibidas como cartões grandes na criação de pedido. */
 export const CATEGORIAS_PRINCIPAIS = ["mercado", "retirada", "farmacia", "padaria", "favor", "livre"];
 
+/** Classes literais por cor de marca (Tailwind não compila classes montadas em runtime). */
+export const COR_CLASSES: Record<string, string> = {
+  "brand-green": "bg-brand-green/10 border-brand-green/25 text-brand-green",
+  "brand-blue": "bg-brand-blue/10 border-brand-blue/25 text-brand-blue",
+  "brand-purple": "bg-brand-purple/10 border-brand-purple/25 text-brand-purple",
+  "brand-orange": "bg-brand-orange/10 border-brand-orange/25 text-brand-orange",
+  "brand-amber": "bg-brand-amber/15 border-brand-amber/30 text-brand-amber",
+  "brand-pink": "bg-brand-pink/10 border-brand-pink/25 text-brand-pink",
+};
+
+export function corClasses(color: string): string {
+  return COR_CLASSES[color] ?? COR_CLASSES["brand-blue"];
+}
+
 export function getCategorias(): Categoria[] {
   const o = loadOverrides();
   return CATEGORIAS_BASE.map((c) => {
