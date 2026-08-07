@@ -160,3 +160,33 @@ export function calcularTaxa(valorProduto: number): { frete: number; taxa: numbe
   const taxa = Math.max(o.taxaMin, Math.round(valorProduto * o.taxaPct));
   return { frete, taxa, total: valorProduto + frete + taxa };
 }
+
+/**
+ * O valor final varia conforme distância, quantidade de itens, complexidade e
+ * tempo necessário — por isso o app sempre mostra uma faixa estimada, nunca um total fechado.
+ */
+export function faixaEstimada(valorProduto: number): { min: number; max: number } {
+  const { total } = calcularTaxa(valorProduto);
+  const min = Math.max(1, Math.floor(total * 0.9));
+  const max = Math.ceil(total * 1.3);
+  return { min, max };
+}
+
+export function formatFaixa(min: number | null | undefined, max: number | null | undefined): string {
+  if (min == null || max == null || (min === 0 && max === 0)) return "A combinar";
+  if (min === max) return formatBRL(min);
+  return `${formatBRL(min)} a ${formatBRL(max)}`;
+}
+
+export const STATUS_TONE: Record<string, "neutral" | "info" | "success" | "warning" | "danger"> = {
+  aguardando_entregador: "warning",
+  aceito: "info",
+  indo_loja: "info",
+  em_compra: "info",
+  compra_finalizada: "info",
+  em_entrega: "info",
+  entregue: "success",
+  confirmado: "success",
+  cancelado: "neutral",
+  em_disputa: "danger",
+};
