@@ -10,13 +10,13 @@ interface Props {
 
 export function AppShell({ children, hideNav }: Props) {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { canDeliver, isAdmin } = useUser();
+  const { isAdmin } = useUser();
 
   const navItems = [
     { to: "/home", label: "Início", icon: Home },
     { to: "/novo-pedido", label: "Pedir", icon: Plus },
     { to: "/pedidos", label: "Meus pedidos", icon: ClipboardList },
-    ...(canDeliver ? [{ to: "/entregador", label: "Entregar", icon: Bike }] : []),
+    { to: "/entregador", label: "Entregar", icon: Bike },
     ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield }] : []),
     { to: "/perfil", label: "Perfil", icon: User },
   ] as const;
