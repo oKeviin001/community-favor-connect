@@ -49,8 +49,46 @@ export type Database = {
           },
         ]
       }
+      courier_application_events: {
+        Row: {
+          application_id: string
+          autor_id: string | null
+          criado_em: string
+          id: string
+          nota: string | null
+          status: string
+        }
+        Insert: {
+          application_id: string
+          autor_id?: string | null
+          criado_em?: string
+          id?: string
+          nota?: string | null
+          status: string
+        }
+        Update: {
+          application_id?: string
+          autor_id?: string | null
+          criado_em?: string
+          id?: string
+          nota?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courier_application_events_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "courier_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courier_applications: {
         Row: {
+          analisado_em: string | null
+          analisado_por: string | null
+          analise_observacao: string | null
           atualizado_em: string
           bairro: string | null
           cep: string | null
@@ -68,9 +106,15 @@ export type Database = {
           estado: string | null
           horarios: string[]
           id: string
+          info_adicional: string | null
+          ja_trabalhou_entregas: boolean | null
+          motivo: string | null
           nome_completo: string
           numero: string | null
           observacoes: string | null
+          possui_bag: boolean | null
+          possui_documento: boolean | null
+          possui_smartphone: boolean | null
           regiao_atuacao: string | null
           status: string
           telefone: string
@@ -78,6 +122,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          analisado_em?: string | null
+          analisado_por?: string | null
+          analise_observacao?: string | null
           atualizado_em?: string
           bairro?: string | null
           cep?: string | null
@@ -95,9 +142,15 @@ export type Database = {
           estado?: string | null
           horarios?: string[]
           id?: string
+          info_adicional?: string | null
+          ja_trabalhou_entregas?: boolean | null
+          motivo?: string | null
           nome_completo: string
           numero?: string | null
           observacoes?: string | null
+          possui_bag?: boolean | null
+          possui_documento?: boolean | null
+          possui_smartphone?: boolean | null
           regiao_atuacao?: string | null
           status?: string
           telefone: string
@@ -105,6 +158,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          analisado_em?: string | null
+          analisado_por?: string | null
+          analise_observacao?: string | null
           atualizado_em?: string
           bairro?: string | null
           cep?: string | null
@@ -122,9 +178,15 @@ export type Database = {
           estado?: string | null
           horarios?: string[]
           id?: string
+          info_adicional?: string | null
+          ja_trabalhou_entregas?: boolean | null
+          motivo?: string | null
           nome_completo?: string
           numero?: string | null
           observacoes?: string | null
+          possui_bag?: boolean | null
+          possui_documento?: boolean | null
+          possui_smartphone?: boolean | null
           regiao_atuacao?: string | null
           status?: string
           telefone?: string
