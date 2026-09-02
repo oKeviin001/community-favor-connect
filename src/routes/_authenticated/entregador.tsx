@@ -96,7 +96,7 @@ function EntregadorGate() {
             )}
             <Link
               to="/entregador/cadastro"
-              className="mt-7 h-13 px-6 inline-flex items-center rounded-2xl bg-primary text-primary-foreground text-sm font-semibold h-12"
+              className="mt-7 h-12 px-6 inline-flex items-center rounded-2xl bg-primary text-primary-foreground text-sm font-semibold"
             >
               Enviar nova candidatura
             </Link>

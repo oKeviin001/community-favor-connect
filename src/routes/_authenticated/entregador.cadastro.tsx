@@ -93,6 +93,14 @@ function CadastroEntregador() {
     transporte: "bicicleta",
     regiao_atuacao: "",
     observacoes: "",
+    motivo: "",
+    info_adicional: "",
+  });
+  const [q, setQ] = useState({
+    ja_trabalhou_entregas: null as boolean | null,
+    possui_smartphone: null as boolean | null,
+    possui_documento: null as boolean | null,
+    possui_bag: null as boolean | null,
   });
   const [dias, setDias] = useState<string[]>([]);
   const [horarios, setHorarios] = useState<string[]>([]);
@@ -132,7 +140,15 @@ function CadastroEntregador() {
           transporte: app.transporte ?? "bicicleta",
           regiao_atuacao: app.regiao_atuacao ?? "",
           observacoes: app.observacoes ?? "",
+          motivo: app.motivo ?? "",
+          info_adicional: app.info_adicional ?? "",
         }));
+        setQ({
+          ja_trabalhou_entregas: app.ja_trabalhou_entregas,
+          possui_smartphone: app.possui_smartphone,
+          possui_documento: app.possui_documento,
+          possui_bag: app.possui_bag,
+        });
         setDias(app.dias_semana ?? []);
         setHorarios(app.horarios ?? []);
         setDocs({
@@ -168,7 +184,12 @@ function CadastroEntregador() {
   const passo1Ok = f.nome_completo.trim().length > 4 && soDigitos(f.cpf, 11).length === 11 && soDigitos(f.telefone, 11).length >= 10;
   const passo2Ok = f.endereco.trim() && f.cidade.trim() && f.estado.trim();
   const passo3Ok = docs.doc_frente_url && docs.doc_selfie_url && docs.comprovante_residencia_url;
-  const passo4Ok = dias.length > 0 && horarios.length > 0;
+  const passo4Ok =
+    dias.length > 0 &&
+    horarios.length > 0 &&
+    q.ja_trabalhou_entregas !== null &&
+    q.possui_smartphone !== null &&
+    q.possui_documento !== null;
 
   async function enviarCadastro() {
     if (!userId) return;
@@ -193,16 +214,34 @@ function CadastroEntregador() {
       horarios,
       regiao_atuacao: f.regiao_atuacao.trim() || null,
       observacoes: f.observacoes.trim() || null,
+      motivo: f.motivo.trim() || null,
+      info_adicional: f.info_adicional.trim() || null,
+      ja_trabalhou_entregas: q.ja_trabalhou_entregas,
+      possui_smartphone: q.possui_smartphone,
+      possui_documento: q.possui_documento,
+      possui_bag: q.possui_bag,
       status: "pendente",
+      analise_observacao: null,
+      analisado_em: null,
+      analisado_por: null,
     };
-    const { error } = await supabase.from("courier_applications").upsert(payload, { onConflict: "user_id" });
-    if (!error) {
-      await supabase.from("profiles").update({ tipo: "ambos" as never }).eq("id", userId);
+    const { data: salvo, error } = await supabase
+      .from("courier_applications")
+      .upsert(payload, { onConflict: "user_id" })
+      .select("id")
+      .maybeSingle();
+    if (salvo?.id) {
+      await supabase.from("courier_application_events").insert({
+        application_id: salvo.id,
+        autor_id: userId,
+        status: "pendente",
+        nota: "Candidatura enviada pelo entregador",
+      });
     }
     setEnviando(false);
     if (error) return toast.error(error.message);
     setStatusExistente("pendente");
-    toast.success("Cadastro enviado para análise.");
+    toast.success("Candidatura enviada para análise.");
     navigate({ to: "/entregador" });
   }
 
@@ -409,8 +448,42 @@ function CadastroEntregador() {
                 </div>
               </div>
 
+              <div>
+                <p className="label-kicker mb-2">Perguntas adicionais</p>
+                <div className="space-y-2.5">
+                  <SimNao
+                    label="Já trabalhou com entregas?"
+                    value={q.ja_trabalhou_entregas}
+                    onChange={(v) => setQ((p) => ({ ...p, ja_trabalhou_entregas: v }))}
+                  />
+                  <SimNao
+                    label="Possui smartphone próprio?"
+                    value={q.possui_smartphone}
+                    onChange={(v) => setQ((p) => ({ ...p, possui_smartphone: v }))}
+                  />
+                  <SimNao
+                    label="Possui documento válido com foto?"
+                    value={q.possui_documento}
+                    onChange={(v) => setQ((p) => ({ ...p, possui_documento: v }))}
+                  />
+                  <SimNao
+                    label="Possui bag ou caixa térmica?"
+                    value={q.possui_bag}
+                    onChange={(v) => setQ((p) => ({ ...p, possui_bag: v }))}
+                  />
+                </div>
+              </div>
+
+              <Field label="Por que você quer ser um entregador do Pede pro Kevin?">
+                <textarea rows={2} value={f.motivo} onChange={(e) => set("motivo")(e.target.value)} placeholder="Conte o seu motivo" className="field-textarea" />
+              </Field>
+
               <Field label="Região de atuação">
                 <input value={f.regiao_atuacao} onChange={(e) => set("regiao_atuacao")(e.target.value)} placeholder="Bairros onde você pretende atuar" className="field-input" />
+              </Field>
+
+              <Field label="Alguma informação adicional que gostaria de compartilhar?">
+                <textarea rows={2} value={f.info_adicional} onChange={(e) => set("info_adicional")(e.target.value)} placeholder="Opcional" className="field-textarea" />
               </Field>
 
               <Field label="Observações">
@@ -445,5 +518,31 @@ function CadastroEntregador() {
         <p className="text-center text-[11px] text-muted-foreground">Cadastro 100% gratuito</p>
       </div>
     </CourierShell>
+  );
+}
+
+function SimNao({ label, value, onChange }: { label: string; value: boolean | null; onChange: (v: boolean) => void }) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-3">
+      <p className="text-[13px] font-medium mb-2">{label}</p>
+      <div className="flex gap-2">
+        {[true, false].map((op) => (
+          <button
+            key={String(op)}
+            type="button"
+            onClick={() => onChange(op)}
+            className={`flex-1 h-9 rounded-lg text-[12px] font-semibold border transition-colors ${
+              value === op
+                ? op
+                  ? "bg-success/10 border-success/40 text-success"
+                  : "bg-destructive/10 border-destructive/30 text-destructive"
+                : "bg-secondary border-border text-muted-foreground"
+            }`}
+          >
+            {op ? "Sim" : "Não"}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
