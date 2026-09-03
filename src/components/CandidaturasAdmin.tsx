@@ -20,6 +20,41 @@ interface AppRow {
   criado_em: string;
 }
 
+interface AppDetail {
+  id: string;
+  nome_completo: string;
+  cpf: string | null;
+  telefone: string | null;
+  email: string | null;
+  data_nascimento: string | null;
+  endereco: string | null;
+  numero: string | null;
+  complemento: string | null;
+  cep: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  estado: string | null;
+  transporte: string;
+  status: string;
+  criado_em: string;
+  regiao_atuacao: string | null;
+  observacoes: string | null;
+  motivo: string | null;
+  info_adicional: string | null;
+  dias_semana: string[] | null;
+  horarios: string[] | null;
+  ja_trabalhou_entregas: boolean | null;
+  possui_smartphone: boolean | null;
+  possui_documento: boolean | null;
+  possui_bag: boolean | null;
+}
+
+interface Detalhe {
+  application: AppDetail;
+  eventos: { id: string; status: string; nota: string | null; criado_em: string }[];
+  documentos: Record<string, string>;
+}
+
 const TONE: Record<string, { label: string; cls: string; icon: typeof Clock }> = {
   aprovado: { label: "🟢 Aprovado", cls: "bg-success/10 text-success border-success/25", icon: CheckCircle2 },
   reprovado: { label: "🔴 Reprovado", cls: "bg-destructive/10 text-destructive border-destructive/25", icon: XCircle },
@@ -43,7 +78,7 @@ export function CandidaturasAdmin() {
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [aberta, setAberta] = useState<string | null>(null);
-  const [detalhe, setDetalhe] = useState<Awaited<ReturnType<typeof getApplicationType>> | null>(null);
+  const [detalhe, setDetalhe] = useState<Detalhe | null>(null);
   const [nota, setNota] = useState("");
   const [salvando, setSalvando] = useState(false);
 
@@ -63,13 +98,16 @@ export function CandidaturasAdmin() {
   }, []);
 
   useEffect(() => {
-    if (!aberta) return setDetalhe(null);
+    if (!aberta) {
+      setDetalhe(null);
+      return;
+    }
     setDetalhe(null);
     setNota("");
     (async () => {
       try {
         const res = await getFn({ data: { id: aberta } });
-        setDetalhe(res as never);
+        setDetalhe(res as unknown as Detalhe);
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Não foi possível abrir a candidatura");
       }
@@ -286,9 +324,3 @@ function Info({ k, v }: { k: string; v: string | null | undefined }) {
     </div>
   );
 }
-
-declare function getApplicationType(): Promise<{
-  application: Record<string, never>;
-  eventos: { id: string; status: string; nota: string | null; criado_em: string }[];
-  documentos: Record<string, string>;
-}>;
