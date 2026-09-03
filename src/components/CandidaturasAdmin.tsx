@@ -20,6 +20,12 @@ interface AppRow {
   criado_em: string;
 }
 
+interface Detalhe {
+  application: Record<string, string | boolean | string[] | null>;
+  eventos: { id: string; status: string; nota: string | null; criado_em: string }[];
+  documentos: Record<string, string>;
+}
+
 const TONE: Record<string, { label: string; cls: string; icon: typeof Clock }> = {
   aprovado: { label: "🟢 Aprovado", cls: "bg-success/10 text-success border-success/25", icon: CheckCircle2 },
   reprovado: { label: "🔴 Reprovado", cls: "bg-destructive/10 text-destructive border-destructive/25", icon: XCircle },
@@ -43,7 +49,7 @@ export function CandidaturasAdmin() {
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [aberta, setAberta] = useState<string | null>(null);
-  const [detalhe, setDetalhe] = useState<Awaited<ReturnType<typeof getApplicationType>> | null>(null);
+  const [detalhe, setDetalhe] = useState<Detalhe | null>(null);
   const [nota, setNota] = useState("");
   const [salvando, setSalvando] = useState(false);
 
@@ -69,7 +75,7 @@ export function CandidaturasAdmin() {
     (async () => {
       try {
         const res = await getFn({ data: { id: aberta } });
-        setDetalhe(res as never);
+        setDetalhe(res as unknown as Detalhe);
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Não foi possível abrir a candidatura");
       }
@@ -102,7 +108,7 @@ export function CandidaturasAdmin() {
   );
 
   if (aberta) {
-    const app = detalhe?.application;
+    const app = detalhe?.application as Record<string, never> | undefined;
     return (
       <div className="px-6 space-y-4 pb-8">
         <button onClick={() => setAberta(null)} className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -286,9 +292,3 @@ function Info({ k, v }: { k: string; v: string | null | undefined }) {
     </div>
   );
 }
-
-declare function getApplicationType(): Promise<{
-  application: Record<string, never>;
-  eventos: { id: string; status: string; nota: string | null; criado_em: string }[];
-  documentos: Record<string, string>;
-}>;
