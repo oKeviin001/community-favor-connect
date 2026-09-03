@@ -20,8 +20,37 @@ interface AppRow {
   criado_em: string;
 }
 
+interface AppDetail {
+  id: string;
+  nome_completo: string;
+  cpf: string | null;
+  telefone: string | null;
+  email: string | null;
+  data_nascimento: string | null;
+  endereco: string | null;
+  numero: string | null;
+  complemento: string | null;
+  cep: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  estado: string | null;
+  transporte: string;
+  status: string;
+  criado_em: string;
+  regiao_atuacao: string | null;
+  observacoes: string | null;
+  motivo: string | null;
+  info_adicional: string | null;
+  dias_semana: string[] | null;
+  horarios: string[] | null;
+  ja_trabalhou_entregas: boolean | null;
+  possui_smartphone: boolean | null;
+  possui_documento: boolean | null;
+  possui_bag: boolean | null;
+}
+
 interface Detalhe {
-  application: Record<string, string | boolean | string[] | null>;
+  application: AppDetail;
   eventos: { id: string; status: string; nota: string | null; criado_em: string }[];
   documentos: Record<string, string>;
 }
@@ -69,7 +98,10 @@ export function CandidaturasAdmin() {
   }, []);
 
   useEffect(() => {
-    if (!aberta) return setDetalhe(null);
+    if (!aberta) {
+      setDetalhe(null);
+      return;
+    }
     setDetalhe(null);
     setNota("");
     (async () => {
@@ -108,7 +140,7 @@ export function CandidaturasAdmin() {
   );
 
   if (aberta) {
-    const app = detalhe?.application as Record<string, never> | undefined;
+    const app = detalhe?.application;
     return (
       <div className="px-6 space-y-4 pb-8">
         <button onClick={() => setAberta(null)} className="flex items-center gap-1 text-sm text-muted-foreground">

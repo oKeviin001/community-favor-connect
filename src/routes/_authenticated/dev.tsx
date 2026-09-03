@@ -14,6 +14,7 @@ import {
   DEFAULT_OVERRIDES,
   type Overrides,
 } from "@/lib/dev-mode";
+import { CandidaturasAdmin } from "@/components/CandidaturasAdmin";
 import { CATEGORIAS_BASE, STATUS_LABEL, formatBRL } from "@/lib/order-helpers";
 import { ChevronLeft, Trash2, Wand2 } from "lucide-react";
 
@@ -67,7 +68,7 @@ function Dev() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [me, setMe] = useState<string>("");
-  const [tab, setTab] = useState<"config" | "orders" | "users">("config");
+  const [tab, setTab] = useState<"config" | "orders" | "users" | "apps">("config");
 
   async function reload() {
     const { data: u } = await supabase.auth.getUser();
@@ -182,7 +183,7 @@ function Dev() {
       </div>
 
       <div className="px-6 mb-4 flex gap-2 bg-secondary p-1 rounded-full">
-        {(["config", "orders", "users"] as const).map((t) => (
+        {(["config", "apps", "orders", "users"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -190,7 +191,13 @@ function Dev() {
               tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
             }`}
           >
-            {t === "config" ? "Config" : t === "orders" ? `Pedidos (${orders.length})` : `Usuários (${profiles.length})`}
+            {t === "config"
+              ? "Config"
+              : t === "apps"
+                ? "Entregadores"
+                : t === "orders"
+                  ? `Pedidos (${orders.length})`
+                  : `Usuários (${profiles.length})`}
           </button>
         ))}
       </div>
@@ -266,6 +273,16 @@ function Dev() {
               Apagar todos os meus pedidos
             </button>
           </Section>
+        </div>
+      )}
+
+      {tab === "apps" && (
+        <div className="pb-4">
+          <div className="px-6 pb-3">
+            <h2 className="text-base font-semibold">Candidaturas de entregadores</h2>
+            <p className="text-[12px] text-muted-foreground">Gerencie e aprove as candidaturas recebidas.</p>
+          </div>
+          <CandidaturasAdmin />
         </div>
       )}
 
