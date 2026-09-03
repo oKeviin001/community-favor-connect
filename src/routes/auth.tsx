@@ -5,7 +5,7 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { Phone, Mail, Lock, User as UserIcon, ShieldCheck, Check, ChevronRight } from "lucide-react";
 import { TERMOS_VERSAO, PRIVACIDADE_VERSAO } from "@/lib/kevin/shared";
-import heroImg from "@/assets/hero-community.png";
+import logoAsset from "@/assets/logo-oficial.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
