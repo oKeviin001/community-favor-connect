@@ -146,14 +146,16 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col px-6 pt-12 pb-10">
       <div className="mx-auto w-full max-w-sm">
-        <div className="rounded-3xl bg-secondary/70 border border-border p-4 mb-8">
-          <img
-            src={heroImg}
-            alt="Vizinhos entregando compras uns para os outros no bairro"
-            width={1024}
-            height={768}
-            className="w-full h-36 object-contain"
-          />
+        <div className="flex justify-center mb-8">
+          <div className="rounded-[2rem] overflow-hidden shadow-soft bg-card border border-border p-1">
+            <img
+              src={logoAsset.url}
+              alt="Logo oficial Pede pro Kevin"
+              width={1254}
+              height={1254}
+              className="w-32 h-32 object-contain"
+            />
+          </div>
         </div>
 
         <div className="mb-8">
