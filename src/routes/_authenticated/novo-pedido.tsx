@@ -6,11 +6,9 @@ import { AppShell } from "@/components/AppShell";
 import { Field, PageHeader, SectionTitle } from "@/components/kit";
 import {
   CATEGORIAS_PRINCIPAIS,
-  calcularTaxa,
+  PROPOSTA_AVISO,
   corClasses,
-  faixaEstimada,
   formatBRL,
-  formatFaixa,
   getCategorias,
   type CategoriaId,
 } from "@/lib/order-helpers";
@@ -27,9 +25,9 @@ export const Route = createFileRoute("/_authenticated/novo-pedido")({
   head: () => ({
     meta: [
       { title: "Novo pedido — Pede pro Kevin" },
-      { name: "description", content: "Escolha o serviço, descreva o que precisa e receba um valor estimado." },
+      { name: "description", content: "Descreva o que você precisa e informe quanto pretende pagar pela entrega." },
       { property: "og:title", content: "Novo pedido — Pede pro Kevin" },
-      { property: "og:description", content: "Escolha o serviço, descreva o que precisa e receba um valor estimado." },
+      { property: "og:description", content: "Descreva o que você precisa e informe quanto pretende pagar pela entrega." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -58,8 +56,6 @@ function NovoPedido() {
   const [loading, setLoading] = useState(false);
 
   const valorNum = Number(valor.replace(",", ".")) || 0;
-  const { frete, taxa, total } = calcularTaxa(valorNum);
-  const faixa = faixaEstimada(valorNum);
   const catSel = categorias.find((c) => c.id === categoria);
 
   const podeEnviar = god || Boolean(categoria && descricao.trim() && destino.trim() && valorNum > 0);
@@ -83,17 +79,16 @@ function NovoPedido() {
           bairro: bairro.trim() || null,
           referencia: referencia.trim() || null,
           observacoes: obs.trim() || null,
-          valor_produto: valorNum,
-          valor_frete: frete,
-          taxa_servico: taxa,
-          valor_estimado_min: faixa.min,
-          valor_estimado_max: faixa.max,
+          valor_produto: 0,
+          valor_frete: valorNum,
+          taxa_servico: 0,
+          valor_estimado_min: valorNum,
+          valor_estimado_max: valorNum,
           status: "aguardando_entregador",
         })
         .select("id")
         .single();
       if (error) throw error;
-      await supabase.from("payments").insert({ order_id: data.id, valor: total, status: "depositado" });
       toast.success("Pedido solicitado! Já está visível para os entregadores.");
       navigate({ to: "/pedidos/$id", params: { id: data.id } });
     } catch (err: unknown) {
@@ -228,11 +223,11 @@ function NovoPedido() {
           </div>
         </section>
 
-        {/* 4 — Valor estimado */}
+        {/* 4 — Sua proposta */}
         <section className="fade-rise">
-          <SectionTitle index={4}>Valor estimado</SectionTitle>
+          <SectionTitle index={4}>Quanto você pretende pagar pela entrega?</SectionTitle>
           <div className="surface p-4 space-y-4">
-            <Field label="Quanto você estima gastar com os produtos?" required>
+            <Field label="Sua proposta pela entrega" required>
               <div className="relative">
                 <Wallet size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
@@ -249,20 +244,15 @@ function NovoPedido() {
             </Field>
 
             <div className="rounded-2xl bg-secondary border border-border p-4">
-              <p className="label-kicker">Valor estimado</p>
+              <p className="label-kicker">Você oferece</p>
               <p className="text-2xl font-semibold text-primary mt-1.5">
-                {valorNum > 0 ? formatFaixa(faixa.min, faixa.max) : "R$ --,-- a R$ --,--"}
+                {valorNum > 0 ? formatBRL(valorNum) : "R$ --,--"}
               </p>
-              <div className="mt-3 space-y-1.5 text-[12px] text-muted-foreground">
-                <div className="flex justify-between"><span>Produtos (estimado)</span><span>{formatBRL(valorNum)}</span></div>
-                <div className="flex justify-between"><span>Entrega (estimada)</span><span>{formatBRL(frete)}</span></div>
-                <div className="flex justify-between"><span>Taxa da plataforma</span><span>{formatBRL(taxa)}</span></div>
-              </div>
             </div>
 
             <p className="flex items-start gap-2 text-[11px] text-muted-foreground">
               <Info size={13} className="shrink-0 mt-px" />
-              O valor final pode variar conforme distância, quantidade de itens, complexidade e tempo necessário.
+              {PROPOSTA_AVISO}
             </p>
           </div>
         </section>
@@ -275,10 +265,7 @@ function NovoPedido() {
             <ResumoLinha label="Origem" value={origem || "Não informada"} />
             <ResumoLinha label="Destino" value={destino || "Não informado"} />
             <ResumoLinha label="Região" value={bairro || "Não informada"} />
-            <ResumoLinha
-              label="Valor estimado"
-              value={valorNum > 0 ? formatFaixa(faixa.min, faixa.max) : "A calcular"}
-            />
+            <ResumoLinha label="Sua proposta" value={valorNum > 0 ? formatBRL(valorNum) : "A combinar"} />
             <ResumoLinha label="Observações" value={obs || "Nenhuma"} />
           </div>
         </section>
@@ -292,7 +279,7 @@ function NovoPedido() {
             {loading ? "Enviando..." : "Solicitar pedido"}
           </button>
           <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-            O valor fica retido pela plataforma até você confirmar a entrega.
+            O Pede pro Kevin apenas conecta pessoas: o valor final e a forma de pagamento são combinados diretamente entre você e o entregador.
           </p>
         </div>
       </form>
