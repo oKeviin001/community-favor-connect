@@ -204,3 +204,34 @@ export const STATUS_TONE: Record<string, "neutral" | "info" | "success" | "warni
   cancelado: "neutral",
   em_disputa: "danger",
 };
+/**
+ * O Pede pro Kevin é uma plataforma de conexão: o valor informado pelo cliente
+ * é apenas uma proposta inicial, negociável diretamente com o entregador.
+ */
+export const PROPOSTA_AVISO =
+  "Esta é apenas uma proposta inicial. O entregador poderá aceitar ou negociar um novo valor.";
+
+export const NEGOCIACAO_AVISO =
+  "Cliente e entregador podem negociar livremente os detalhes da entrega.";
+
+type PropostaFonte = {
+  valor_frete?: string | number | null;
+  valor_estimado_min?: string | number | null;
+  valor_produto?: string | number | null;
+};
+
+/** Valor proposto pelo cliente pela entrega (nunca um valor fechado). */
+export function propostaCliente(o: PropostaFonte | null | undefined): number {
+  if (!o) return 0;
+  const cands = [o.valor_frete, o.valor_estimado_min, o.valor_produto];
+  for (const c of cands) {
+    const n = typeof c === "string" ? Number(c) : c;
+    if (n && n > 0) return n;
+  }
+  return 0;
+}
+
+export function formatProposta(o: PropostaFonte | null | undefined): string {
+  const v = propostaCliente(o);
+  return v > 0 ? formatBRL(v) : "A combinar";
+}
