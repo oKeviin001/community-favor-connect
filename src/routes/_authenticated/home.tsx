@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { CATEGORIAS, STATUS_LABEL, statusIndex, TIMELINE_STEPS } from "@/lib/order-helpers";
 import { Plus, ChevronRight } from "lucide-react";
+import { ComoFunciona } from "@/components/ComoFunciona";
 import heroImg from "@/assets/hero-community.png";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -79,6 +80,9 @@ function Home() {
             <h1 className="text-[26px] font-semibold leading-tight text-foreground text-balance max-w-[20ch] mt-1">
               Olá, {firstName || "vizinho"}
             </h1>
+            <div className="mt-3">
+              <ComoFunciona />
+            </div>
           </div>
           <Link
             to="/perfil"
@@ -104,7 +108,7 @@ function Home() {
           <div className="p-5">
             <h2 className="text-base font-semibold">Precisa de alguma coisa?</h2>
             <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-              Um vizinho da sua região resolve para você em poucos minutos.
+              Descreva o que precisa e diga quanto pretende pagar. Um entregador da região pode aceitar ou negociar com você.
             </p>
             <Link
               to="/novo-pedido"

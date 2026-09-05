@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CourierShell } from "@/components/CourierShell";
-import { CATEGORIAS, formatBRL } from "@/lib/order-helpers";
+import { CATEGORIAS, STATUS_LABEL, formatProposta } from "@/lib/order-helpers";
 
 export const Route = createFileRoute("/_authenticated/entregador/")({
   head: () => ({
@@ -20,7 +20,8 @@ export const Route = createFileRoute("/_authenticated/entregador/")({
 
 interface Row {
   id: string; descricao: string; loja: string | null;
-  categoria: string; total: number | null; endereco_entrega: string; criado_em: string;
+  categoria: string; valor_frete: number | null; valor_estimado_min: number | null;
+  bairro: string | null; status: string; endereco_entrega: string; criado_em: string;
 }
 
 function Entregador() {
@@ -31,7 +32,7 @@ function Entregador() {
     async function load() {
       const { data } = await supabase
         .from("orders")
-        .select("id, descricao, loja, categoria, total, endereco_entrega, criado_em")
+        .select("id, descricao, loja, categoria, valor_frete, valor_estimado_min, bairro, status, endereco_entrega, criado_em")
         .eq("status", "aguardando_entregador")
         .is("entregador_id", null)
         .order("criado_em", { ascending: false });
@@ -54,7 +55,7 @@ function Entregador() {
       <header className="px-6 pt-10 pb-4">
         <p className="text-accent font-medium text-sm tracking-wide uppercase">Vizinhança</p>
         <h1 className="text-2xl font-semibold">Pedidos disponíveis</h1>
-        <p className="text-sm text-muted-foreground mt-1">Aceite um pedido para começar</p>
+        <p className="text-sm text-muted-foreground mt-1">Os valores são propostas do cliente e podem ser negociados.</p>
       </header>
 
       <div className="px-6 space-y-3">
@@ -77,10 +78,17 @@ function Entregador() {
                     <p className="text-xs text-muted-foreground line-clamp-2">{o.descricao}</p>
                     <p className="text-[11px] text-muted-foreground mt-1 truncate">→ {o.endereco_entrega}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold">{formatBRL(o.total)}</p>
-                    <span className="text-[10px] uppercase text-primary font-semibold">Ver</span>
+                  <div className="text-right shrink-0">
+                    <p className="text-[10px] uppercase text-muted-foreground">Cliente oferece</p>
+                    <p className="text-sm font-bold">{formatProposta(o)}</p>
+                    <span className="text-[10px] uppercase text-primary font-semibold">Ver detalhes</span>
                   </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between gap-2 text-[11px]">
+                  <span className="text-muted-foreground truncate">📍 {o.bairro || o.endereco_entrega}</span>
+                  <span className="rounded-full bg-secondary border border-border px-2 py-0.5 font-semibold text-muted-foreground shrink-0">
+                    🟡 {STATUS_LABEL[o.status] ?? o.status}
+                  </span>
                 </div>
               </div>
             </Link>

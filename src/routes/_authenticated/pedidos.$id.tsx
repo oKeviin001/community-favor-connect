@@ -9,6 +9,9 @@ import {
   TIMELINE_STEPS,
   statusIndex,
   formatBRL,
+  formatProposta,
+  propostaCliente,
+  NEGOCIACAO_AVISO,
   CATEGORIAS,
   whatsappLink,
   type OrderStatus,
@@ -184,7 +187,7 @@ function PedidoDetail() {
               </p>
             </div>
             <span className="bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-medium">
-              {formatBRL(order.total)}
+              {formatProposta(order)}
             </span>
           </div>
           {step >= 0 && (
@@ -224,6 +227,9 @@ function PedidoDetail() {
                 </p>
               </div>
             </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              {NEGOCIACAO_AVISO} Combinem valor final, forma de pagamento, produtos e horário diretamente entre vocês.
+            </p>
             {wa ? (
               <a
                 href={wa}
@@ -251,10 +257,8 @@ function PedidoDetail() {
           <Detail label="Entregar em" value={order.endereco_entrega} />
           {order.observacoes && <Detail label="Observações" value={order.observacoes} />}
           <Detail label="Criado em" value={new Date(order.criado_em).toLocaleString("pt-BR")} />
-          <div className="pt-2 border-t border-border/60 grid grid-cols-3 text-center gap-2">
-            <Money label="Produto" v={order.valor_produto} />
-            <Money label="Frete" v={order.valor_frete} />
-            <Money label="Taxa" v={order.taxa_servico} />
+          <div className="pt-2 border-t border-border/60 text-center">
+            <Money label="Sua proposta" v={propostaCliente(order)} />
           </div>
         </div>
       </section>

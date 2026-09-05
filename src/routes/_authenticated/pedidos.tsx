@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
-import { CATEGORIAS, STATUS_LABEL, formatBRL } from "@/lib/order-helpers";
+import { CATEGORIAS, STATUS_LABEL, formatProposta } from "@/lib/order-helpers";
 
 export const Route = createFileRoute("/_authenticated/pedidos")({
   head: () => ({
@@ -24,7 +24,8 @@ interface Row {
   loja: string | null;
   status: string;
   categoria: string;
-  total: number | null;
+  valor_frete: number | null;
+  valor_estimado_min: number | null;
   criado_em: string;
   cliente_id: string;
   entregador_id: string | null;
@@ -41,7 +42,7 @@ function Pedidos() {
       if (!u.user || !mounted) return;
       const { data } = await supabase
         .from("orders")
-        .select("id, descricao, loja, status, categoria, total, criado_em, cliente_id, entregador_id")
+        .select("id, descricao, loja, status, categoria, valor_frete, valor_estimado_min, criado_em, cliente_id, entregador_id")
         .eq("cliente_id", u.user.id)
         .order("criado_em", { ascending: false });
       if (!mounted) return;
@@ -105,7 +106,8 @@ function Pedidos() {
                 </span>
               </div>
               <div className="text-right">
-                <p className="text-sm font-semibold">{formatBRL(o.total)}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">Oferece</p>
+                <p className="text-sm font-semibold">{formatProposta(o)}</p>
                 <p className="text-[10px] text-muted-foreground uppercase mt-0.5">
                   {new Date(o.criado_em).toLocaleDateString("pt-BR")} ·{" "}
                   {new Date(o.criado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
