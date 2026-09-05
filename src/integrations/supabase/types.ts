@@ -49,6 +49,120 @@ export type Database = {
           },
         ]
       }
+      admin_audit_log: {
+        Row: {
+          acao: string
+          alvo_id: string | null
+          alvo_tipo: string | null
+          autor_id: string | null
+          autor_nome: string | null
+          criado_em: string
+          detalhes: Json
+          id: string
+        }
+        Insert: {
+          acao: string
+          alvo_id?: string | null
+          alvo_tipo?: string | null
+          autor_id?: string | null
+          autor_nome?: string | null
+          criado_em?: string
+          detalhes?: Json
+          id?: string
+        }
+        Update: {
+          acao?: string
+          alvo_id?: string | null
+          alvo_tipo?: string | null
+          autor_id?: string | null
+          autor_nome?: string | null
+          criado_em?: string
+          detalhes?: Json
+          id?: string
+        }
+        Relationships: []
+      }
+      announcements: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          criado_em: string
+          criado_por: string | null
+          id: string
+          mensagem: string
+          publico: string
+          titulo: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          criado_por?: string | null
+          id?: string
+          mensagem: string
+          publico?: string
+          titulo: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          criado_por?: string | null
+          id?: string
+          mensagem?: string
+          publico?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          atualizado_em: string
+          chave: string
+          criado_em: string
+          valor: Json
+        }
+        Insert: {
+          atualizado_em?: string
+          chave: string
+          criado_em?: string
+          valor?: Json
+        }
+        Update: {
+          atualizado_em?: string
+          chave?: string
+          criado_em?: string
+          valor?: Json
+        }
+        Relationships: []
+      }
+      content_blocks: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          chave: string
+          corpo: string
+          criado_em: string
+          titulo: string
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave: string
+          corpo?: string
+          criado_em?: string
+          titulo: string
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave?: string
+          corpo?: string
+          criado_em?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       courier_application_events: {
         Row: {
           application_id: string
@@ -678,6 +792,7 @@ export type Database = {
           referencia: string | null
           status: Database["public"]["Enums"]["order_status"]
           taxa_servico: number
+          teste: boolean
           total: number | null
           valor_estimado_max: number | null
           valor_estimado_min: number | null
@@ -701,6 +816,7 @@ export type Database = {
           referencia?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           taxa_servico?: number
+          teste?: boolean
           total?: number | null
           valor_estimado_max?: number | null
           valor_estimado_min?: number | null
@@ -724,6 +840,7 @@ export type Database = {
           referencia?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           taxa_servico?: number
+          teste?: boolean
           total?: number | null
           valor_estimado_max?: number | null
           valor_estimado_min?: number | null
@@ -793,6 +910,7 @@ export type Database = {
           nota_media: number | null
           suspenso: boolean
           telefone: string | null
+          teste: boolean
           tipo: Database["public"]["Enums"]["user_role"]
           total_avaliacoes: number | null
           total_entregas: number
@@ -807,6 +925,7 @@ export type Database = {
           nota_media?: number | null
           suspenso?: boolean
           telefone?: string | null
+          teste?: boolean
           tipo?: Database["public"]["Enums"]["user_role"]
           total_avaliacoes?: number | null
           total_entregas?: number
@@ -821,6 +940,7 @@ export type Database = {
           nota_media?: number | null
           suspenso?: boolean
           telefone?: string | null
+          teste?: boolean
           tipo?: Database["public"]["Enums"]["user_role"]
           total_avaliacoes?: number | null
           total_entregas?: number
