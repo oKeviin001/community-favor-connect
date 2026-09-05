@@ -182,7 +182,7 @@ function PedidoEntregador() {
           <h1 className="text-lg font-semibold truncate">{order.loja || order.descricao}</h1>
         </div>
         <span className="bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-medium shrink-0">
-          {formatBRL(order.total)}
+          {formatProposta(order)}
         </span>
       </header>
 
@@ -259,10 +259,8 @@ function PedidoEntregador() {
           {order.observacoes && (
             <Info icon={<StickyNote size={14} />} label="Observações" value={order.observacoes} />
           )}
-          <div className="pt-3 border-t border-border/60 grid grid-cols-3 text-center gap-2">
-            <Money label="Produto" v={order.valor_produto} />
-            <Money label="Frete" v={order.valor_frete} />
-            <Money label="Taxa" v={order.taxa_servico} />
+          <div className="pt-3 border-t border-border/60 text-center">
+            <Money label="Proposta do cliente" v={propostaCliente(order)} />
           </div>
         </div>
       </section>
