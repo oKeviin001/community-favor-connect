@@ -8,6 +8,9 @@ import {
   TIMELINE_STEPS,
   statusIndex,
   formatBRL,
+  formatProposta,
+  propostaCliente,
+  NEGOCIACAO_AVISO,
   CATEGORIAS,
   whatsappLink,
   type OrderStatus,
@@ -227,6 +230,11 @@ function PedidoEntregador() {
               </p>
             </div>
           </div>
+          {meu && (
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              {NEGOCIACAO_AVISO} Combinem valor final, forma de pagamento, produtos e horário diretamente com o cliente.
+            </p>
+          )}
           {meu &&
             (wa ? (
               <a
