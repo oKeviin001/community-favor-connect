@@ -78,6 +78,15 @@ async function log(
   });
 }
 
+export type ConfigGeral = {
+  cadastroEntregadores?: boolean;
+  pausarPedidos?: boolean;
+  manutencao?: boolean;
+  avisoHome?: string;
+  limitePedidosUsuario?: number;
+  bairrosAtivos?: string[];
+};
+
 const ATIVOS = ["aceito", "indo_loja", "em_compra", "compra_finalizada", "em_entrega"] as const;
 
 function startOfToday() {
@@ -268,7 +277,7 @@ export async function adminQueryFor(context: AuthContext, view: string, filtro: 
     }
     case "config": {
       const { data } = await supabaseAdmin.from("app_settings").select("valor").eq("chave", "geral").maybeSingle();
-      return { config: (data?.valor as Record<string, unknown>) ?? {} };
+      return { config: (data?.valor ?? {}) as ConfigGeral };
     }
     case "auditoria": {
       const { data } = await supabaseAdmin
