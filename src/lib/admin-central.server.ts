@@ -78,7 +78,7 @@ async function log(
   });
 }
 
-const ATIVOS = ["aceito", "indo_loja", "em_compra", "compra_finalizada", "em_entrega"];
+const ATIVOS = ["aceito", "indo_loja", "em_compra", "compra_finalizada", "em_entrega"] as const;
 
 function startOfToday() {
   const d = new Date();
