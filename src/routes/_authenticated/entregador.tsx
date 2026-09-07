@@ -8,9 +8,13 @@ export const Route = createFileRoute("/_authenticated/entregador")({
   component: EntregadorGate,
 });
 
+import { useAppConfig } from "@/lib/app-config";
+
 type Status = "sem_candidatura" | "pendente" | "aprovado" | "reprovado";
 
 function EntregadorGate() {
+  const { config } = useAppConfig("entregadores");
+  const cadastroFechado = config.cadastroEntregadores === false;
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [status, setStatus] = useState<Status | null>(null);
   const [nota, setNota] = useState<string | null>(null);
@@ -110,12 +114,18 @@ function EntregadorGate() {
             <p className="text-sm text-muted-foreground mt-2 leading-relaxed max-w-sm">
               Para realizar entregas é necessário passar por uma análise de cadastro.
             </p>
-            <Link
-              to="/entregador/cadastro"
-              className="mt-7 h-12 px-7 inline-flex items-center rounded-2xl bg-primary text-primary-foreground text-sm font-semibold"
-            >
-              Quero me candidatar
-            </Link>
+            {cadastroFechado ? (
+              <p className="mt-7 rounded-2xl border border-warning/25 bg-warning/10 p-4 text-sm max-w-sm">
+                O cadastro de novos entregadores está temporariamente fechado. Volte em breve.
+              </p>
+            ) : (
+              <Link
+                to="/entregador/cadastro"
+                className="mt-7 h-12 px-7 inline-flex items-center rounded-2xl bg-primary text-primary-foreground text-sm font-semibold"
+              >
+                Quero me candidatar
+              </Link>
+            )}
             <p className="flex items-start gap-2 text-[11px] text-muted-foreground bg-success/10 border border-success/20 rounded-xl p-3 mt-8 text-left">
               <ShieldCheck size={14} className="text-success shrink-0 mt-px" />
               Seus dados são usados apenas para validação de identidade e segurança da plataforma.

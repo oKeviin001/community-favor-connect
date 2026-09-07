@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { CATEGORIAS, STATUS_LABEL, statusIndex, TIMELINE_STEPS } from "@/lib/order-helpers";
 import { Plus, ChevronRight } from "lucide-react";
 import { ComoFunciona } from "@/components/ComoFunciona";
+import { useAppConfig } from "@/lib/app-config";
 import heroImg from "@/assets/hero-community.png";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -32,6 +33,7 @@ interface OrderRow {
 }
 
 function Home() {
+  const { config, avisos } = useAppConfig("clientes");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [active, setActive] = useState<OrderRow | null>(null);
 
@@ -93,6 +95,22 @@ function Home() {
         </div>
       </header>
 
+      {(config.avisoHome || avisos.length > 0) && (
+        <section className="px-6 pb-2 space-y-2">
+          {config.avisoHome && (
+            <div className="rounded-2xl border border-warning/25 bg-warning/10 p-4">
+              <p className="text-sm leading-relaxed">{config.avisoHome}</p>
+            </div>
+          )}
+          {avisos.map((a) => (
+            <div key={a.id} className="rounded-2xl border border-border bg-card p-4">
+              <p className="text-sm font-semibold">{a.titulo}</p>
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{a.mensagem}</p>
+            </div>
+          ))}
+        </section>
+      )}
+
       <section className="px-6 pt-2">
         <div className="surface overflow-hidden">
           <div className="bg-secondary/60 px-5 pt-4">
@@ -110,12 +128,18 @@ function Home() {
             <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
               Descreva o que precisa e diga quanto pretende pagar. Um entregador da região pode aceitar ou negociar com você.
             </p>
-            <Link
-              to="/novo-pedido"
-              className="btn-base btn-base-active w-full bg-primary text-primary-foreground mt-4"
-            >
-              <Plus size={18} /> Fazer novo pedido
-            </Link>
+            {config.pausarPedidos ? (
+              <p className="mt-4 rounded-xl border border-warning/25 bg-warning/10 p-3 text-sm">
+                Novos pedidos estão temporariamente pausados. Tente novamente mais tarde.
+              </p>
+            ) : (
+              <Link
+                to="/novo-pedido"
+                className="btn-base btn-base-active w-full bg-primary text-primary-foreground mt-4"
+              >
+                <Plus size={18} /> Fazer novo pedido
+              </Link>
+            )}
           </div>
         </div>
       </section>
