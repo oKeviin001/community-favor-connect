@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
+import { useAppConfig } from "@/lib/app-config";
 import { Field, PageHeader, SectionTitle } from "@/components/kit";
 import {
   CATEGORIAS_PRINCIPAIS,
@@ -54,11 +55,13 @@ function NovoPedido() {
   const [obs, setObs] = useState("");
   const [valor, setValor] = useState("");
   const [loading, setLoading] = useState(false);
+  const { config } = useAppConfig("clientes");
+  const pedidosPausados = config.pausarPedidos === true;
 
   const valorNum = Number(valor.replace(",", ".")) || 0;
   const catSel = categorias.find((c) => c.id === categoria);
 
-  const podeEnviar = god || Boolean(categoria && descricao.trim() && destino.trim() && valorNum > 0);
+  const podeEnviar = !pedidosPausados && (god || Boolean(categoria && descricao.trim() && destino.trim() && valorNum > 0));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -100,6 +103,13 @@ function NovoPedido() {
 
   return (
     <AppShell hideNav>
+      {pedidosPausados && (
+        <div className="px-6 pt-6">
+          <div className="rounded-2xl border border-warning/25 bg-warning/10 p-4 text-sm leading-relaxed">
+            Novos pedidos estão temporariamente pausados pela administração. Tente novamente mais tarde.
+          </div>
+        </div>
+      )}
       <PageHeader
         backTo="/home"
         kicker="Novo pedido"
