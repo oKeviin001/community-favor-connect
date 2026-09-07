@@ -15,6 +15,18 @@ import {
   type Overrides,
 } from "@/lib/dev-mode";
 import { CandidaturasAdmin } from "@/components/CandidaturasAdmin";
+import {
+  AdminAuditoria,
+  AdminAvisos,
+  AdminConfig,
+  AdminConteudo,
+  AdminDashboard,
+  AdminEntregadores,
+  AdminLaboratorio,
+  AdminPedidos,
+  AdminRelatorios,
+  AdminUsuarios,
+} from "@/components/AdminCentral";
 import { CATEGORIAS_BASE, STATUS_LABEL, formatBRL } from "@/lib/order-helpers";
 import { ChevronLeft, Trash2, Wand2 } from "lucide-react";
 
@@ -22,9 +34,11 @@ export const Route = createFileRoute("/_authenticated/dev")({
   ssr: false,
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
-    if (data.user?.email?.toLowerCase() !== DEV_EMAIL) {
-      throw redirect({ to: "/home" });
-    }
+    const user = data.user;
+    if (!user) throw redirect({ to: "/auth" });
+    if (user.email?.toLowerCase() === DEV_EMAIL) return;
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+    if (!isAdmin) throw redirect({ to: "/home" });
   },
   head: () => ({
     meta: [
@@ -59,6 +73,39 @@ interface ProfileRow {
 
 const STATUSES = Object.keys(STATUS_LABEL);
 
+type TabId =
+  | "dashboard"
+  | "usuarios"
+  | "entregadores"
+  | "apps"
+  | "pedidos"
+  | "avisos"
+  | "conteudo"
+  | "ajustes"
+  | "lab"
+  | "relatorios"
+  | "auditoria"
+  | "legado"
+  | "legadoPedidos"
+  | "legadoUsuarios";
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: "dashboard", label: "Painel" },
+  { id: "usuarios", label: "Usuários" },
+  { id: "entregadores", label: "Entregadores" },
+  { id: "apps", label: "Candidaturas" },
+  { id: "pedidos", label: "Pedidos" },
+  { id: "avisos", label: "Avisos" },
+  { id: "conteudo", label: "Conteúdo" },
+  { id: "ajustes", label: "Configurações" },
+  { id: "lab", label: "Laboratório" },
+  { id: "relatorios", label: "Relatórios" },
+  { id: "auditoria", label: "Auditoria" },
+  { id: "legado", label: "Testes (antigo)" },
+  { id: "legadoPedidos", label: "Pedidos (antigo)" },
+  { id: "legadoUsuarios", label: "Usuários (antigo)" },
+];
+
 function Dev() {
   const listDevDataFn = useServerFn(listDevData);
   const deleteDevOrderFn = useServerFn(deleteDevOrder);
@@ -68,7 +115,7 @@ function Dev() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [me, setMe] = useState<string>("");
-  const [tab, setTab] = useState<"config" | "orders" | "users" | "apps">("config");
+  const [tab, setTab] = useState<TabId>("dashboard");
 
   async function reload() {
     const { data: u } = await supabase.auth.getUser();
@@ -182,27 +229,38 @@ function Dev() {
         </button>
       </div>
 
-      <div className="px-6 mb-4 flex gap-2 bg-secondary p-1 rounded-full">
-        {(["config", "apps", "orders", "users"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`flex-1 h-10 rounded-full text-xs font-medium ${
-              tab === t ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            {t === "config"
-              ? "Config"
-              : t === "apps"
-                ? "Entregadores"
-                : t === "orders"
-                  ? `Pedidos (${orders.length})`
-                  : `Usuários (${profiles.length})`}
-          </button>
-        ))}
+      <div className="px-6 mb-4">
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`shrink-0 h-9 px-3 rounded-full text-xs font-medium border ${
+                tab === t.id
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card border-border text-muted-foreground"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {tab === "config" && (
+      <div className="px-6 pb-8">
+        {tab === "dashboard" && <AdminDashboard />}
+        {tab === "usuarios" && <AdminUsuarios />}
+        {tab === "entregadores" && <AdminEntregadores onVerCandidatura={() => setTab("apps")} />}
+        {tab === "pedidos" && <AdminPedidos />}
+        {tab === "avisos" && <AdminAvisos />}
+        {tab === "conteudo" && <AdminConteudo />}
+        {tab === "ajustes" && <AdminConfig />}
+        {tab === "lab" && <AdminLaboratorio />}
+        {tab === "relatorios" && <AdminRelatorios />}
+        {tab === "auditoria" && <AdminAuditoria />}
+      </div>
+
+      {tab === "legado" && (
         <div className="px-6 space-y-5 pb-8">
           <Section title="Taxas">
             <NumField
@@ -286,7 +344,7 @@ function Dev() {
         </div>
       )}
 
-      {tab === "orders" && (
+      {tab === "legadoPedidos" && (
         <div className="px-6 space-y-2 pb-8">
           {orders.map((o) => (
             <div key={o.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
@@ -329,7 +387,7 @@ function Dev() {
         </div>
       )}
 
-      {tab === "users" && (
+      {tab === "legadoUsuarios" && (
         <div className="px-6 space-y-2 pb-8">
           {profiles.map((p) => (
             <div key={p.id} className="bg-card border border-border rounded-2xl p-4">
