@@ -9,41 +9,40 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermosRouteImport } from './routes/termos'
-import { Route as PrivacidadeRouteImport } from './routes/privacidade'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedTransferenciaRouteImport } from './routes/_authenticated/transferencia'
-import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
-import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
-import { Route as AuthenticatedNovoPedidoRouteImport } from './routes/_authenticated/novo-pedido'
-import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
-import { Route as AuthenticatedEntregadorRouteImport } from './routes/_authenticated/entregador'
-import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
+import { Route as AuthenticatedEntregadorRouteImport } from './routes/_authenticated/entregador'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedNovoPedidoRouteImport } from './routes/_authenticated/novo-pedido'
+import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedTransferenciaRouteImport } from './routes/_authenticated/transferencia'
 import { Route as AuthenticatedEntregadorIndexRouteImport } from './routes/_authenticated/entregador.index'
-import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
-import { Route as AuthenticatedEntregadorHistoricoRouteImport } from './routes/_authenticated/entregador.historico'
-import { Route as AuthenticatedEntregadorCadastroRouteImport } from './routes/_authenticated/entregador.cadastro'
 import { Route as AuthenticatedEntregadorAceitosRouteImport } from './routes/_authenticated/entregador.aceitos'
-import { Route as ApiPublicKevinReceiveRouteImport } from './routes/api/public/kevin/receive'
-import { Route as ApiPublicKevinManifestRouteImport } from './routes/api/public/kevin/manifest'
-import { Route as ApiPublicKevinLearnRouteImport } from './routes/api/public/kevin/learn'
-import { Route as ApiPublicKevinHandshakeRouteImport } from './routes/api/public/kevin/handshake'
-import { Route as ApiPublicKevinExportRouteImport } from './routes/api/public/kevin/export'
-import { Route as AuthenticatedPedidosIdDisputaRouteImport } from './routes/_authenticated/pedidos.$id.disputa'
-import { Route as AuthenticatedPedidosIdAvaliarRouteImport } from './routes/_authenticated/pedidos.$id.avaliar'
+import { Route as AuthenticatedEntregadorCadastroRouteImport } from './routes/_authenticated/entregador.cadastro'
+import { Route as AuthenticatedEntregadorHistoricoRouteImport } from './routes/_authenticated/entregador.historico'
+import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
 import { Route as AuthenticatedEntregadorPedidoIdRouteImport } from './routes/_authenticated/entregador.pedido.$id'
+import { Route as AuthenticatedPedidosIdAvaliarRouteImport } from './routes/_authenticated/pedidos.$id.avaliar'
+import { Route as AuthenticatedPedidosIdDisputaRouteImport } from './routes/_authenticated/pedidos.$id.disputa'
+import { Route as ApiPublicKevinExportRouteImport } from './routes/api/public/kevin/export'
+import { Route as ApiPublicKevinHandshakeRouteImport } from './routes/api/public/kevin/handshake'
+import { Route as ApiPublicKevinLearnRouteImport } from './routes/api/public/kevin/learn'
+import { Route as ApiPublicKevinManifestRouteImport } from './routes/api/public/kevin/manifest'
+import { Route as ApiPublicKevinReceiveRouteImport } from './routes/api/public/kevin/receive'
 
-const TermosRoute = TermosRouteImport.update({
-  id: '/termos',
-  path: '/termos',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrivacidadeRoute = PrivacidadeRouteImport.update({
-  id: '/privacidade',
-  path: '/privacidade',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -51,44 +50,19 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedTransferenciaRoute =
-  AuthenticatedTransferenciaRouteImport.update({
-    id: '/transferencia',
-    path: '/transferencia',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPedidosRoute = AuthenticatedPedidosRouteImport.update({
-  id: '/pedidos',
-  path: '/pedidos',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedNovoPedidoRoute = AuthenticatedNovoPedidoRouteImport.update({
-  id: '/novo-pedido',
-  path: '/novo-pedido',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
-  id: '/home',
-  path: '/home',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedEntregadorRoute = AuthenticatedEntregadorRouteImport.update({
-  id: '/entregador',
-  path: '/entregador',
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
@@ -96,32 +70,41 @@ const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
   path: '/dev',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AuthenticatedEntregadorRoute = AuthenticatedEntregadorRouteImport.update({
+  id: '/entregador',
+  path: '/entregador',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNovoPedidoRoute = AuthenticatedNovoPedidoRouteImport.update({
+  id: '/novo-pedido',
+  path: '/novo-pedido',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPedidosRoute = AuthenticatedPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTransferenciaRoute =
+  AuthenticatedTransferenciaRouteImport.update({
+    id: '/transferencia',
+    path: '/transferencia',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEntregadorIndexRoute =
   AuthenticatedEntregadorIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AuthenticatedEntregadorRoute,
-  } as any)
-const AuthenticatedPedidosIdRoute = AuthenticatedPedidosIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedPedidosRoute,
-} as any)
-const AuthenticatedEntregadorHistoricoRoute =
-  AuthenticatedEntregadorHistoricoRouteImport.update({
-    id: '/historico',
-    path: '/historico',
-    getParentRoute: () => AuthenticatedEntregadorRoute,
-  } as any)
-const AuthenticatedEntregadorCadastroRoute =
-  AuthenticatedEntregadorCadastroRouteImport.update({
-    id: '/cadastro',
-    path: '/cadastro',
     getParentRoute: () => AuthenticatedEntregadorRoute,
   } as any)
 const AuthenticatedEntregadorAceitosRoute =
@@ -130,36 +113,28 @@ const AuthenticatedEntregadorAceitosRoute =
     path: '/aceitos',
     getParentRoute: () => AuthenticatedEntregadorRoute,
   } as any)
-const ApiPublicKevinReceiveRoute = ApiPublicKevinReceiveRouteImport.update({
-  id: '/api/public/kevin/receive',
-  path: '/api/public/kevin/receive',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedEntregadorCadastroRoute =
+  AuthenticatedEntregadorCadastroRouteImport.update({
+    id: '/cadastro',
+    path: '/cadastro',
+    getParentRoute: () => AuthenticatedEntregadorRoute,
+  } as any)
+const AuthenticatedEntregadorHistoricoRoute =
+  AuthenticatedEntregadorHistoricoRouteImport.update({
+    id: '/historico',
+    path: '/historico',
+    getParentRoute: () => AuthenticatedEntregadorRoute,
+  } as any)
+const AuthenticatedPedidosIdRoute = AuthenticatedPedidosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedPedidosRoute,
 } as any)
-const ApiPublicKevinManifestRoute = ApiPublicKevinManifestRouteImport.update({
-  id: '/api/public/kevin/manifest',
-  path: '/api/public/kevin/manifest',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicKevinLearnRoute = ApiPublicKevinLearnRouteImport.update({
-  id: '/api/public/kevin/learn',
-  path: '/api/public/kevin/learn',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicKevinHandshakeRoute = ApiPublicKevinHandshakeRouteImport.update({
-  id: '/api/public/kevin/handshake',
-  path: '/api/public/kevin/handshake',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicKevinExportRoute = ApiPublicKevinExportRouteImport.update({
-  id: '/api/public/kevin/export',
-  path: '/api/public/kevin/export',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedPedidosIdDisputaRoute =
-  AuthenticatedPedidosIdDisputaRouteImport.update({
-    id: '/disputa',
-    path: '/disputa',
-    getParentRoute: () => AuthenticatedPedidosIdRoute,
+const AuthenticatedEntregadorPedidoIdRoute =
+  AuthenticatedEntregadorPedidoIdRouteImport.update({
+    id: '/pedido/$id',
+    path: '/pedido/$id',
+    getParentRoute: () => AuthenticatedEntregadorRoute,
   } as any)
 const AuthenticatedPedidosIdAvaliarRoute =
   AuthenticatedPedidosIdAvaliarRouteImport.update({
@@ -167,12 +142,37 @@ const AuthenticatedPedidosIdAvaliarRoute =
     path: '/avaliar',
     getParentRoute: () => AuthenticatedPedidosIdRoute,
   } as any)
-const AuthenticatedEntregadorPedidoIdRoute =
-  AuthenticatedEntregadorPedidoIdRouteImport.update({
-    id: '/pedido/$id',
-    path: '/pedido/$id',
-    getParentRoute: () => AuthenticatedEntregadorRoute,
+const AuthenticatedPedidosIdDisputaRoute =
+  AuthenticatedPedidosIdDisputaRouteImport.update({
+    id: '/disputa',
+    path: '/disputa',
+    getParentRoute: () => AuthenticatedPedidosIdRoute,
   } as any)
+const ApiPublicKevinExportRoute = ApiPublicKevinExportRouteImport.update({
+  id: '/api/public/kevin/export',
+  path: '/api/public/kevin/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKevinHandshakeRoute = ApiPublicKevinHandshakeRouteImport.update({
+  id: '/api/public/kevin/handshake',
+  path: '/api/public/kevin/handshake',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKevinLearnRoute = ApiPublicKevinLearnRouteImport.update({
+  id: '/api/public/kevin/learn',
+  path: '/api/public/kevin/learn',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKevinManifestRoute = ApiPublicKevinManifestRouteImport.update({
+  id: '/api/public/kevin/manifest',
+  path: '/api/public/kevin/manifest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKevinReceiveRoute = ApiPublicKevinReceiveRouteImport.update({
+  id: '/api/public/kevin/receive',
+  path: '/api/public/kevin/receive',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -355,25 +355,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/termos': {
-      id: '/termos'
-      path: '/termos'
-      fullPath: '/termos'
-      preLoaderRoute: typeof TermosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacidade': {
-      id: '/privacidade'
-      path: '/privacidade'
-      fullPath: '/privacidade'
-      preLoaderRoute: typeof PrivacidadeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -383,53 +369,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/transferencia': {
-      id: '/_authenticated/transferencia'
-      path: '/transferencia'
-      fullPath: '/transferencia'
-      preLoaderRoute: typeof AuthenticatedTransferenciaRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/perfil': {
-      id: '/_authenticated/perfil'
-      path: '/perfil'
-      fullPath: '/perfil'
-      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/pedidos': {
-      id: '/_authenticated/pedidos'
-      path: '/pedidos'
-      fullPath: '/pedidos'
-      preLoaderRoute: typeof AuthenticatedPedidosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/novo-pedido': {
-      id: '/_authenticated/novo-pedido'
-      path: '/novo-pedido'
-      fullPath: '/novo-pedido'
-      preLoaderRoute: typeof AuthenticatedNovoPedidoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/home': {
-      id: '/_authenticated/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof AuthenticatedHomeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/entregador': {
-      id: '/_authenticated/entregador'
-      path: '/entregador'
-      fullPath: '/entregador'
-      preLoaderRoute: typeof AuthenticatedEntregadorRouteImport
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dev': {
@@ -439,11 +404,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDevRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+    '/_authenticated/entregador': {
+      id: '/_authenticated/entregador'
+      path: '/entregador'
+      fullPath: '/entregador'
+      preLoaderRoute: typeof AuthenticatedEntregadorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/novo-pedido': {
+      id: '/_authenticated/novo-pedido'
+      path: '/novo-pedido'
+      fullPath: '/novo-pedido'
+      preLoaderRoute: typeof AuthenticatedNovoPedidoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pedidos': {
+      id: '/_authenticated/pedidos'
+      path: '/pedidos'
+      fullPath: '/pedidos'
+      preLoaderRoute: typeof AuthenticatedPedidosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/perfil': {
+      id: '/_authenticated/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/transferencia': {
+      id: '/_authenticated/transferencia'
+      path: '/transferencia'
+      fullPath: '/transferencia'
+      preLoaderRoute: typeof AuthenticatedTransferenciaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/entregador/': {
@@ -453,18 +453,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntregadorIndexRouteImport
       parentRoute: typeof AuthenticatedEntregadorRoute
     }
-    '/_authenticated/pedidos/$id': {
-      id: '/_authenticated/pedidos/$id'
-      path: '/$id'
-      fullPath: '/pedidos/$id'
-      preLoaderRoute: typeof AuthenticatedPedidosIdRouteImport
-      parentRoute: typeof AuthenticatedPedidosRoute
-    }
-    '/_authenticated/entregador/historico': {
-      id: '/_authenticated/entregador/historico'
-      path: '/historico'
-      fullPath: '/entregador/historico'
-      preLoaderRoute: typeof AuthenticatedEntregadorHistoricoRouteImport
+    '/_authenticated/entregador/aceitos': {
+      id: '/_authenticated/entregador/aceitos'
+      path: '/aceitos'
+      fullPath: '/entregador/aceitos'
+      preLoaderRoute: typeof AuthenticatedEntregadorAceitosRouteImport
       parentRoute: typeof AuthenticatedEntregadorRoute
     }
     '/_authenticated/entregador/cadastro': {
@@ -474,32 +467,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntregadorCadastroRouteImport
       parentRoute: typeof AuthenticatedEntregadorRoute
     }
-    '/_authenticated/entregador/aceitos': {
-      id: '/_authenticated/entregador/aceitos'
-      path: '/aceitos'
-      fullPath: '/entregador/aceitos'
-      preLoaderRoute: typeof AuthenticatedEntregadorAceitosRouteImport
+    '/_authenticated/entregador/historico': {
+      id: '/_authenticated/entregador/historico'
+      path: '/historico'
+      fullPath: '/entregador/historico'
+      preLoaderRoute: typeof AuthenticatedEntregadorHistoricoRouteImport
       parentRoute: typeof AuthenticatedEntregadorRoute
     }
-    '/api/public/kevin/receive': {
-      id: '/api/public/kevin/receive'
-      path: '/api/public/kevin/receive'
-      fullPath: '/api/public/kevin/receive'
-      preLoaderRoute: typeof ApiPublicKevinReceiveRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/pedidos/$id': {
+      id: '/_authenticated/pedidos/$id'
+      path: '/$id'
+      fullPath: '/pedidos/$id'
+      preLoaderRoute: typeof AuthenticatedPedidosIdRouteImport
+      parentRoute: typeof AuthenticatedPedidosRoute
     }
-    '/api/public/kevin/manifest': {
-      id: '/api/public/kevin/manifest'
-      path: '/api/public/kevin/manifest'
-      fullPath: '/api/public/kevin/manifest'
-      preLoaderRoute: typeof ApiPublicKevinManifestRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/entregador/pedido/$id': {
+      id: '/_authenticated/entregador/pedido/$id'
+      path: '/pedido/$id'
+      fullPath: '/entregador/pedido/$id'
+      preLoaderRoute: typeof AuthenticatedEntregadorPedidoIdRouteImport
+      parentRoute: typeof AuthenticatedEntregadorRoute
     }
-    '/api/public/kevin/learn': {
-      id: '/api/public/kevin/learn'
-      path: '/api/public/kevin/learn'
-      fullPath: '/api/public/kevin/learn'
-      preLoaderRoute: typeof ApiPublicKevinLearnRouteImport
+    '/_authenticated/pedidos/$id/avaliar': {
+      id: '/_authenticated/pedidos/$id/avaliar'
+      path: '/avaliar'
+      fullPath: '/pedidos/$id/avaliar'
+      preLoaderRoute: typeof AuthenticatedPedidosIdAvaliarRouteImport
+      parentRoute: typeof AuthenticatedPedidosIdRoute
+    }
+    '/_authenticated/pedidos/$id/disputa': {
+      id: '/_authenticated/pedidos/$id/disputa'
+      path: '/disputa'
+      fullPath: '/pedidos/$id/disputa'
+      preLoaderRoute: typeof AuthenticatedPedidosIdDisputaRouteImport
+      parentRoute: typeof AuthenticatedPedidosIdRoute
+    }
+    '/api/public/kevin/export': {
+      id: '/api/public/kevin/export'
+      path: '/api/public/kevin/export'
+      fullPath: '/api/public/kevin/export'
+      preLoaderRoute: typeof ApiPublicKevinExportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/kevin/handshake': {
@@ -509,33 +516,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicKevinHandshakeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/kevin/export': {
-      id: '/api/public/kevin/export'
-      path: '/api/public/kevin/export'
-      fullPath: '/api/public/kevin/export'
-      preLoaderRoute: typeof ApiPublicKevinExportRouteImport
+    '/api/public/kevin/learn': {
+      id: '/api/public/kevin/learn'
+      path: '/api/public/kevin/learn'
+      fullPath: '/api/public/kevin/learn'
+      preLoaderRoute: typeof ApiPublicKevinLearnRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/pedidos/$id/disputa': {
-      id: '/_authenticated/pedidos/$id/disputa'
-      path: '/disputa'
-      fullPath: '/pedidos/$id/disputa'
-      preLoaderRoute: typeof AuthenticatedPedidosIdDisputaRouteImport
-      parentRoute: typeof AuthenticatedPedidosIdRoute
+    '/api/public/kevin/manifest': {
+      id: '/api/public/kevin/manifest'
+      path: '/api/public/kevin/manifest'
+      fullPath: '/api/public/kevin/manifest'
+      preLoaderRoute: typeof ApiPublicKevinManifestRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/pedidos/$id/avaliar': {
-      id: '/_authenticated/pedidos/$id/avaliar'
-      path: '/avaliar'
-      fullPath: '/pedidos/$id/avaliar'
-      preLoaderRoute: typeof AuthenticatedPedidosIdAvaliarRouteImport
-      parentRoute: typeof AuthenticatedPedidosIdRoute
-    }
-    '/_authenticated/entregador/pedido/$id': {
-      id: '/_authenticated/entregador/pedido/$id'
-      path: '/pedido/$id'
-      fullPath: '/entregador/pedido/$id'
-      preLoaderRoute: typeof AuthenticatedEntregadorPedidoIdRouteImport
-      parentRoute: typeof AuthenticatedEntregadorRoute
+    '/api/public/kevin/receive': {
+      id: '/api/public/kevin/receive'
+      path: '/api/public/kevin/receive'
+      fullPath: '/api/public/kevin/receive'
+      preLoaderRoute: typeof ApiPublicKevinReceiveRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
