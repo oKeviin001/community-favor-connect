@@ -28,7 +28,8 @@ import {
   AdminUsuarios,
 } from "@/components/AdminCentral";
 import { CATEGORIAS_BASE, STATUS_LABEL, formatBRL } from "@/lib/order-helpers";
-import { ChevronLeft, Trash2, Wand2 } from "lucide-react";
+import { ChevronLeft, ClipboardCheck, Trash2, Wand2 } from "lucide-react";
+import { SystemAuditReports } from "@/components/SystemAuditReports";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   ssr: false,
@@ -85,6 +86,7 @@ type TabId =
   | "lab"
   | "relatorios"
   | "auditoria"
+  | "auditoriasSistema"
   | "legado"
   | "legadoPedidos"
   | "legadoUsuarios";
@@ -101,6 +103,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "lab", label: "Laboratório" },
   { id: "relatorios", label: "Relatórios" },
   { id: "auditoria", label: "Auditoria" },
+  { id: "auditoriasSistema", label: "Auditorias do Sistema" },
   { id: "legado", label: "Testes (antigo)" },
   { id: "legadoPedidos", label: "Pedidos (antigo)" },
   { id: "legadoUsuarios", label: "Usuários (antigo)" },
@@ -241,6 +244,7 @@ function Dev() {
                   : "bg-card border-border text-muted-foreground"
               }`}
             >
+              {t.id === "auditoriasSistema" && <ClipboardCheck size={16} strokeWidth={2.5} className="mr-1.5 text-emerald-500" />}
               {t.label}
             </button>
           ))}
@@ -258,6 +262,7 @@ function Dev() {
         {tab === "lab" && <AdminLaboratorio />}
         {tab === "relatorios" && <AdminRelatorios />}
         {tab === "auditoria" && <AdminAuditoria />}
+        {tab === "auditoriasSistema" && <SystemAuditReports />}
       </div>
 
       {tab === "legado" && (
