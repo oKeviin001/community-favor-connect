@@ -10,6 +10,9 @@ const TESTS: Record<NotificationType, { title: string; message: string }> = {
   entrega: { title: "Atualização de entrega", message: "Este é um teste de notificação de entrega." },
   avaliacao: { title: "Nova avaliação", message: "Este é um teste de notificação de avaliação." },
   candidatura: { title: "Atualização da candidatura", message: "Este é um teste de notificação de candidatura." },
+  pagamento: { title: "Atualização de pagamento", message: "Este é um teste de notificação financeira." },
+  disputa: { title: "Atualização de disputa", message: "Este é um teste de notificação de disputa." },
+  seguranca: { title: "Alerta de segurança", message: "Este é um teste de notificação de segurança." },
   sistema: { title: "Aviso do sistema", message: "Este é um teste de notificação do sistema." },
 };
 
