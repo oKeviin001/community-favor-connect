@@ -333,17 +333,10 @@ function Perfil() {
           desc="Segurança, notificações, privacidade e aparência"
         >
           <div className="divide-y divide-border">
-            {["Segurança", "Notificações", "Privacidade", "Aparência"].map((s) => (
-              <button
-                key={s}
-                onClick={() => toast.info(`${s}: em breve`)}
-                className="w-full flex items-center justify-between py-3 text-sm"
-              >
-                <span>{s}</span>
-                <ChevronRight size={16} className="text-muted-foreground" />
-              </button>
-            ))}
-          </div>
+            <NavSetting to="/configuracoes/seguranca" icon={<ShieldCheck size={16} />} title="Segurança" desc="Proteção da sua conta e acesso" />
+            <NavSetting to="/configuracoes/notificacoes" icon={<Bell size={16} />} title="Notificações" desc="Escolha quais avisos você recebe" />
+            <NavSetting to="/configuracoes/privacidade" icon={<Shield size={16} />} title="Privacidade" desc="Controle o compartilhamento dos seus dados" />
+            <NavSetting to="/configuracoes/aparencia" icon={<Settings size={16} />} title="Aparência" desc="Tema e preferências visuais" />          </div>
         </Accordion>
 
         {/* 9. Ajuda e termos */}
@@ -451,6 +444,29 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground text-xs">{label}</span>
       <span className="font-medium text-sm text-right break-words">{value}</span>
     </div>
+  );
+}
+
+function NavSetting({
+  to,
+  icon,
+  title,
+  desc,
+}: {
+  to: string;
+  icon: ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <Link to={to} className="flex items-center gap-3 px-5 py-4">
+      <span className="text-muted-foreground shrink-0">{icon}</span>
+      <span className="flex-1 min-w-0">
+        <span className="block text-sm font-semibold">{title}</span>
+        <span className="block text-xs text-muted-foreground mt-0.5">{desc}</span>
+      </span>
+      <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+    </Link>
   );
 }
 
