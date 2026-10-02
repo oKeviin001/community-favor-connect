@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { Phone, Mail, Lock, User as UserIcon, ShieldCheck, Check, ChevronRight } from "lucide-react";
 import { TERMOS_VERSAO, PRIVACIDADE_VERSAO } from "@/lib/kevin/shared";
@@ -131,16 +130,14 @@ function AuthPage() {
       return;
     }
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
     });
-    if (result.error) {
+    if (error) {
       toast.error("Erro no login com Google");
       setLoading(false);
-      return;
     }
-    if (result.redirected) return;
-    navigate({ to: "/home", replace: true });
   }
 
   return (
