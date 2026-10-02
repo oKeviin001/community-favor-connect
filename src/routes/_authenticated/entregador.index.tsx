@@ -59,7 +59,7 @@ function Entregador() {
 
       <div className="px-6 space-y-3">
         {rows.length === 0 && (
-          <div className="bg-card rounded-2xl border border-border p-8 text-center">
+          <div className="bg-card rounded-2xl border border-border p-8 text-center motion-fade-in">
             <p className="text-muted-foreground text-sm">Nenhum pedido aberto agora.</p>
           </div>
         )}
