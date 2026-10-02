@@ -4,7 +4,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, ClipboardList, Bike, User, Shield, Plus } from "lucide-react";
 import { useUser } from "@/lib/use-user";
 import { supabase } from "@/integrations/supabase/client";
-import { loadNotificationPreferences, notificationPreferenceKey, playNotificationSound, showBrowserNotification, type NotificationRow } from "@/lib/notifications";
+import { loadNotificationPreferences, notificationPreferenceKey, playNotificationSound, showBrowserNotification, registerNotificationServiceWorker, type NotificationRow } from "@/lib/notifications";
 import { toast } from "sonner";
 
 interface Props {
@@ -15,6 +15,10 @@ interface Props {
 export function AppShell({ children, hideNav }: Props) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isAdmin } = useUser();
+
+  useEffect(() => {
+    void registerNotificationServiceWorker();
+  }, []);
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
