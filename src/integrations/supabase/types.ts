@@ -360,6 +360,195 @@ export type Database = {
           },
         ]
       }
+      notification_control: {
+        Row: {
+          id: boolean
+          pedidos: boolean
+          mensagens: boolean
+          entregas: boolean
+          avaliacoes: boolean
+          candidatura: boolean
+          pagamentos: boolean
+          disputas: boolean
+          seguranca: boolean
+          sistema: boolean
+          som: boolean
+          atualizado_em: string
+        }
+        Insert: {
+          id?: boolean
+          pedidos?: boolean
+          mensagens?: boolean
+          entregas?: boolean
+          avaliacoes?: boolean
+          candidatura?: boolean
+          pagamentos?: boolean
+          disputas?: boolean
+          seguranca?: boolean
+          sistema?: boolean
+          som?: boolean
+          atualizado_em?: string
+        }
+        Update: {
+          id?: boolean
+          pedidos?: boolean
+          mensagens?: boolean
+          entregas?: boolean
+          avaliacoes?: boolean
+          candidatura?: boolean
+          pagamentos?: boolean
+          disputas?: boolean
+          seguranca?: boolean
+          sistema?: boolean
+          som?: boolean
+          atualizado_em?: string
+        }
+        Relationships: []
+      }
+      notification_devices: {
+        Row: {
+          id: string
+          user_id: string
+          endpoint: string
+          subscription: Json
+          user_agent: string | null
+          ativo: boolean
+          criado_em: string
+          atualizado_em: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          endpoint: string
+          subscription: Json
+          user_agent?: string | null
+          ativo?: boolean
+          criado_em?: string
+          atualizado_em?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          endpoint?: string
+          subscription?: Json
+          user_agent?: string | null
+          ativo?: boolean
+          criado_em?: string
+          atualizado_em?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          user_id: string
+          pedidos: boolean
+          mensagens: boolean
+          entregas: boolean
+          avaliacoes: boolean
+          candidatura: boolean
+          sistema: boolean
+          som: boolean
+          atualizado_em: string
+        }
+        Insert: {
+          user_id: string
+          pedidos?: boolean
+          mensagens?: boolean
+          entregas?: boolean
+          avaliacoes?: boolean
+          candidatura?: boolean
+          sistema?: boolean
+          som?: boolean
+          atualizado_em?: string
+        }
+        Update: {
+          user_id?: string
+          pedidos?: boolean
+          mensagens?: boolean
+          entregas?: boolean
+          avaliacoes?: boolean
+          candidatura?: boolean
+          sistema?: boolean
+          som?: boolean
+          atualizado_em?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          tipo: string
+          titulo: string
+          mensagem: string
+          dados: Json
+          lida: boolean
+          criado_em: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          tipo: string
+          titulo: string
+          mensagem: string
+          dados?: Json
+          lida?: boolean
+          criado_em?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          tipo?: string
+          titulo?: string
+          mensagem?: string
+          dados?: Json
+          lida?: boolean
+          criado_em?: string
+        }
+        Relationships: []
+      }
+      system_maintenance_log: {
+        Row: {
+          id: string
+          created_at: string
+          responsible_user_id: string | null
+          action_description: string
+          prompt_reference: string | null
+          objective: string | null
+          affected_files: string[]
+          result: string
+          tests: string | null
+          errors_notes: string | null
+          related_commit: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          responsible_user_id?: string | null
+          action_description: string
+          prompt_reference?: string | null
+          objective?: string | null
+          affected_files?: string[]
+          result?: string
+          tests?: string | null
+          errors_notes?: string | null
+          related_commit?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          responsible_user_id?: string | null
+          action_description?: string
+          prompt_reference?: string | null
+          objective?: string | null
+          affected_files?: string[]
+          result?: string
+          tests?: string | null
+          errors_notes?: string | null
+          related_commit?: string | null
+        }
+        Relationships: []
+      }
       kevin_app_identity: {
         Row: {
           app_nome: string
@@ -1075,6 +1264,22 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      get_notification_control: { Args: Record<PropertyKey, never>; Returns: Database["public"]["Tables"]["notification_control"]["Row"] }
+      set_notification_control: {
+        Args: {
+          _pedidos: boolean
+          _mensagens: boolean
+          _entregas: boolean
+          _avaliacoes: boolean
+          _candidatura: boolean
+          _pagamentos: boolean
+          _disputas: boolean
+          _seguranca: boolean
+          _sistema: boolean
+          _som: boolean
+        }
+        Returns: Database["public"]["Tables"]["notification_control"]["Row"]
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
