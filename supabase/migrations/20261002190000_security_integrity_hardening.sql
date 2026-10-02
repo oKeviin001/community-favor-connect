@@ -1,6 +1,120 @@
 -- Security integrity hardening for payments, reviews, account deletion,
 -- consent versions, restricted-user writes, and courier document uploads.
 
+-- Repair the remote/runtime mismatch observed in the order flow. These RPCs
+-- are intentionally re-declared here so applying this migration alone restores
+-- the frontend contract even if the earlier hardening migrations were skipped.
+create or replace function public.list_available_orders()
+returns table (
+  id uuid,
+  categoria public.order_category,
+  loja text,
+  bairro text,
+  valor_frete numeric,
+  valor_estimado_min numeric,
+  valor_estimado_max numeric,
+  status public.order_status,
+  criado_em timestamptz
+)
+language plpgsql
+security definer
+set search_path = ''
+stable
+as $
+begin
+  if not exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid()
+      and p.tipo in ('entregador'::public.user_role, 'ambos'::public.user_role)
+      and coalesce(p.bloqueado, false) = false
+      and coalesce(p.suspenso, false) = false
+  ) then raise exception 'user is not an active courier'; end if;
+
+  return query
+  select o.id,o.categoria,o.loja,o.bairro,o.valor_frete,o.valor_estimado_min,o.valor_estimado_max,o.status,o.criado_em
+  from public.orders o
+  where o.status='aguardando_entregador'::public.order_status and o.entregador_id is null
+  order by o.criado_em desc;
+end;
+$;
+
+create or replace function public.get_courier_order(_order_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+stable
+as $
+declare o public.orders%rowtype; caller uuid := auth.uid();
+begin
+  select * into o from public.orders where id=_order_id;
+  if not found then return null; end if;
+  if not exists (
+    select 1 from public.profiles p
+    where p.id=caller
+      and p.tipo in ('entregador'::public.user_role,'ambos'::public.user_role)
+      and coalesce(p.bloqueado,false)=false and coalesce(p.suspenso,false)=false
+  ) then raise exception 'user is not an active courier'; end if;
+  if o.entregador_id=caller then return to_jsonb(o); end if;
+  if o.entregador_id is null and o.status='aguardando_entregador'::public.order_status then
+    return jsonb_build_object('id',o.id,'categoria',o.categoria,'loja',o.loja,'bairro',o.bairro,'valor_frete',o.valor_frete,'valor_estimado_min',o.valor_estimado_min,'valor_estimado_max',o.valor_estimado_max,'status',o.status,'criado_em',o.criado_em,'entregador_id',null,'cliente_id',null);
+  end if;
+  return jsonb_build_object('id',o.id,'categoria',o.categoria,'loja',o.loja,'bairro',o.bairro,'status',o.status,'criado_em',o.criado_em,'entregador_id',null,'cliente_id',null);
+end;
+$;
+
+create or replace function public.accept_order(_order_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare caller uuid := auth.uid(); o public.orders%rowtype;
+begin
+  if not exists (
+    select 1 from public.profiles p
+    where p.id=caller
+      and p.tipo in ('entregador'::public.user_role,'ambos'::public.user_role)
+      and coalesce(p.bloqueado,false)=false and coalesce(p.suspenso,false)=false
+  ) then raise exception 'user is not an active courier'; end if;
+
+  update public.orders
+  set entregador_id=caller,status='aceito'::public.order_status,aceito_em=now(),atualizado_em=now()
+  where id=_order_id and status='aguardando_entregador'::public.order_status and entregador_id is null
+  returning * into o;
+  if not found then raise exception 'order is no longer available'; end if;
+  insert into public.order_events(order_id,autor_id,status) values(o.id,caller,'aceito'::public.order_status);
+  return to_jsonb(o);
+end;
+$;
+
+create or replace function public.get_order_counterparty_profile(_order_id uuid)
+returns table (id uuid, nome text, telefone text)
+language plpgsql
+security definer
+set search_path = ''
+stable
+as $
+declare caller uuid := auth.uid(); other_id uuid;
+begin
+  select case when o.cliente_id=caller then o.entregador_id when o.entregador_id=caller then o.cliente_id else null end
+  into other_id
+  from public.orders o
+  where o.id=_order_id and o.entregador_id is not null and (o.cliente_id=caller or o.entregador_id=caller);
+  if other_id is null then return; end if;
+  return query select p.id,p.nome,p.telefone from public.profiles p where p.id=other_id;
+end;
+$;
+
+revoke execute on function public.list_available_orders() from public;
+revoke execute on function public.get_courier_order(uuid) from public;
+revoke execute on function public.accept_order(uuid) from public;
+revoke execute on function public.get_order_counterparty_profile(uuid) from public;
+grant execute on function public.list_available_orders() to authenticated;
+grant execute on function public.get_courier_order(uuid) to authenticated;
+grant execute on function public.accept_order(uuid) to authenticated;
+grant execute on function public.get_order_counterparty_profile(uuid) to authenticated;
+
 -- The app does not process payments. Authenticated clients may only read
 -- payment records belonging to an order they participate in.
 revoke insert, update, delete on public.payments from authenticated;
