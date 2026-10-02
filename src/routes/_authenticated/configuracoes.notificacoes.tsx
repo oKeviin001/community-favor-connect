@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Bell, Volume2, Smartphone } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
-import { loadNotificationPreferences, NOTIFICATION_TYPES, playNotificationSound } from "@/lib/notifications";
+import { loadNotificationPreferences, NOTIFICATION_TYPES, playNotificationSound, subscribeToPush } from "@/lib/notifications";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/configuracoes/notificacoes")({
@@ -31,6 +31,7 @@ function Notificacoes() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("unsupported");
+  const [pushStatus, setPushStatus] = useState<"unknown" | "configured" | "not_configured" | "subscribed">("unknown");
 
   useEffect(() => {
     (async () => {
@@ -47,6 +48,7 @@ function Notificacoes() {
     })();
 
     if ("Notification" in window) setPermission(Notification.permission);
+    setPushStatus(import.meta.env.VITE_VAPID_PUBLIC_KEY ? "configured" : "not_configured");
   }, []);
 
   async function update(patch: Partial<Preferences>) {
@@ -63,6 +65,27 @@ function Notificacoes() {
     if (error) {
       setPrefs(prefs);
       toast.error(error.message);
+    }
+  }
+
+  async function enablePushNotifications() {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) return;
+    try {
+      const result = await subscribeToPush(user.user.id);
+      if (result.reason === "subscribed") {
+        setPushStatus("subscribed");
+        setPermission("granted");
+        toast.success("Este dispositivo foi preparado para receber notificações push.");
+        return;
+      }
+      if (result.reason === "push_not_configured") {
+        toast.info("O serviço push ainda precisa da chave VAPID no ambiente do projeto.");
+        return;
+      }
+      toast.error("Não foi possível ativar as notificações push neste dispositivo.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível ativar o push.");
     }
   }
 
@@ -120,14 +143,24 @@ function Notificacoes() {
             <span className="text-xs text-muted-foreground">
               {permission === "granted" ? "Ativadas neste dispositivo" : permission === "denied" ? "Bloqueadas pelo navegador" : "Ainda não autorizadas"}
             </span>
-            <button
-              type="button"
-              onClick={enableBrowserNotifications}
-              disabled={permission === "granted" || permission === "denied"}
-              className="btn-base btn-primary-solid h-10 px-4 rounded-xl text-xs font-semibold"
-            >
-              {permission === "granted" ? "Ativadas" : "Ativar"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={enableBrowserNotifications}
+                disabled={permission === "granted" || permission === "denied"}
+                className="btn-base btn-soft h-10 px-4 rounded-xl text-xs font-semibold"
+              >
+                {permission === "granted" ? "Navegador ativo" : "Permitir"}
+              </button>
+              <button
+                type="button"
+                onClick={enablePushNotifications}
+                disabled={pushStatus === "subscribed" || pushStatus === "not_configured"}
+                className="btn-base btn-primary-solid h-10 px-4 rounded-xl text-xs font-semibold"
+              >
+                {pushStatus === "subscribed" ? "Celular ativo" : "Ativar push"}
+              </button>
+            </div>
           </div>
         </section>
 
