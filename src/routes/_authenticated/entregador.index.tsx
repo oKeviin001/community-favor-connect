@@ -42,13 +42,10 @@ function Entregador() {
       setRows(((data as unknown) as Row[]) ?? []);
     }
     load();
-    const ch = supabase
-      .channel("feed-entregador")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, load)
-      .subscribe();
+    const timer = window.setInterval(load, 10000);
     return () => {
       mounted = false;
-      supabase.removeChannel(ch);
+      window.clearInterval(timer);
     };
   }, []);
 
