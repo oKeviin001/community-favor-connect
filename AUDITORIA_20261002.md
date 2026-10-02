@@ -102,3 +102,24 @@ Para fechar esta auditoria como validada em runtime ainda é necessário:
 As superfícies de leitura de pedidos/perfis agora têm proteção específica e o aceite é atômico. A cobertura global de bloqueio/suspensão e a confirmação no banco Supabase ativo continuam pendentes.
 
 Esta auditoria foi registrada como revisão técnica do estado atual; não representa uma confirmação de segurança do banco remoto.
+
+
+## Sistema de notificações — implementação inicial
+
+Foi adicionada a base do sistema de notificações:
+
+- preferências individuais por categoria;
+- registros persistidos de notificações;
+- Realtime para receber novos avisos enquanto o app está aberto;
+- som de notificação dentro do app;
+- permissão de notificações do navegador;
+- Service Worker para suportar Web Push;
+- armazenamento das assinaturas de dispositivos;
+- função backend send-push preparada para entrega Web Push;
+- laboratório no Modo Deus para testar individualmente ou em bateria todos os cenários.
+
+**Catálogo atual:** pedido, mensagem, entrega, avaliação, candidatura, pagamento, disputa, segurança e sistema.
+
+**Status:** 🟡 implementado no repositório, com entrega push condicionada à configuração das chaves VAPID no ambiente Supabase e à validação remota da migration/função.
+
+O laboratório não deve ser interpretado como confirmação de push com o aplicativo fechado até que um dispositivo esteja inscrito e o serviço VAPID esteja configurado.
