@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { DEV_EMAIL } from "./dev-constants";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -42,15 +41,14 @@ export function parseAdminMutation(value: unknown): { acao: string; payload: Rec
 
 async function currentAdmin(context: AuthContext) {
   const { data: userData } = await context.supabase.auth.getUser();
-  const claimEmail = typeof context.claims?.email === "string" ? context.claims.email : "";
-  const email = (userData.user?.email ?? claimEmail).toLowerCase();
+  const email = userData.user?.email?.toLowerCase() ?? "";
   const { data: role } = await context.supabase
     .from("user_roles")
     .select("role")
     .eq("user_id", context.userId)
     .eq("role", "admin")
     .maybeSingle();
-  if (email !== DEV_EMAIL && role?.role !== "admin") {
+  if (role?.role !== "admin") {
     throw new Error("Sem permissão administrativa");
   }
   const { data: profile } = await supabaseAdmin
