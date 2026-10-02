@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, ClipboardCheck, FileText } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Clipboard, ClipboardCheck, FileText } from "lucide-react";
 import auditReport from "../../AUDITORIA.md?raw";
 import currentAudit from "../../AUDITORIA_20261002.md?raw";
 
@@ -20,6 +20,17 @@ const REPORTS = [
 
 export function SystemAuditReports() {
   const [expandedId, setExpandedId] = useState<string>(REPORTS[0].id);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyAudit = async (report: (typeof REPORTS)[number]) => {
+    try {
+      await navigator.clipboard.writeText(report.content);
+      setCopiedId(report.id);
+      window.setTimeout(() => setCopiedId((current) => (current === report.id ? null : current)), 1800);
+    } catch {
+      setCopiedId(null);
+    }
+  };
 
   return (
     <section className="space-y-4" aria-label="Relatórios de auditoria técnica do sistema">
@@ -54,9 +65,31 @@ export function SystemAuditReports() {
                     {new Date(report.date + "T12:00:00").toLocaleDateString("pt-BR")}
                   </time>
                 </span>
-                <span className="flex shrink-0 items-center gap-2 text-xs font-medium text-emerald-600">
-                  {expanded ? "Ver menos" : "Ver mais"}
-                  {expanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+                <span className="flex shrink-0 items-center gap-2">
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void copyAudit(report);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        void copyAudit(report);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label={copiedId === report.id ? "Auditoria copiada" : "Copiar auditoria"}
+                  >
+                    {copiedId === report.id ? <Check size={15} /> : <Clipboard size={15} />}
+                    {copiedId === report.id ? "Copiado!" : "Copiar"}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                    {expanded ? "Ver menos" : "Ver mais"}
+                    {expanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+                  </span>
                 </span>
               </button>
 
