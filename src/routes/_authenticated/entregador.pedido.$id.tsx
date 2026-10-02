@@ -70,16 +70,17 @@ function PedidoEntregador() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const { data: o } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
+    const { data: o, error } = await supabase.rpc("get_courier_order", { _order_id: id });
+    if (error) {
+      setOrder(null);
+      setLoading(false);
+      return;
+    }
     const ord = (o as unknown) as Order | null;
     setOrder(ord);
     setLoading(false);
-    if (ord) {
-      const { data: p } = await supabase
-        .from("profiles")
-        .select("id, nome, telefone")
-        .eq("id", ord.cliente_id)
-        .maybeSingle();
+    if (ord?.entregador_id === userId && ord.cliente_id) {
+      const { data: p } = await supabase.rpc("get_order_counterparty_profile", { _order_id: id });
       setCliente((p as Pessoa | null) ?? null);
     }
   }, [id]);
@@ -137,18 +138,10 @@ function PedidoEntregador() {
       return;
     }
     setBusy(true);
-    const now = new Date().toISOString();
-    const { data, error } = await supabase
-      .from("orders")
-      .update({ entregador_id: userId, status: "aceito", aceito_em: now, atualizado_em: now })
-      .eq("id", id)
-      .is("entregador_id", null)
-      .select("*")
-      .maybeSingle();
+    const { data, error } = await supabase.rpc("accept_order", { _order_id: id });
     setBusy(false);
     if (error) return toast.error(error.message);
     if (!data) return toast.error("Esse pedido já foi aceito por outro entregador.");
-    await supabase.from("order_events").insert({ order_id: id, autor_id: userId, status: "aceito" });
     toast.success("Pedido aceito! Fale com o cliente pelo WhatsApp.");
     load();
   }
