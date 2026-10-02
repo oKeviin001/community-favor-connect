@@ -1115,6 +1115,9 @@ export type Database = {
           entregas: boolean
           avaliacoes: boolean
           candidatura: boolean
+          pagamentos: boolean
+          disputas: boolean
+          seguranca: boolean
           sistema: boolean
           som: boolean
           atualizado_em: string
@@ -1126,6 +1129,9 @@ export type Database = {
           entregas?: boolean
           avaliacoes?: boolean
           candidatura?: boolean
+          pagamentos?: boolean
+          disputas?: boolean
+          seguranca?: boolean
           sistema?: boolean
           som?: boolean
           atualizado_em?: string
@@ -1137,6 +1143,9 @@ export type Database = {
           entregas?: boolean
           avaliacoes?: boolean
           candidatura?: boolean
+          pagamentos?: boolean
+          disputas?: boolean
+          seguranca?: boolean
           sistema?: boolean
           som?: boolean
           atualizado_em?: string
