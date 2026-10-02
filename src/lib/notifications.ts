@@ -97,3 +97,58 @@ export async function showBrowserNotification(title: string, body: string) {
     return false;
   }
 }
+
+
+export async function registerNotificationServiceWorker() {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return null;
+  try {
+    return await navigator.serviceWorker.register("/sw.js");
+  } catch {
+    return null;
+  }
+}
+
+function urlBase64ToUint8Array(value: string) {
+  const padding = "=".repeat((4 - (value.length % 4)) % 4);
+  const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(base64);
+  return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
+}
+
+export async function subscribeToPush(userId: string) {
+  const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+  if (!publicKey || typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+    return { subscription: null, reason: "push_not_configured" as const };
+  }
+
+  const registration = await registerNotificationServiceWorker();
+  if (!registration) return { subscription: null, reason: "service_worker_unavailable" as const };
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") return { subscription: null, reason: "permission_denied" as const };
+
+  const subscription =
+    (await registration.pushManager.getSubscription()) ??
+    (await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey),
+    }));
+
+  const json = subscription.toJSON();
+  if (!json.endpoint) return { subscription: null, reason: "invalid_subscription" as const };
+
+  const { error } = await supabase.from("notification_devices").upsert(
+    {
+      user_id: userId,
+      endpoint: json.endpoint,
+      subscription: json,
+      user_agent: navigator.userAgent,
+      ativo: true,
+      atualizado_em: new Date().toISOString(),
+    },
+    { onConflict: "user_id,endpoint" },
+  );
+
+  if (error) throw error;
+  return { subscription, reason: "subscribed" as const };
+}
