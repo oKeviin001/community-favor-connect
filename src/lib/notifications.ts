@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 export type NotificationType =
   | "pedido"
@@ -170,7 +171,7 @@ export async function subscribeToPush(userId: string) {
     {
       user_id: userId,
       endpoint: json.endpoint,
-      subscription: json,
+      subscription: { ...json } as Record<string, Json>,
       user_agent: navigator.userAgent,
       ativo: true,
       atualizado_em: new Date().toISOString(),
