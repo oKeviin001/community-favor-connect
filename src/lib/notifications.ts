@@ -36,7 +36,7 @@ export type NotificationRow = {
 export async function loadNotificationPreferences(userId: string) {
   const { data, error } = await supabase
     .from("notification_preferences")
-    .select("pedidos,mensagens,entregas,avaliacoes,candidatura,sistema,som")
+    .select("pedidos,mensagens,entregas,avaliacoes,candidatura,pagamentos,disputas,seguranca,sistema,som")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -46,7 +46,7 @@ export async function loadNotificationPreferences(userId: string) {
   const { data: created, error: createError } = await supabase
     .from("notification_preferences")
     .insert({ user_id: userId })
-    .select("pedidos,mensagens,entregas,avaliacoes,candidatura,sistema,som")
+    .select("pedidos,mensagens,entregas,avaliacoes,candidatura,pagamentos,disputas,seguranca,sistema,som")
     .single();
 
   if (createError) throw createError;
