@@ -73,26 +73,6 @@ export async function setNotificationControl(control: NotificationControl) {
   return data as NotificationControl;
 }
 
-export async function loadNotificationPreferences(userId: string) {
-  const { data, error } = await supabase
-    .from("notification_preferences")
-    .select("pedidos,mensagens,entregas,avaliacoes,candidatura,pagamentos,disputas,seguranca,sistema,som")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (error) throw error;
-  if (data) return data;
-
-  const { data: created, error: createError } = await supabase
-    .from("notification_preferences")
-    .insert({ user_id: userId })
-    .select("pedidos,mensagens,entregas,avaliacoes,candidatura,pagamentos,disputas,seguranca,sistema,som")
-    .single();
-
-  if (createError) throw createError;
-  return created;
-}
-
 export function notificationPreferenceKey(type: NotificationType) {
   return ({
     pedido: "pedidos",
