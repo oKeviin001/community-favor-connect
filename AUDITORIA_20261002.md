@@ -16,7 +16,7 @@ A revisão confirma que várias falhas críticas identificadas na auditoria inic
 - pedidos passaram a ter proteção contra alteração do conteúdo original e contra operações de usuários bloqueados/suspensos;
 - exclusão direta de pedidos por usuários autenticados foi revogada.
 
-**Entretanto, a auditoria não considera o sistema integralmente seguro ainda.** Permanecem pontos de leitura/RLS que não foram resolvidos pelas migrations recentes e existe uma pendência de validação no banco remoto.
+**A revisão atual confirma que as duas falhas vermelhas de leitura de pedidos/perfis receberam correção no repositório.** O sistema ainda não pode ser considerado integralmente validado porque o banco Supabase remoto não foi consultado e a cobertura global de bloqueio/suspensão permanece pendente.
 
 ## Situação dos achados
 
@@ -26,34 +26,38 @@ A revisão confirma que várias falhas críticas identificadas na auditoria inic
 | A2 | is_admin / enumeração de papel | 🟢 Corrigido no repositório | A verificação usa o usuário autenticado. |
 | A3 | Cadastro como entregador | 🟢 Protegido via trigger | Perfil criado por usuário comum é forçado para cliente. |
 | A4 | Campos protegidos do perfil | 🟢 Protegido via trigger | Tipo, moderação e métricas não podem ser escolhidos pelo usuário comum. |
-| A5 | Exposição de pedidos antes da aceitação | 🔴 Ainda pendente | O hardening protege INSERT/UPDATE, mas não substitui as policies de SELECT amplas existentes. |
-| A6 | Alteração/reivindicação arbitrária de pedidos | 🟡 Parcialmente corrigido | O trigger restringe mudanças, porém SELECT/UPDATE ainda precisam de operações/RPCs específicas. |
+| A5 | Exposição de pedidos antes da aceitação | 🟢 Corrigido no repositório | SELECT direto ficou limitado a cliente, entregador atribuído e admin; pedidos disponíveis passaram para RPC sanitizada. |
+| A6 | Alteração/reivindicação arbitrária de pedidos | 🟢 Corrigido no repositório | Aceite passou para RPC atômica; conteúdo original continua protegido pelo trigger. |
 | A7 | Decisão de candidatura | 🟢 Protegido via trigger | Status e metadados de decisão são preservados contra alterações do candidato. |
 | A8 | Histórico de candidatura | 🟢 Protegido contra inserção direta | Eventos exigem fluxo administrativo e autoria derivada. |
 | A9 | Bloqueio/suspensão | 🟡 Parcialmente corrigido | Orders verificam as flags; outras áreas ainda precisam de checagem equivalente. |
-| A10 | Perfis antes da aceitação | 🔴 Ainda pendente | A policy de contraparte ainda possui uma condição que pode revelar perfil de cliente em pedido aberto. |
+| A10 | Perfis antes da aceitação | 🟢 Corrigido no repositório | Profiles só ficam visíveis como contraparte quando existe pedido associado/aceito; contato operacional usa RPC específica. |
 | A11 | Leitura de reviews | 🟡 Revisado | A policy restringe aos envolvidos/admins, mas precisa de validação remota. |
 | A12 | Banco remoto | 🟠 Não verificado | Não foi possível confirmar quais migrations estão aplicadas no projeto Supabase ativo. |
 
-## Achados críticos que permanecem
+## Correções aplicadas às antigas falhas vermelhas
 
-### 1. Pedidos disponíveis ainda podem expor dados antes da aceitação
+### 1. Pedidos disponíveis antes da aceitação
 
-A migration original de orders contém uma policy de SELECT que permite leitura de pedidos sem entregador. As migrations de hardening recentes protegem alterações, mas não removem essa policy nem criam ainda uma projeção sanitizada para a lista de pedidos disponíveis.
+A leitura direta de `orders` agora só permite ao usuário autenticado consultar seus próprios pedidos, pedidos já atribuídos a ele ou pedidos como administrador. A lista pública/operacional do entregador foi migrada para `list_available_orders()`, que retorna somente dados operacionais aproximados.
 
-Isso significa que a regra de negócio desejada — entregar ao candidato somente informação operacional aproximada antes da aceitação — ainda não está garantida apenas pelo RLS atual.
+Antes do aceite, o entregador não recebe pela API a descrição completa, endereço de entrega, endereço da loja, observações ou dados pessoais da contraparte.
 
-**Correção necessária:** substituir a leitura direta da tabela por uma RPC/view segura que retorne somente os campos autorizados antes da aceitação, e remover a leitura ampla da tabela base.
+### 2. Perfil da contraparte antes da aceitação
 
-### 2. Perfil da contraparte ainda tem uma condição ampla
+As policies de `profiles` foram substituídas por regras de próprio perfil, administrador e contraparte de pedido já associado. O contato do outro participante é obtido por `get_order_counterparty_profile()` somente quando o pedido já possui associação legítima.
 
-A policy de contraparte possui uma condição para pedidos aguardando entregador que verifica o cliente do pedido, mas não exige que o usuário autenticado seja participante.
+### 3. Aceite concorrente
 
-Essa condição pode permitir descoberta de dados do perfil do cliente antes da aceitação.
+O aceite deixou de ser um `UPDATE` direto no cliente. A operação agora passa por `accept_order()`, que verifica o entregador, executa o `UPDATE` condicionado a `entregador_id is null` e ao status de aguardando, grava o evento de aceite na mesma operação e retorna o pedido aceito.
 
-**Correção necessária:** remover essa condição para leitura direta de perfil e fornecer contato somente após a associação/aceitação legítima do pedido.
+### 4. Coluna gerada `orders.total`
 
-### 3. Suspensão/bloqueio ainda não é uma política global
+O trigger `protect_order_changes()` deixou de tentar atribuir `new.total := old.total`. O valor gerado permanece sob responsabilidade do banco.
+
+### Pendência que permanece: suspensão/bloqueio global
+
+O bloqueio/suspensão continua protegido no fluxo de orders, mas ainda precisa ser definido e aplicado de forma sistemática a mensagens, candidaturas, Storage/documentos, avaliações, disputas/anexos e outras operações de negócio.
 
 O trigger de pedidos passou a rejeitar INSERT/UPDATE quando o usuário está bloqueado ou suspenso. Porém, a auditoria ainda não encontrou proteção equivalente aplicada de forma sistemática a mensagens, candidaturas, Storage/documentos, avaliações, disputas/anexos e outras operações de negócio.
 
@@ -61,11 +65,11 @@ O trigger de pedidos passou a rejeitar INSERT/UPDATE quando o usuário está blo
 
 ## Verificação adicional de migrations
 
-A revisão encontrou uma implementação que merece teste SQL antes de considerar a migration de pedidos validada em produção: o trigger protect_order_changes() tenta preservar new.total := old.total, enquanto orders.total é uma coluna gerada.
+Foi corrigida no repositório a atribuição indevida a `new.total` dentro de `protect_order_changes()`, pois `orders.total` é uma coluna gerada.
 
-**Status:** 🟠 precisa de validação no banco/ambiente de migration antes de afirmar que a migration executa sem erro.
+**Status:** 🟢 Corrigido no repositório / 🟠 execução remota ainda não verificada.
 
-Não foi marcado como falha de produção porque o banco remoto não foi executado/testado.
+A migration e os testes SQL foram publicados, mas não houve execução contra o banco Supabase remoto.
 
 ## Regras de negócio preservadas
 
@@ -88,12 +92,13 @@ Para fechar esta auditoria como validada em runtime ainda é necessário:
 2. aplicar/verificar as migrations;
 3. executar testes RLS com usuário cliente, entregador, admin, bloqueado e suspenso;
 4. testar especificamente leitura de pedidos disponíveis e leitura de perfis;
-5. confirmar que as migrations executam sem erro.
+5. confirmar que as migrations executam sem erro;
+6. executar `supabase test db` e validar os casos negativos de RLS.
 
 ## Conclusão
 
-**Resultado atual: 🟡 hardening avançado, porém ainda não concluído.**
+**Resultado atual: 🟡 hardening avançado, com as antigas falhas vermelhas corrigidas no repositório, mas ainda sem validação de runtime.**
 
-As principais superfícies de privilégio de escrita receberam proteção no repositório, mas as superfícies de leitura de pedidos/perfis e a cobertura global de bloqueio/suspensão ainda precisam de correção. A validação final depende também do banco Supabase ativo.
+As superfícies de leitura de pedidos/perfis agora têm proteção específica e o aceite é atômico. A cobertura global de bloqueio/suspensão e a confirmação no banco Supabase ativo continuam pendentes.
 
 Esta auditoria foi registrada como revisão técnica do estado atual; não representa uma confirmação de segurança do banco remoto.
