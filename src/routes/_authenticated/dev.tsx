@@ -31,6 +31,7 @@ import { ChevronLeft, ClipboardCheck, Trash2, Wand2 } from "lucide-react";
 import { SystemAuditReports } from "@/components/SystemAuditReports";
 import { SystemMaintenanceLog } from "@/components/SystemMaintenanceLog";
 import { NotificationTestPanel } from "@/components/NotificationTestPanel";
+import { GodModeNotificationControls } from "@/components/GodModeNotificationControls";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   ssr: false,
@@ -263,7 +264,12 @@ function Dev() {
         {tab === "avisos" && <AdminAvisos />}
         {tab === "conteudo" && <AdminConteudo />}
         {tab === "ajustes" && <AdminConfig />}
-        {tab === "notificacoes" && <NotificationTestPanel />}
+        {tab === "notificacoes" && (
+          <div className="space-y-4">
+            <GodModeNotificationControls />
+            <NotificationTestPanel />
+          </div>
+        )}
         {tab === "lab" && <AdminLaboratorio />}
         {tab === "relatorios" && <AdminRelatorios />}
         {tab === "auditoria" && <AdminAuditoria />}
