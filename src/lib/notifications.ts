@@ -6,6 +6,9 @@ export type NotificationType =
   | "entrega"
   | "avaliacao"
   | "candidatura"
+  | "pagamento"
+  | "disputa"
+  | "seguranca"
   | "sistema";
 
 export const NOTIFICATION_TYPES: { id: NotificationType; label: string; description: string }[] = [
@@ -14,6 +17,9 @@ export const NOTIFICATION_TYPES: { id: NotificationType; label: string; descript
   { id: "entrega", label: "Entregas", description: "Aceite, andamento e conclusão de entregas." },
   { id: "avaliacao", label: "Avaliações", description: "Novas avaliações e pedidos para avaliar." },
   { id: "candidatura", label: "Candidatura", description: "Atualizações sobre sua candidatura de entregador." },
+  { id: "pagamento", label: "Pagamentos", description: "Depósitos, liberações, reembolsos e alterações financeiras." },
+  { id: "disputa", label: "Disputas", description: "Abertura, análise e decisão de uma disputa." },
+  { id: "seguranca", label: "Segurança", description: "Eventos importantes de segurança e acesso da conta." },
   { id: "sistema", label: "Sistema", description: "Avisos importantes da plataforma." },
 ];
 
@@ -54,6 +60,9 @@ export function notificationPreferenceKey(type: NotificationType) {
     entrega: "entregas",
     avaliacao: "avaliacoes",
     candidatura: "candidatura",
+    pagamento: "pagamentos",
+    disputa: "disputas",
+    seguranca: "seguranca",
     sistema: "sistema",
   } as const)[type];
 }
