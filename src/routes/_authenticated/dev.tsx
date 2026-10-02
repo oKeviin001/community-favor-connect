@@ -6,7 +6,6 @@ import { AppShell } from "@/components/AppShell";
 import { toast } from "sonner";
 import { deleteDevOrder, listDevData, updateDevOrderStatus } from "@/lib/dev-actions.functions";
 import {
-  DEV_EMAIL,
   isGodMode,
   setGodMode,
   loadOverrides,
@@ -38,8 +37,7 @@ export const Route = createFileRoute("/_authenticated/dev")({
     const { data } = await supabase.auth.getUser();
     const user = data.user;
     if (!user) throw redirect({ to: "/auth" });
-    if (user.email?.toLowerCase() === DEV_EMAIL) return;
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+    const { data: isAdmin } = await supabase.rpc("is_admin", { _user_id: user.id });
     if (!isAdmin) throw redirect({ to: "/home" });
   },
   head: () => ({
