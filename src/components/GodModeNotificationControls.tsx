@@ -21,7 +21,7 @@ export function GodModeNotificationControls() {
   }, []);
 
   async function toggle(key: keyof NotificationControl) {
-    if (!control || key === "id") return;
+    if (!control) return;
     const next = { ...control, [key]: !control[key] };
     setControl(next);
     setSaving(true);
