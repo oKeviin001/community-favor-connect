@@ -59,6 +59,14 @@ begin
     raise exception 'review counterpart is invalid';
   end if;
 
+  if tg_op = 'UPDATE' then
+    if new.order_id is distinct from old.order_id
+       or new.reviewer_id is distinct from old.reviewer_id
+       or new.reviewee_id is distinct from old.reviewee_id then
+      raise exception 'review identity cannot be changed';
+    end if;
+  end if;
+
   new.reviewer_id := caller;
   new.reviewee_id := counterpart;
   return new;
