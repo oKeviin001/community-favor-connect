@@ -22,6 +22,9 @@ type Preferences = {
   entregas: boolean;
   avaliacoes: boolean;
   candidatura: boolean;
+  pagamentos: boolean;
+  disputas: boolean;
+  seguranca: boolean;
   sistema: boolean;
   som: boolean;
 };
@@ -180,6 +183,9 @@ function Notificacoes() {
                 entrega: "entregas",
                 avaliacao: "avaliacoes",
                 candidatura: "candidatura",
+                pagamento: "pagamentos",
+                disputa: "disputas",
+                seguranca: "seguranca",
                 sistema: "sistema",
               } as const)[item.id];
               return (
