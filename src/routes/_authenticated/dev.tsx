@@ -30,6 +30,7 @@ import { CATEGORIAS_BASE, STATUS_LABEL, formatBRL } from "@/lib/order-helpers";
 import { ChevronLeft, ClipboardCheck, Trash2, Wand2 } from "lucide-react";
 import { SystemAuditReports } from "@/components/SystemAuditReports";
 import { SystemMaintenanceLog } from "@/components/SystemMaintenanceLog";
+import { NotificationTestPanel } from "@/components/NotificationTestPanel";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   ssr: false,
@@ -82,6 +83,7 @@ type TabId =
   | "avisos"
   | "conteudo"
   | "ajustes"
+  | "notificacoes"
   | "lab"
   | "relatorios"
   | "auditoria"
@@ -100,6 +102,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "avisos", label: "Avisos" },
   { id: "conteudo", label: "Conteúdo" },
   { id: "ajustes", label: "Configurações" },
+  { id: "notificacoes", label: "Notificações" },
   { id: "lab", label: "Laboratório" },
   { id: "relatorios", label: "Relatórios" },
   { id: "auditoria", label: "Auditoria" },
@@ -260,6 +263,7 @@ function Dev() {
         {tab === "avisos" && <AdminAvisos />}
         {tab === "conteudo" && <AdminConteudo />}
         {tab === "ajustes" && <AdminConfig />}
+        {tab === "notificacoes" && <NotificationTestPanel />}
         {tab === "lab" && <AdminLaboratorio />}
         {tab === "relatorios" && <AdminRelatorios />}
         {tab === "auditoria" && <AdminAuditoria />}
