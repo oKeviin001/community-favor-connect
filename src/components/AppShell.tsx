@@ -4,7 +4,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, ClipboardList, Bike, User, Shield, Plus } from "lucide-react";
 import { useUser } from "@/lib/use-user";
 import { supabase } from "@/integrations/supabase/client";
-import { loadNotificationPreferences, notificationPreferenceKey, playNotificationSound, showBrowserNotification, registerNotificationServiceWorker, type NotificationRow } from "@/lib/notifications";
+import { loadNotificationControl, notificationPreferenceKey, playNotificationSound, showBrowserNotification, registerNotificationServiceWorker, type NotificationRow } from "@/lib/notifications";
 import { toast } from "sonner";
 
 interface Props {
@@ -28,9 +28,9 @@ export function AppShell({ children, hideNav }: Props) {
       const { data } = await supabase.auth.getUser();
       if (!data.user || cancelled) return;
 
-      let prefs;
+      let control;
       try {
-        prefs = await loadNotificationPreferences(data.user.id);
+        control = await loadNotificationControl();
       } catch {
         return;
       }
@@ -44,9 +44,9 @@ export function AppShell({ children, hideNav }: Props) {
           async (payload) => {
             const notification = payload.new as NotificationRow;
             const key = notificationPreferenceKey(notification.tipo);
-            if (!prefs[key]) return;
+            if (!control[key]) return;
 
-            if (prefs.som) playNotificationSound(true);
+            if (control.som) playNotificationSound(true);
             toast(notification.titulo, { description: notification.mensagem });
             await showBrowserNotification(notification.titulo, notification.mensagem);
           },
