@@ -59,11 +59,6 @@ interface Candidatura {
   criado_em: string | null;
 }
 
-const MODOS = [
-  { id: "cliente", label: "Quero pedir favores", hint: "Você cria pedidos" },
-  { id: "entregador", label: "Quero fazer entregas", hint: "Você aceita pedidos" },
-  { id: "ambos", label: "Quero utilizar ambos", hint: "Pede e entrega" },
-] as const;
 
 function Perfil() {
   const navigate = useNavigate();
@@ -74,7 +69,6 @@ function Perfil() {
   const [nome, setNome] = useState("");
   const [tel, setTel] = useState("");
   const [bairro, setBairro] = useState("");
-  const [tipo, setTipo] = useState<"cliente" | "entregador" | "ambos">("cliente");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
@@ -105,7 +99,6 @@ function Perfil() {
         setNome(data.nome ?? "");
         setTel(data.telefone ?? "");
         setBairro(data.bairro ?? "");
-        setTipo((data.tipo as "cliente" | "entregador" | "ambos") ?? "cliente");
       }
       setCand((app as Candidatura | null) ?? null);
       setStats({
@@ -133,7 +126,7 @@ function Perfil() {
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ nome, telefone: tel || null, bairro: bairro || null, tipo })
+      .update({ nome, telefone: tel || null, bairro: bairro || null })
       .eq("id", p.id);
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -291,8 +284,8 @@ function Perfil() {
           open={open}
           setOpen={setOpen}
           icon={<UserIcon size={18} />}
-          title="Conta"
-          desc="Nome, telefone, endereço e preferências"
+          title="Dados pessoais"
+          desc="Informações que você pode manter atualizadas"
         >
           <div className="space-y-4 pt-1">
             <Field label="Nome">
@@ -301,46 +294,31 @@ function Perfil() {
             <Field label="Telefone (WhatsApp)">
               <input value={tel} onChange={(e) => setTel(e.target.value)} className="field-input" placeholder="(11) 90000-0000" />
               <p className="text-[11px] text-muted-foreground mt-1">
-                Usado para abrir a conversa no WhatsApp durante o pedido.
+                Usado quando for necessário contato durante um pedido.
               </p>
             </Field>
             <Field label="Bairro">
-              <input value={bairro} onChange={(e) => setBairro(e.target.value)} className="field-input" placeholder="Vila Mariana" />
+              <input value={bairro} onChange={(e) => setBairro(e.target.value)} className="field-input" placeholder="Seu bairro" />
             </Field>
-            <Field label="Cidade">
-              <input value={cand?.cidade ?? ""} readOnly disabled className="field-input opacity-70" placeholder="Informada na candidatura" />
-            </Field>
-            <Field label="Modo de utilização">
-              <div className="space-y-2">
-                {MODOS.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => setTipo(m.id)}
-                    className={`w-full flex items-center gap-3 px-4 h-14 rounded-2xl text-left border ${
-                      tipo === m.id ? "bg-primary/10 border-primary" : "bg-card border-border"
-                    }`}
-                  >
-                    <span
-                      className={`size-5 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                        tipo === m.id ? "border-primary" : "border-border"
-                      }`}
-                    >
-                      {tipo === m.id && <span className="size-2.5 rounded-full bg-primary" />}
-                    </span>
-                    <span className="flex-1 min-w-0">
-                      <span className="block text-sm font-medium">{m.label}</span>
-                      <span className="block text-xs text-muted-foreground">{m.hint}</span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </Field>
+
+            <div className="rounded-2xl border border-border bg-muted/30 p-4">
+              <p className="text-xs font-semibold">Seu acesso na plataforma</p>
+              <p className="text-sm mt-1">
+                {p?.tipo === "entregador" || p?.tipo === "ambos"
+                  ? "Você também possui acesso de entregador."
+                  : "Sua conta está como cliente."}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                A função de entregador não é escolhida nesta tela. Ela depende da candidatura e da aprovação administrativa.
+              </p>
+            </div>
+
             <button
               onClick={salvar}
               disabled={saving}
               className="btn-base btn-primary-solid w-full h-12 rounded-2xl text-sm font-semibold"
             >
-              {saving ? "Salvando..." : "Salvar alterações"}
+              {saving ? "Salvando..." : "Salvar dados pessoais"}
             </button>
           </div>
         </Accordion>
