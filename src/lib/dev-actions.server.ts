@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { DEV_EMAIL } from "./dev-constants";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -57,8 +56,6 @@ export function parseStatusInput(value: unknown): { id: string; status: OrderSta
 
 async function assertDevAccess(context: AuthContext) {
   const { data: userData } = await context.supabase.auth.getUser();
-  const claimEmail = typeof context.claims?.email === "string" ? context.claims.email : "";
-  const email = (userData.user?.email ?? claimEmail).toLowerCase();
 
   const { data: role } = await context.supabase
     .from("user_roles")
@@ -67,7 +64,7 @@ async function assertDevAccess(context: AuthContext) {
     .eq("role", "admin")
     .maybeSingle();
 
-  if (email !== DEV_EMAIL && role?.role !== "admin") {
+  if (role?.role !== "admin") {
     throw new Error("Sem permissão para usar o Modo Deus");
   }
 }
