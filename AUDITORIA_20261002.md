@@ -137,3 +137,34 @@ Status: 🟡 implementação em repositório; validação remota do Supabase ain
 - O Modo Deus mantém laboratório para testar cada categoria, todas as categorias e o som.
 - O aplicativo consulta o controle global no momento da entrega para que alterações administrativas tenham efeito imediato.
 - O comportamento de push com aplicativo fechado continua condicionado à configuração das chaves VAPID e da função `send-push` no ambiente remoto.
+
+
+## Renovação visual e microinterações — 2026-10-02
+
+Status: 🟡 aplicado no código independente; aplicação pelo agente do Amável/Lovable ficou bloqueada nesta rodada por falta de créditos do workspace.
+
+Objetivo:
+- linguagem visual minimalista e moderna;
+- microinterações discretas em toque/clique;
+- transições suaves;
+- estados de foco e interação mais claros;
+- respeito a `prefers-reduced-motion`;
+- melhoria da experiência mobile/touch.
+
+Alterações aplicadas no repositório:
+- `src/styles.css`: adicionados padrões globais de interação, `motion-interactive`, `motion-lift`, `motion-fade-in`, resposta de toque e redução de movimento.
+- `src/components/ui/button.tsx`: botões passaram a usar o padrão global de microinteração e foco mais claro.
+- `src/components/ui/card.tsx`: transições visuais mais suaves.
+- `src/components/ui/input.tsx`: estados de foco/interação refinados.
+
+Nenhuma migration, tabela, RLS, autenticação ou regra de negócio foi alterada nesta etapa.
+
+Commits independentes gerados:
+- `22a38cb65820d8f6ff40de550b3a873687ba0507`
+- `b924a94beaf2622923e9b26926ead6a2947d4833`
+- `178867f96e460c4f6795ec244e620c8fb6c2a4d5`
+- `7268e369d3aa8fdb4a6397daa79ea840176a8ed4`
+
+Pendência:
+- o agente do Amável/Lovable iniciou a análise visual e criou o plano de renovação, mas não concluiu a aplicação visual porque o workspace ficou sem créditos.
+- o erro de typecheck reportado em `src/routes/_authenticated/dev.tsx` também precisa ser corrigido antes da validação final do preview.
