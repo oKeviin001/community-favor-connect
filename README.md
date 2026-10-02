@@ -928,17 +928,11 @@ O objetivo não é apenas entregar produtos.
 
 O objetivo é conectar pessoas que precisam de ajuda com pessoas dispostas a ajudar, de forma segura, organizada e escalável.
 
-This project was built with [Lovable](https://lovable.dev).
+## Projeto independente
 
-**Live app**: https://community-favor-connect.lovable.app
+Este repositório é a base do aplicativo independente **Pede pro Kevin**. O objetivo é manter aqui o código da aplicação e conectá-lo ao seu próprio projeto Supabase, sem depender do ambiente de execução do Lovable.
 
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/bece3d98-cab0-42cd-b969-63e22301c3d3).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+O projeto pode continuar sendo desenvolvido localmente e implantado em uma infraestrutura escolhida por você. O Lovable pode permanecer apenas como ferramenta de desenvolvimento enquanto a migração estiver sendo concluída.
 
 ## Development
 
