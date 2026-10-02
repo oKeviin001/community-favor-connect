@@ -123,3 +123,17 @@ Foi adicionada a base do sistema de notificações:
 **Status:** 🟡 implementado no repositório, com entrega push condicionada à configuração das chaves VAPID no ambiente Supabase e à validação remota da migration/função.
 
 O laboratório não deve ser interpretado como confirmação de push com o aplicativo fechado até que um dispositivo esteja inscrito e o serviço VAPID esteja configurado.
+
+
+## Controle centralizado de notificações — 2026-10-02
+
+Status: 🟡 implementação em repositório; validação remota do Supabase ainda necessária.
+
+- A tela comum de Configurações → Notificações não altera mais categorias individuais.
+- Foi criada a tabela `notification_control`, com leitura autenticada e alteração exclusivamente por administrador via RPC.
+- O Modo Deus controla pedidos, mensagens, entregas, avaliações, candidatura, pagamentos, disputas, segurança, sistema e som.
+- Foi criado o painel de envio livre com três públicos: clientes, entregadores ou todos.
+- O envio livre registra a notificação e tenta entregar Web Push aos dispositivos cadastrados.
+- O Modo Deus mantém laboratório para testar cada categoria, todas as categorias e o som.
+- O aplicativo consulta o controle global no momento da entrega para que alterações administrativas tenham efeito imediato.
+- O comportamento de push com aplicativo fechado continua condicionado à configuração das chaves VAPID e da função `send-push` no ambiente remoto.
