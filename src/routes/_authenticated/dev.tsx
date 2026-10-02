@@ -228,7 +228,7 @@ function Dev() {
             god ? "bg-primary text-primary-foreground ring-primary" : "bg-card ring-black/5"
           }`}
         >
-          God Mode: {god ? "LIGADO (validações desativadas)" : "desligado"}
+          God Mode: {god ? "LIGADO (somente testes internos)" : "desligado"}
         </button>
       </div>
 
