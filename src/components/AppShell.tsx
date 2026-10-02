@@ -72,17 +72,17 @@ export function AppShell({ children, hideNav }: Props) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="pb-28 max-w-screen-sm mx-auto">{children}</div>
+      <div className="pb-28 max-w-screen-sm mx-auto motion-fade-in">{children}</div>
       {userId && <NotificationPermissionGate userId={userId} />}
       {!hideNav && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex justify-between items-center max-w-screen-sm mx-auto">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/88 backdrop-blur-xl border-t border-border/80 px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex justify-between items-center max-w-screen-sm mx-auto shadow-[0_-8px_30px_-24px_hsl(var(--foreground)/0.45)]">
           {navItems.map(({ to, label, icon: Icon }) => {
             const active = path === to || (to !== "/home" && path.startsWith(to));
             return (
               <Link
                 key={to}
                 to={to}
-                className={`flex flex-col items-center gap-1 py-1.5 px-2 min-w-[54px] rounded-xl transition-colors ${active ? "text-primary bg-secondary" : "text-muted-foreground"}`}
+                className={`motion-interactive relative flex flex-col items-center gap-1 py-1.5 px-2 min-w-[54px] rounded-xl ${active ? "text-primary bg-secondary/80 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
               >
                 <Icon size={20} strokeWidth={active ? 2.2 : 1.7} />
                 <span className="text-[10px] font-semibold tracking-tight whitespace-nowrap">{label}</span>
