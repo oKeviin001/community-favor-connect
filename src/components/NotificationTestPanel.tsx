@@ -38,6 +38,24 @@ export function NotificationTestPanel() {
       return;
     }
 
+    const { data: pushResult, error: pushError } = await supabase.functions.invoke("send-push", {
+      body: {
+        user_id: user.user.id,
+        notification: {
+          title: test.title,
+          body: test.message,
+          tag: `teste-${type}`,
+          url: "/perfil",
+        },
+      },
+    });
+
+    if (pushError && !String(pushError.message).includes("push_not_configured")) {
+      toast.info("Aviso registrado no app; push externo ainda não está configurado.");
+    } else if (pushResult?.sent) {
+      toast.success(`Push enviado para ${pushResult.sent} dispositivo(s).`);
+    }
+
     setLast(type);
   }
 
