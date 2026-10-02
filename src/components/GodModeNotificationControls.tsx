@@ -47,7 +47,7 @@ export function GodModeNotificationControls() {
     try {
       let query = supabase.from("profiles").select("id,tipo");
       if (target === "clientes") query = query.eq("tipo", "cliente");
-      if (target === "entregadores") query = query.eq("tipo", "entregador");
+      if (target === "entregadores") query = query.in("tipo", ["entregador", "ambos"]);
 
       const { data: recipients, error } = await query;
       if (error) throw error;
