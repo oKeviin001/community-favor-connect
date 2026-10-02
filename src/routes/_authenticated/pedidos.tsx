@@ -85,9 +85,9 @@ function Pedidos() {
 
       <div className="px-6 space-y-3">
         {rows.length === 0 && (
-          <div className="surface p-8 text-center">
+          <div className="surface p-8 text-center motion-fade-in">
             <p className="text-muted-foreground text-sm">Nenhum pedido ainda.</p>
-            <Link to="/novo-pedido" className="mt-4 inline-block text-primary font-semibold text-sm">
+            <Link to="/novo-pedido" className="mt-4 inline-block text-primary font-semibold text-sm motion-interactive rounded-md px-2 py-1">
               Criar meu primeiro pedido
             </Link>
           </div>
