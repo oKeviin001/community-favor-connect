@@ -199,11 +199,6 @@ function Dev() {
       .select("id")
       .single();
     if (error) return toast.error(error.message);
-    await supabase.from("payments").insert({
-      order_id: data.id,
-      valor: 36,
-      status: "depositado",
-    });
     toast.success("Pedido fake criado");
     reload();
   }
