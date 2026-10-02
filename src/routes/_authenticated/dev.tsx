@@ -30,6 +30,7 @@ import {
 import { CATEGORIAS_BASE, STATUS_LABEL, formatBRL } from "@/lib/order-helpers";
 import { ChevronLeft, ClipboardCheck, Trash2, Wand2 } from "lucide-react";
 import { SystemAuditReports } from "@/components/SystemAuditReports";
+import { SystemMaintenanceLog } from "@/components/SystemMaintenanceLog";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   ssr: false,
@@ -87,6 +88,7 @@ type TabId =
   | "relatorios"
   | "auditoria"
   | "auditoriasSistema"
+  | "registroAlteracoes"
   | "legado"
   | "legadoPedidos"
   | "legadoUsuarios";
@@ -104,6 +106,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "relatorios", label: "Relatórios" },
   { id: "auditoria", label: "Auditoria" },
   { id: "auditoriasSistema", label: "Auditorias do Sistema" },
+  { id: "registroAlteracoes", label: "Registro de Alterações do Sistema" },
   { id: "legado", label: "Testes (antigo)" },
   { id: "legadoPedidos", label: "Pedidos (antigo)" },
   { id: "legadoUsuarios", label: "Usuários (antigo)" },
@@ -263,6 +266,7 @@ function Dev() {
         {tab === "relatorios" && <AdminRelatorios />}
         {tab === "auditoria" && <AdminAuditoria />}
         {tab === "auditoriasSistema" && <SystemAuditReports />}
+        {tab === "registroAlteracoes" && <SystemMaintenanceLog />}
       </div>
 
       {tab === "legado" && (
