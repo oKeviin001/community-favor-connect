@@ -88,7 +88,7 @@ function Home() {
           </div>
           <Link
             to="/perfil"
-            className="size-12 rounded-full bg-secondary border border-border flex items-center justify-center text-base font-semibold text-foreground"
+            className="size-12 rounded-full bg-secondary border border-border flex items-center justify-center text-base font-semibold text-foreground motion-interactive"
           >
             {firstName.charAt(0).toUpperCase() || "?"}
           </Link>
@@ -98,12 +98,12 @@ function Home() {
       {(config.avisoHome || avisos.length > 0) && (
         <section className="px-6 pb-2 space-y-2">
           {config.avisoHome && (
-            <div className="rounded-2xl border border-warning/25 bg-warning/10 p-4">
+            <div className="rounded-2xl border border-warning/25 bg-warning/10 p-4 motion-fade-in">
               <p className="text-sm leading-relaxed">{config.avisoHome}</p>
             </div>
           )}
           {avisos.map((a) => (
-            <div key={a.id} className="rounded-2xl border border-border bg-card p-4">
+            <div key={a.id} className="rounded-2xl border border-border bg-card p-4 motion-fade-in">
               <p className="text-sm font-semibold">{a.titulo}</p>
               <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{a.mensagem}</p>
             </div>
@@ -112,7 +112,7 @@ function Home() {
       )}
 
       <section className="px-6 pt-2">
-        <div className="surface overflow-hidden">
+        <div className="surface overflow-hidden motion-lift">
           <div className="bg-secondary/60 px-5 pt-4">
             <img
               src={heroImg}
@@ -135,7 +135,7 @@ function Home() {
             ) : (
               <Link
                 to="/novo-pedido"
-                className="btn-base btn-base-active w-full bg-primary text-primary-foreground mt-4"
+                className="btn-base btn-base-active w-full bg-primary text-primary-foreground mt-4 motion-interactive"
               >
                 <Plus size={18} /> Fazer novo pedido
               </Link>
@@ -207,7 +207,7 @@ function Home() {
               key={c.id}
               to="/novo-pedido"
               search={{ categoria: c.id }}
-              className="flex flex-col items-center gap-2.5 p-4 surface aspect-square justify-center"
+              className="flex flex-col items-center gap-2.5 p-4 surface aspect-square justify-center motion-lift"
             >
               <div className={`size-10 ${c.tint} border border-border rounded-xl flex items-center justify-center text-xl`}>
                 {c.emoji}
