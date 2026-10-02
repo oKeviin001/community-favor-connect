@@ -1265,6 +1265,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_available_orders: {
+        Args: Record<PropertyKey, never>
+        Returns: Array<{
+          id: string
+          categoria: Database["public"]["Enums"]["order_category"]
+          loja: string | null
+          bairro: string | null
+          valor_frete: number | null
+          valor_estimado_min: number | null
+          valor_estimado_max: number | null
+          status: Database["public"]["Enums"]["order_status"]
+          criado_em: string
+        }>
+      }
+      get_courier_order: { Args: { _order_id: string }; Returns: Json }
+      accept_order: { Args: { _order_id: string }; Returns: Json }
+      get_order_counterparty_profile: {
+        Args: { _order_id: string }
+        Returns: Array<{ id: string; nome: string | null; telefone: string | null }>
+      }
       get_notification_control: { Args: Record<PropertyKey, never>; Returns: Database["public"]["Tables"]["notification_control"]["Row"] }
       set_notification_control: {
         Args: {
