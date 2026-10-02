@@ -129,7 +129,7 @@ function NovoPedido() {
                   type="button"
                   key={c.id}
                   onClick={() => setCategoria(c.id as CategoriaId)}
-                  className={`text-left p-4 rounded-2xl border transition-all ${
+                  className={`text-left p-4 rounded-2xl border transition-all motion-interactive ${
                     ativo
                       ? "border-primary bg-primary/5 shadow-soft"
                       : "border-border bg-card hover:bg-secondary/60"
@@ -174,7 +174,7 @@ function NovoPedido() {
         {/* 3 — Localização */}
         <section className="fade-rise">
           <SectionTitle index={3}>Localização</SectionTitle>
-          <div className="surface p-4 space-y-4">
+          <div className="surface p-4 space-y-4 motion-fade-in">
             <Field label="Origem (onde buscar)" hint="Loja, mercado, farmácia ou endereço de retirada.">
               <div className="relative">
                 <ShoppingBag size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -253,7 +253,7 @@ function NovoPedido() {
               </div>
             </Field>
 
-            <div className="rounded-2xl bg-secondary border border-border p-4">
+            <div className="rounded-2xl bg-secondary border border-border p-4 motion-fade-in">
               <p className="label-kicker">Você oferece</p>
               <p className="text-2xl font-semibold text-primary mt-1.5">
                 {valorNum > 0 ? formatBRL(valorNum) : "R$ --,--"}
@@ -270,7 +270,7 @@ function NovoPedido() {
         {/* 5 — Resumo */}
         <section className="fade-rise">
           <SectionTitle index={5}>Resumo</SectionTitle>
-          <div className="surface p-4 space-y-3">
+          <div className="surface p-4 space-y-3 motion-fade-in">
             <ResumoLinha label="Tipo de serviço" value={catSel?.label ?? "Não selecionado"} />
             <ResumoLinha label="Origem" value={origem || "Não informada"} />
             <ResumoLinha label="Destino" value={destino || "Não informado"} />
