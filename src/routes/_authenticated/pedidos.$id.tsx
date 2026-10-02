@@ -168,7 +168,7 @@ function PedidoDetail() {
   return (
     <AppShell hideNav>
       <header className="px-6 pt-10 pb-3 flex items-center gap-3 bg-background sticky top-0 z-10">
-        <Link to={backTo} className="size-10 rounded-full bg-secondary flex items-center justify-center">
+        <Link to={backTo} className="size-10 rounded-full bg-secondary flex items-center justify-center motion-interactive">
           <ChevronLeft size={20} />
         </Link>
         <div className="flex-1 min-w-0">
@@ -178,7 +178,7 @@ function PedidoDetail() {
       </header>
 
       <section className="px-6 pt-4">
-        <div className="bg-secondary rounded-2xl p-5 border border-border">
+        <div className="bg-secondary rounded-2xl p-5 border border-border motion-fade-in">
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-base font-semibold">{STATUS_LABEL[order.status]}</h2>
@@ -215,7 +215,7 @@ function PedidoDetail() {
           <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">
             {isCliente ? "Entregador" : "Cliente"}
           </h3>
-          <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
+          <div className="bg-card rounded-2xl border border-border p-4 space-y-3 motion-fade-in">
             <div className="flex items-center gap-3">
               <div className="size-11 rounded-full bg-secondary flex items-center justify-center font-semibold">
                 {outro.nome?.charAt(0).toUpperCase() ?? "?"}
@@ -235,7 +235,7 @@ function PedidoDetail() {
                 href={wa}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full h-12 rounded-2xl bg-[#25D366] text-white font-medium text-sm flex items-center justify-center gap-2"
+                className="w-full h-12 rounded-2xl bg-[#25D366] text-white font-medium text-sm flex items-center justify-center gap-2 motion-interactive"
               >
                 <MessageCircle size={16} /> Conversar no WhatsApp
               </a>
@@ -250,7 +250,7 @@ function PedidoDetail() {
 
       <section className="px-6 pt-6">
         <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">Detalhes</h3>
-        <div className="bg-card rounded-2xl p-4 border border-border space-y-3 text-sm">
+        <div className="bg-card rounded-2xl p-4 border border-border space-y-3 text-sm motion-fade-in">
           <Detail label="Descrição" value={order.descricao} />
           {order.loja && <Detail label="Loja" value={order.loja} />}
           {order.endereco_loja && <Detail label="Endereço da loja" value={order.endereco_loja} />}
@@ -268,7 +268,7 @@ function PedidoDetail() {
           <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">
             Linha do tempo
           </h3>
-          <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
+          <div className="bg-card rounded-2xl border border-border p-4 space-y-3 motion-fade-in">
             {eventos.map((e) => (
               <div key={e.id} className="flex gap-3 items-start">
                 <span className="text-xs font-semibold tabular-nums text-muted-foreground w-12 shrink-0">
@@ -334,7 +334,7 @@ function PrimaryBtn({ children, onClick }: { children: React.ReactNode; onClick:
   return (
     <button
       onClick={onClick}
-      className="w-full h-14 bg-primary text-primary-foreground rounded-2xl font-medium text-base shadow-lg shadow-primary/10"
+      className="w-full h-14 bg-primary text-primary-foreground rounded-2xl font-medium text-base shadow-lg shadow-primary/10 motion-interactive"
     >
       {children}
     </button>
