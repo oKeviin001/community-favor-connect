@@ -318,3 +318,91 @@
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
+
+
+@layer base {
+  :where(button, [role="button"], a) {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :where(button, [role="button"], a) {
+      transition:
+        transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 160ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        color 180ms ease,
+        box-shadow 200ms ease;
+    }
+
+    :where(button, [role="button"], a):active {
+      transform: scale(0.985);
+    }
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 18%, transparent);
+    color: var(--foreground);
+  }
+}
+
+@utility motion-interactive {
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 200ms ease;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    transform: scale(0.985);
+  }
+}
+
+@utility motion-lift {
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease,
+    border-color 180ms ease;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-raised);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.99);
+  }
+}
+
+@utility motion-fade-in {
+  animation: motion-fade-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes motion-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
