@@ -334,7 +334,7 @@ function Perfil() {
         >
           <div className="divide-y divide-border">
             <NavSetting to="/configuracoes/seguranca" icon={<ShieldCheck size={16} />} title="Segurança" desc="Proteção da sua conta e acesso" />
-            <ActionItem icon={<Bell size={16} />} title="Notificações" desc="Vamos configurar esta área em seguida" onClick={() => toast.info("Notificações será a próxima área de configurações.")} />
+            <NavSetting to="/configuracoes/notificacoes" icon={<Bell size={16} />} title="Notificações" desc="Escolha quais avisos você recebe" />
             <ActionItem icon={<Shield size={16} />} title="Privacidade" desc="Vamos configurar esta área em seguida" onClick={() => toast.info("Privacidade será configurada depois de Segurança.")} />
             <ActionItem icon={<Settings size={16} />} title="Aparência" desc="Vamos configurar esta área em seguida" onClick={() => toast.info("Aparência será configurada depois de Privacidade.")} />          </div>
         </Accordion>
