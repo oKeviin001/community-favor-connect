@@ -28,12 +28,6 @@ export function AppShell({ children, hideNav }: Props) {
       const { data } = await supabase.auth.getUser();
       if (!data.user || cancelled) return;
 
-      let control;
-      try {
-        control = await loadNotificationControl();
-      } catch {
-        return;
-      }
       if (cancelled) return;
 
       channel = supabase
@@ -43,6 +37,12 @@ export function AppShell({ children, hideNav }: Props) {
           { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${data.user.id}` },
           async (payload) => {
             const notification = payload.new as NotificationRow;
+            let control;
+            try {
+              control = await loadNotificationControl();
+            } catch {
+              return;
+            }
             const key = notificationPreferenceKey(notification.tipo);
             if (!control[key]) return;
 
