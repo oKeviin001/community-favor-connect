@@ -19,9 +19,15 @@ export const Route = createFileRoute("/_authenticated/entregador/")({
 });
 
 interface Row {
-  id: string; descricao: string; loja: string | null;
-  categoria: string; valor_frete: number | null; valor_estimado_min: number | null;
-  bairro: string | null; status: string; endereco_entrega: string; criado_em: string;
+  id: string;
+  loja: string | null;
+  categoria: string;
+  valor_frete: number | null;
+  valor_estimado_min: number | null;
+  valor_estimado_max: number | null;
+  bairro: string | null;
+  status: string;
+  criado_em: string;
 }
 
 function Entregador() {
@@ -30,12 +36,8 @@ function Entregador() {
   useEffect(() => {
     let mounted = true;
     async function load() {
-      const { data } = await supabase
-        .from("orders")
-        .select("id, descricao, loja, categoria, valor_frete, valor_estimado_min, bairro, status, endereco_entrega, criado_em")
-        .eq("status", "aguardando_entregador")
-        .is("entregador_id", null)
-        .order("criado_em", { ascending: false });
+      const { data, error } = await supabase.rpc("list_available_orders");
+      if (error) console.error("Falha ao carregar pedidos disponíveis:", error);
       if (!mounted) return;
       setRows(((data as unknown) as Row[]) ?? []);
     }
@@ -74,9 +76,9 @@ function Entregador() {
                     {cat?.emoji ?? "📦"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{o.loja || o.descricao}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{o.descricao}</p>
-                    <p className="text-[11px] text-muted-foreground mt-1 truncate">→ {o.endereco_entrega}</p>
+                    <p className="text-sm font-semibold truncate">{o.loja || "Pedido disponível"}</p>
+                    <p className="text-xs text-muted-foreground">Detalhes completos liberados após o aceite.</p>
+                    <p className="text-[11px] text-muted-foreground mt-1 truncate">📍 {o.bairro || "Região da corrida"}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-[10px] uppercase text-muted-foreground">Cliente oferece</p>
@@ -85,7 +87,7 @@ function Entregador() {
                   </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between gap-2 text-[11px]">
-                  <span className="text-muted-foreground truncate">📍 {o.bairro || o.endereco_entrega}</span>
+                  <span className="text-muted-foreground truncate">📍 {o.bairro || "Região da corrida"}</span>
                   <span className="rounded-full bg-secondary border border-border px-2 py-0.5 font-semibold text-muted-foreground shrink-0">
                     🟡 {STATUS_LABEL[o.status] ?? o.status}
                   </span>
