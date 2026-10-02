@@ -33,6 +33,46 @@ export type NotificationRow = {
   criado_em: string;
 };
 
+export type NotificationControl = {
+  pedidos: boolean;
+  mensagens: boolean;
+  entregas: boolean;
+  avaliacoes: boolean;
+  candidatura: boolean;
+  pagamentos: boolean;
+  disputas: boolean;
+  seguranca: boolean;
+  sistema: boolean;
+  som: boolean;
+};
+
+export async function loadNotificationControl() {
+  const { data, error } = await supabase
+    .from("notification_control")
+    .select("pedidos,mensagens,entregas,avaliacoes,candidatura,pagamentos,disputas,seguranca,sistema,som")
+    .eq("id", true)
+    .single();
+  if (error) throw error;
+  return data as NotificationControl;
+}
+
+export async function setNotificationControl(control: NotificationControl) {
+  const { data, error } = await supabase.rpc("set_notification_control", {
+    _pedidos: control.pedidos,
+    _mensagens: control.mensagens,
+    _entregas: control.entregas,
+    _avaliacoes: control.avaliacoes,
+    _candidatura: control.candidatura,
+    _pagamentos: control.pagamentos,
+    _disputas: control.disputas,
+    _seguranca: control.seguranca,
+    _sistema: control.sistema,
+    _som: control.som,
+  });
+  if (error) throw error;
+  return data as NotificationControl;
+}
+
 export async function loadNotificationPreferences(userId: string) {
   const { data, error } = await supabase
     .from("notification_preferences")
