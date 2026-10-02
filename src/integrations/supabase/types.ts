@@ -1107,6 +1107,108 @@ export type Database = {
         Relationships: []
       }
     }
+      notification_preferences: {
+        Row: {
+          user_id: string
+          pedidos: boolean
+          mensagens: boolean
+          entregas: boolean
+          avaliacoes: boolean
+          candidatura: boolean
+          sistema: boolean
+          som: boolean
+          atualizado_em: string
+        }
+        Insert: {
+          user_id: string
+          pedidos?: boolean
+          mensagens?: boolean
+          entregas?: boolean
+          avaliacoes?: boolean
+          candidatura?: boolean
+          sistema?: boolean
+          som?: boolean
+          atualizado_em?: string
+        }
+        Update: {
+          user_id?: string
+          pedidos?: boolean
+          mensagens?: boolean
+          entregas?: boolean
+          avaliacoes?: boolean
+          candidatura?: boolean
+          sistema?: boolean
+          som?: boolean
+          atualizado_em?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          tipo: string
+          titulo: string
+          mensagem: string
+          dados: Json
+          lida: boolean
+          criado_em: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          tipo: string
+          titulo: string
+          mensagem: string
+          dados?: Json
+          lida?: boolean
+          criado_em?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          tipo?: string
+          titulo?: string
+          mensagem?: string
+          dados?: Json
+          lida?: boolean
+          criado_em?: string
+        }
+        Relationships: []
+      }
+      notification_devices: {
+        Row: {
+          id: string
+          user_id: string
+          endpoint: string
+          subscription: Json
+          user_agent: string | null
+          ativo: boolean
+          criado_em: string
+          atualizado_em: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          endpoint: string
+          subscription: Json
+          user_agent?: string | null
+          ativo?: boolean
+          criado_em?: string
+          atualizado_em?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          endpoint?: string
+          subscription?: Json
+          user_agent?: string | null
+          ativo?: boolean
+          criado_em?: string
+          atualizado_em?: string
+        }
+        Relationships: []
+      }
     Views: {
       [_ in never]: never
     }
