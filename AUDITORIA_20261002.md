@@ -179,3 +179,22 @@ Commits visuais adicionais:
 - `0bc83f8d00ad539acfa3270b56ce273e38c5a20d` — microinterações na lista de pedidos.
 
 A implementação visual segue sem alterações de banco, RLS, autenticação ou regras de negócio.
+
+
+### Microinterações — telas principais
+
+Aplicação adicional via GitHub, sem uso do Amável/Lovable:
+- `src/routes/_authenticated/home.tsx`
+- `src/routes/_authenticated/novo-pedido.tsx`
+- `src/routes/_authenticated/entregador.index.tsx`
+- `src/routes/_authenticated/pedidos.$id.tsx`
+
+Foram adicionados padrões de movimento a ações e superfícies principais, incluindo entrada suave, resposta ao toque e elevação sutil em elementos navegáveis.
+
+Commits:
+- `8557ae21288d6b881c68546554db7e1ef11dddc7`
+- `4a96a578fa39f269c04f9ddca50e995faf82d244`
+- `aa6044a7a48f11fa3b8de67dac4d2fd1625f3adc`
+- `98bb8901e00a22e56a94b596a4b232b87a8be9e2`
+
+Sem alterações de banco, RLS, autenticação ou regras de negócio.
