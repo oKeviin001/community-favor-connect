@@ -1119,6 +1119,26 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      list_available_orders: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          categoria: Database["public"]["Enums"]["order_category"]
+          loja: string | null
+          bairro: string | null
+          valor_frete: number
+          valor_estimado_min: number | null
+          valor_estimado_max: number | null
+          status: Database["public"]["Enums"]["order_status"]
+          criado_em: string
+        }[]
+      }
+      get_courier_order: { Args: { _order_id: string }; Returns: Json }
+      get_order_counterparty_profile: {
+        Args: { _order_id: string }
+        Returns: { id: string; nome: string; telefone: string | null } | null
+      }
+      accept_order: { Args: { _order_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
