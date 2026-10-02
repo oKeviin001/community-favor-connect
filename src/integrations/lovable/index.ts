@@ -1,4 +1,4 @@
-// Compatibility shim for environments that still reference the legacy Lovable integration path.
+// Compatibility shim — force preview rebuild; the independent app uses Supabase directly.
 // The independent app uses Supabase directly; no Lovable SDK is required.
 
 import { supabase } from "@/integrations/supabase/client";
