@@ -168,3 +168,14 @@ Commits independentes gerados:
 Pendência:
 - o agente do Amável/Lovable iniciou a análise visual e criou o plano de renovação, mas não concluiu a aplicação visual porque o workspace ficou sem créditos.
 - o erro de typecheck reportado em `src/routes/_authenticated/dev.tsx` também precisa ser corrigido antes da validação final do preview.
+
+
+### Correção de fluxo — edição visual
+
+As alterações visuais desta rodada devem ser tratadas como alterações do código independente via GitHub. O Amável/Lovable não deve ser usado como canal de edição para consumir créditos quando a alteração puder ser feita diretamente no repositório.
+
+Commits visuais adicionais:
+- `3055092590e83ea355df6867a1cf3ab2cde70b82` — shell/navegação com microinterações.
+- `0bc83f8d00ad539acfa3270b56ce273e38c5a20d` — microinterações na lista de pedidos.
+
+A implementação visual segue sem alterações de banco, RLS, autenticação ou regras de negócio.
