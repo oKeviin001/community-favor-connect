@@ -29,7 +29,10 @@ export function SystemMaintenanceLog() {
   async function register() {
     if (!form.action_description.trim()) return toast.error("Descreva a alteração realizada.");
     setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSaving(false); return toast.error("Usuário não autenticado."); }
     const { error } = await supabase.from("system_maintenance_log").insert({
+      responsible_user_id: user.id,
       action_description: form.action_description.trim(),
       prompt_reference: form.prompt_reference.trim() || null,
       objective: form.objective.trim() || null,
