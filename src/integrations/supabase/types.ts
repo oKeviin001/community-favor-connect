@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      system_maintenance_log: {
+        Row: {
+          id: string
+          created_at: string
+          responsible_user_id: string | null
+          action_description: string
+          prompt_reference: string | null
+          objective: string | null
+          affected_files: string[]
+          result: string
+          tests: string | null
+          errors_notes: string | null
+          related_commit: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          responsible_user_id?: string | null
+          action_description: string
+          prompt_reference?: string | null
+          objective?: string | null
+          affected_files?: string[]
+          result?: string
+          tests?: string | null
+          errors_notes?: string | null
+          related_commit?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          responsible_user_id?: string | null
+          action_description?: string
+          prompt_reference?: string | null
+          objective?: string | null
+          affected_files?: string[]
+          result?: string
+          tests?: string | null
+          errors_notes?: string | null
+          related_commit?: string | null
+        }
+        Relationships: []
+      }
       account_deletion_requests: {
         Row: {
           atendido_em: string | null
