@@ -1152,6 +1152,51 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_control: {
+        Row: {
+          id: boolean;
+          pedidos: boolean;
+          mensagens: boolean;
+          entregas: boolean;
+          avaliacoes: boolean;
+          candidatura: boolean;
+          pagamentos: boolean;
+          disputas: boolean;
+          seguranca: boolean;
+          sistema: boolean;
+          som: boolean;
+          atualizado_em: string;
+        }
+        Insert: {
+          id?: boolean;
+          pedidos?: boolean;
+          mensagens?: boolean;
+          entregas?: boolean;
+          avaliacoes?: boolean;
+          candidatura?: boolean;
+          pagamentos?: boolean;
+          disputas?: boolean;
+          seguranca?: boolean;
+          sistema?: boolean;
+          som?: boolean;
+          atualizado_em?: string;
+        }
+        Update: {
+          id?: boolean;
+          pedidos?: boolean;
+          mensagens?: boolean;
+          entregas?: boolean;
+          avaliacoes?: boolean;
+          candidatura?: boolean;
+          pagamentos?: boolean;
+          disputas?: boolean;
+          seguranca?: boolean;
+          sistema?: boolean;
+          som?: boolean;
+          atualizado_em?: string;
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           id: string
@@ -1222,6 +1267,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_notification_control: { Args: Record<PropertyKey, never>; Returns: Database["public"]["Tables"]["notification_control"]["Row"] }
+      set_notification_control: {
+        Args: {
+          _pedidos: boolean;
+          _mensagens: boolean;
+          _entregas: boolean;
+          _avaliacoes: boolean;
+          _candidatura: boolean;
+          _pagamentos: boolean;
+          _disputas: boolean;
+          _seguranca: boolean;
+          _sistema: boolean;
+          _som: boolean;
+        };
+        Returns: Database["public"]["Tables"]["notification_control"]["Row"];
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
