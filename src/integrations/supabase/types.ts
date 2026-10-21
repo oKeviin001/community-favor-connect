@@ -687,6 +687,117 @@ export type Database = {
           },
         ]
       }
+      notification_control: {
+        Row: {
+          atualizado_em: string
+          avaliacoes: boolean
+          candidatura: boolean
+          disputas: boolean
+          entregas: boolean
+          id: boolean
+          mensagens: boolean
+          pagamentos: boolean
+          pedidos: boolean
+          seguranca: boolean
+          sistema: boolean
+          som: boolean
+        }
+        Insert: {
+          atualizado_em?: string
+          avaliacoes?: boolean
+          candidatura?: boolean
+          disputas?: boolean
+          entregas?: boolean
+          id?: boolean
+          mensagens?: boolean
+          pagamentos?: boolean
+          pedidos?: boolean
+          seguranca?: boolean
+          sistema?: boolean
+          som?: boolean
+        }
+        Update: {
+          atualizado_em?: string
+          avaliacoes?: boolean
+          candidatura?: boolean
+          disputas?: boolean
+          entregas?: boolean
+          id?: boolean
+          mensagens?: boolean
+          pagamentos?: boolean
+          pedidos?: boolean
+          seguranca?: boolean
+          sistema?: boolean
+          som?: boolean
+        }
+        Relationships: []
+      }
+      notification_devices: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          criado_em: string
+          endpoint: string
+          id: string
+          subscription: Json
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          endpoint: string
+          id?: string
+          subscription: Json
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          endpoint?: string
+          id?: string
+          subscription?: Json
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          criado_em: string
+          dados: Json
+          id: string
+          lida: boolean
+          mensagem: string
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          criado_em?: string
+          dados?: Json
+          id?: string
+          lida?: boolean
+          mensagem: string
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          criado_em?: string
+          dados?: Json
+          id?: string
+          lida?: boolean
+          mensagem?: string
+          tipo?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_attachments: {
         Row: {
           criado_em: string
@@ -1077,6 +1188,40 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      set_notification_control: {
+        Args: {
+          _avaliacoes: boolean
+          _candidatura: boolean
+          _disputas: boolean
+          _entregas: boolean
+          _mensagens: boolean
+          _pagamentos: boolean
+          _pedidos: boolean
+          _seguranca: boolean
+          _sistema: boolean
+          _som: boolean
+        }
+        Returns: {
+          atualizado_em: string
+          avaliacoes: boolean
+          candidatura: boolean
+          disputas: boolean
+          entregas: boolean
+          id: boolean
+          mensagens: boolean
+          pagamentos: boolean
+          pedidos: boolean
+          seguranca: boolean
+          sistema: boolean
+          som: boolean
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notification_control"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
