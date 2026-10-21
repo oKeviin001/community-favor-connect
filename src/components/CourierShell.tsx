@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bike, ClipboardCheck, History, User, ShoppingBag, Shield } from "lucide-react";
+import { Bike, ClipboardCheck, History, User, ShoppingBag, Shield, Layers } from "lucide-react";
 import { useUser } from "@/lib/use-user";
 
 interface Props {
@@ -14,6 +14,7 @@ export function CourierShell({ children, hideNav }: Props) {
 
   const navItems = [
     { to: "/entregador", label: "Disponíveis", icon: Bike, exact: true },
+    { to: "/entregador/grupos", label: "Grupos", icon: Layers, exact: false },
     { to: "/entregador/aceitos", label: "Aceitos", icon: ClipboardCheck, exact: false },
     { to: "/entregador/historico", label: "Histórico", icon: History, exact: false },
     ...(canOrder ? [{ to: "/home", label: "Pedir", icon: ShoppingBag, exact: false }] : []),
