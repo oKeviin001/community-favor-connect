@@ -166,7 +166,7 @@ function AuthPage() {
             Pede pro Kevin
           </h1>
           <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-            Peça o que precisar. Um vizinho de confiança entrega para você.
+            Precisa de algo? Pede pro Kevin. Encontre pessoas para entregas, tarefas e serviços na sua região.
           </p>
         </div>
 
@@ -239,7 +239,7 @@ function AuthPage() {
             <div className="grid grid-cols-2 gap-2 pt-1">
               {([
                 { id: "cliente", label: "Quero pedir" },
-                { id: "entregador", label: "Quero entregar" },
+                { id: "entregador", label: "Quero prestar serviços" },
               ] as const).map((o) => (
                 <button
                   key={o.id}
