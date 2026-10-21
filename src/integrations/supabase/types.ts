@@ -687,6 +687,117 @@ export type Database = {
           },
         ]
       }
+      notification_control: {
+        Row: {
+          atualizado_em: string
+          avaliacoes: boolean
+          candidatura: boolean
+          disputas: boolean
+          entregas: boolean
+          id: boolean
+          mensagens: boolean
+          pagamentos: boolean
+          pedidos: boolean
+          seguranca: boolean
+          sistema: boolean
+          som: boolean
+        }
+        Insert: {
+          atualizado_em?: string
+          avaliacoes?: boolean
+          candidatura?: boolean
+          disputas?: boolean
+          entregas?: boolean
+          id?: boolean
+          mensagens?: boolean
+          pagamentos?: boolean
+          pedidos?: boolean
+          seguranca?: boolean
+          sistema?: boolean
+          som?: boolean
+        }
+        Update: {
+          atualizado_em?: string
+          avaliacoes?: boolean
+          candidatura?: boolean
+          disputas?: boolean
+          entregas?: boolean
+          id?: boolean
+          mensagens?: boolean
+          pagamentos?: boolean
+          pedidos?: boolean
+          seguranca?: boolean
+          sistema?: boolean
+          som?: boolean
+        }
+        Relationships: []
+      }
+      notification_devices: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          criado_em: string
+          endpoint: string
+          id: string
+          subscription: Json
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          endpoint: string
+          id?: string
+          subscription: Json
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          endpoint?: string
+          id?: string
+          subscription?: Json
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          criado_em: string
+          dados: Json
+          id: string
+          lida: boolean
+          mensagem: string
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          criado_em?: string
+          dados?: Json
+          id?: string
+          lida?: boolean
+          mensagem: string
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          criado_em?: string
+          dados?: Json
+          id?: string
+          lida?: boolean
+          mensagem?: string
+          tipo?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_attachments: {
         Row: {
           criado_em: string
@@ -774,12 +885,101 @@ export type Database = {
           },
         ]
       }
+      order_proposal_events: {
+        Row: {
+          autor_id: string | null
+          criado_em: string
+          evento: string
+          id: string
+          proposal_id: string
+          tipo_valor: string | null
+          valor: number | null
+        }
+        Insert: {
+          autor_id?: string | null
+          criado_em?: string
+          evento: string
+          id?: string
+          proposal_id: string
+          tipo_valor?: string | null
+          valor?: number | null
+        }
+        Update: {
+          autor_id?: string | null
+          criado_em?: string
+          evento?: string
+          id?: string
+          proposal_id?: string
+          tipo_valor?: string | null
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_proposal_events_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "order_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_proposals: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          id: string
+          mensagem: string | null
+          order_id: string
+          prestador_id: string
+          status: string
+          tipo_valor: string
+          tipo_valor_inicial: string
+          valor_atual: number | null
+          valor_inicial: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          mensagem?: string | null
+          order_id: string
+          prestador_id: string
+          status?: string
+          tipo_valor: string
+          tipo_valor_inicial: string
+          valor_atual?: number | null
+          valor_inicial?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          mensagem?: string | null
+          order_id?: string
+          prestador_id?: string
+          status?: string
+          tipo_valor?: string
+          tipo_valor_inicial?: string
+          valor_atual?: number | null
+          valor_inicial?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_proposals_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           aceito_em: string | null
           atualizado_em: string
           bairro: string | null
           categoria: Database["public"]["Enums"]["order_category"]
+          categoria_servico: string | null
           cliente_id: string
           criado_em: string
           descricao: string
@@ -804,6 +1004,7 @@ export type Database = {
           atualizado_em?: string
           bairro?: string | null
           categoria?: Database["public"]["Enums"]["order_category"]
+          categoria_servico?: string | null
           cliente_id: string
           criado_em?: string
           descricao: string
@@ -828,6 +1029,7 @@ export type Database = {
           atualizado_em?: string
           bairro?: string | null
           categoria?: Database["public"]["Enums"]["order_category"]
+          categoria_servico?: string | null
           cliente_id?: string
           criado_em?: string
           descricao?: string
@@ -947,6 +1149,77 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_categories: {
+        Row: {
+          aprovado_em: string
+          aprovado_por: string | null
+          categoria_slug: string
+          id: string
+          qualificacao: string | null
+          user_id: string
+        }
+        Insert: {
+          aprovado_em?: string
+          aprovado_por?: string | null
+          categoria_slug: string
+          id?: string
+          qualificacao?: string | null
+          user_id: string
+        }
+        Update: {
+          aprovado_em?: string
+          aprovado_por?: string | null
+          categoria_slug?: string
+          id?: string
+          qualificacao?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_categories_categoria_slug_fkey"
+            columns: ["categoria_slug"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      provider_category_requests: {
+        Row: {
+          analisado_em: string | null
+          analisado_por: string | null
+          categorias_aprovadas: string[]
+          criado_em: string
+          id: string
+          itens: Json
+          observacao_admin: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          analisado_em?: string | null
+          analisado_por?: string | null
+          categorias_aprovadas?: string[]
+          criado_em?: string
+          id?: string
+          itens: Json
+          observacao_admin?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          analisado_em?: string | null
+          analisado_por?: string | null
+          categorias_aprovadas?: string[]
+          criado_em?: string
+          id?: string
+          itens?: Json
+          observacao_admin?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           comentario: string | null
@@ -1011,6 +1284,33 @@ export type Database = {
           },
         ]
       }
+      service_categories: {
+        Row: {
+          ativo: boolean
+          criado_em: string
+          descricao: string | null
+          nome: string
+          ordem: number
+          slug: string
+        }
+        Insert: {
+          ativo?: boolean
+          criado_em?: string
+          descricao?: string | null
+          nome: string
+          ordem?: number
+          slug: string
+        }
+        Update: {
+          ativo?: boolean
+          criado_em?: string
+          descricao?: string | null
+          nome?: string
+          ordem?: number
+          slug?: string
+        }
+        Relationships: []
+      }
       user_consents: {
         Row: {
           aceito_em: string
@@ -1069,6 +1369,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_category_requests: {
+        Args: { _status: string }
+        Returns: {
+          analisado_em: string
+          aprovadas_atuais: string[]
+          categorias_aprovadas: string[]
+          criado_em: string
+          id: string
+          itens: Json
+          nome: string
+          observacao_admin: string
+          status: string
+          tipo: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }[]
+      }
+      decide_category_request: {
+        Args: { _aprovadas: string[]; _observacao: string; _request_id: string }
+        Returns: undefined
+      }
+      get_courier_order: { Args: { _order_id: string }; Returns: Json }
+      get_order_counterparty_profile: {
+        Args: { _order_id: string }
+        Returns: {
+          id: string
+          nome: string
+          telefone: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1076,7 +1405,116 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_active_provider: { Args: { _uid: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      list_available_orders: {
+        Args: never
+        Returns: {
+          bairro: string
+          categoria: Database["public"]["Enums"]["order_category"]
+          categoria_servico: string
+          criado_em: string
+          descricao: string
+          id: string
+          loja: string
+          minha_proposta_status: string
+          status: Database["public"]["Enums"]["order_status"]
+          valor_estimado_max: number
+          valor_estimado_min: number
+          valor_frete: number
+        }[]
+      }
+      list_my_proposals: {
+        Args: never
+        Returns: {
+          atualizado_em: string
+          bairro: string
+          categoria: Database["public"]["Enums"]["order_category"]
+          categoria_servico: string
+          criado_em: string
+          id: string
+          loja: string
+          order_id: string
+          pedido_status: Database["public"]["Enums"]["order_status"]
+          sou_escolhido: boolean
+          status: string
+          tipo_valor: string
+          tipo_valor_inicial: string
+          valor_atual: number
+          valor_inicial: number
+        }[]
+      }
+      list_order_proposals: {
+        Args: { _order_id: string }
+        Returns: {
+          atualizado_em: string
+          criado_em: string
+          historico: Json
+          id: string
+          mensagem: string
+          nota_media: number
+          prestador_id: string
+          prestador_nome: string
+          qualificacao: string
+          status: string
+          tipo_valor: string
+          tipo_valor_inicial: string
+          total_avaliacoes: number
+          total_entregas: number
+          valor_atual: number
+          valor_inicial: number
+        }[]
+      }
+      order_category_slug: {
+        Args: { o: Database["public"]["Tables"]["orders"]["Row"] }
+        Returns: string
+      }
+      select_proposal: { Args: { _proposal_id: string }; Returns: undefined }
+      set_notification_control: {
+        Args: {
+          _avaliacoes: boolean
+          _candidatura: boolean
+          _disputas: boolean
+          _entregas: boolean
+          _mensagens: boolean
+          _pagamentos: boolean
+          _pedidos: boolean
+          _seguranca: boolean
+          _sistema: boolean
+          _som: boolean
+        }
+        Returns: {
+          atualizado_em: string
+          avaliacoes: boolean
+          candidatura: boolean
+          disputas: boolean
+          entregas: boolean
+          id: boolean
+          mensagens: boolean
+          pagamentos: boolean
+          pedidos: boolean
+          seguranca: boolean
+          sistema: boolean
+          som: boolean
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notification_control"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      submit_category_request: { Args: { _itens: Json }; Returns: string }
+      submit_proposal: {
+        Args: {
+          _mensagem: string
+          _order_id: string
+          _tipo_valor: string
+          _valor: number
+        }
+        Returns: string
+      }
+      withdraw_proposal: { Args: { _proposal_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
