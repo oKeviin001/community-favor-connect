@@ -223,8 +223,6 @@ export interface FileRoutesByFullPath {
   '/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
   '/entregador/grupos': typeof AuthenticatedEntregadorGruposRoute
   '/pedidos/$id/propostas': typeof AuthenticatedPedidosIdPropostasRoute
-  '/entregador/grupos': typeof AuthenticatedEntregadorGruposRoute
-  '/pedidos/$id/propostas': typeof AuthenticatedPedidosIdPropostasRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
   '/api/public/kevin/export': typeof ApiPublicKevinExportRoute
@@ -253,6 +251,8 @@ export interface FileRoutesByTo {
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/entregador': typeof AuthenticatedEntregadorIndexRoute
   '/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
+  '/entregador/grupos': typeof AuthenticatedEntregadorGruposRoute
+  '/pedidos/$id/propostas': typeof AuthenticatedPedidosIdPropostasRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
   '/api/public/kevin/export': typeof ApiPublicKevinExportRoute
@@ -319,8 +319,6 @@ export interface FileRouteTypes {
     | '/entregador/pedido/$id'
     | '/entregador/grupos'
     | '/pedidos/$id/propostas'
-    | '/entregador/grupos'
-    | '/pedidos/$id/propostas'
     | '/pedidos/$id/avaliar'
     | '/pedidos/$id/disputa'
     | '/api/public/kevin/export'
@@ -349,6 +347,8 @@ export interface FileRouteTypes {
     | '/pedidos/$id'
     | '/entregador'
     | '/entregador/pedido/$id'
+    | '/entregador/grupos'
+    | '/pedidos/$id/propostas'
     | '/pedidos/$id/avaliar'
     | '/pedidos/$id/disputa'
     | '/api/public/kevin/export'
