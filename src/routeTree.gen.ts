@@ -37,6 +37,8 @@ import { Route as ApiPublicKevinExportRouteImport } from './routes/api/public/ke
 import { Route as AuthenticatedPedidosIdDisputaRouteImport } from './routes/_authenticated/pedidos.$id.disputa'
 import { Route as AuthenticatedPedidosIdAvaliarRouteImport } from './routes/_authenticated/pedidos.$id.avaliar'
 import { Route as AuthenticatedEntregadorPedidoIdRouteImport } from './routes/_authenticated/entregador.pedido.$id'
+import { Route as AuthenticatedEntregadorGruposRouteImport } from './routes/_authenticated/entregador.grupos'
+import { Route as AuthenticatedPedidosIdPropostasRouteImport } from './routes/_authenticated/pedidos.$id.propostas'
 
 const TermosRoute = TermosRouteImport.update({
   id: '/termos',
@@ -187,6 +189,16 @@ const AuthenticatedEntregadorPedidoIdRoute =
     path: '/pedido/$id',
     getParentRoute: () => AuthenticatedEntregadorRoute,
   } as any)
+const AuthenticatedEntregadorGruposRoute = AuthenticatedEntregadorGruposRouteImport.update({
+  id: '/grupos',
+  path: '/grupos',
+  getParentRoute: () => AuthenticatedEntregadorRoute,
+} as any)
+const AuthenticatedPedidosIdPropostasRoute = AuthenticatedPedidosIdPropostasRouteImport.update({
+  id: '/propostas',
+  path: '/propostas',
+  getParentRoute: () => AuthenticatedPedidosIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -209,6 +221,10 @@ export interface FileRoutesByFullPath {
   '/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/entregador/': typeof AuthenticatedEntregadorIndexRoute
   '/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
+  '/entregador/grupos': typeof AuthenticatedEntregadorGruposRoute
+  '/pedidos/$id/propostas': typeof AuthenticatedPedidosIdPropostasRoute
+  '/entregador/grupos': typeof AuthenticatedEntregadorGruposRoute
+  '/pedidos/$id/propostas': typeof AuthenticatedPedidosIdPropostasRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
   '/api/public/kevin/export': typeof ApiPublicKevinExportRoute
@@ -268,6 +284,8 @@ export interface FileRoutesById {
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRouteWithChildren
   '/_authenticated/entregador/': typeof AuthenticatedEntregadorIndexRoute
   '/_authenticated/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
+  '/_authenticated/entregador/grupos': typeof AuthenticatedEntregadorGruposRoute
+  '/_authenticated/pedidos/$id/propostas': typeof AuthenticatedPedidosIdPropostasRoute
   '/_authenticated/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/_authenticated/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
   '/api/public/kevin/export': typeof ApiPublicKevinExportRoute
@@ -299,6 +317,10 @@ export interface FileRouteTypes {
     | '/pedidos/$id'
     | '/entregador/'
     | '/entregador/pedido/$id'
+    | '/entregador/grupos'
+    | '/pedidos/$id/propostas'
+    | '/entregador/grupos'
+    | '/pedidos/$id/propostas'
     | '/pedidos/$id/avaliar'
     | '/pedidos/$id/disputa'
     | '/api/public/kevin/export'
@@ -357,6 +379,8 @@ export interface FileRouteTypes {
     | '/_authenticated/pedidos/$id'
     | '/_authenticated/entregador/'
     | '/_authenticated/entregador/pedido/$id'
+    | '/_authenticated/entregador/grupos'
+    | '/_authenticated/pedidos/$id/propostas'
     | '/_authenticated/pedidos/$id/avaliar'
     | '/_authenticated/pedidos/$id/disputa'
     | '/api/public/kevin/export'
@@ -577,10 +601,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntregadorPedidoIdRouteImport
       parentRoute: typeof AuthenticatedEntregadorRoute
     }
+    '/_authenticated/entregador/grupos': {
+      id: '/_authenticated/entregador/grupos'
+      path: '/grupos'
+      fullPath: '/entregador/grupos'
+      preLoaderRoute: typeof AuthenticatedEntregadorGruposRouteImport
+      parentRoute: typeof AuthenticatedEntregadorRoute
+    }
+    '/_authenticated/pedidos/$id/propostas': {
+      id: '/_authenticated/pedidos/$id/propostas'
+      path: '/propostas'
+      fullPath: '/pedidos/$id/propostas'
+      preLoaderRoute: typeof AuthenticatedPedidosIdPropostasRouteImport
+      parentRoute: typeof AuthenticatedPedidosIdRoute
+    }
   }
 }
 
 interface AuthenticatedEntregadorRouteChildren {
+  AuthenticatedEntregadorGruposRoute: typeof AuthenticatedEntregadorGruposRoute
   AuthenticatedEntregadorAceitosRoute: typeof AuthenticatedEntregadorAceitosRoute
   AuthenticatedEntregadorCadastroRoute: typeof AuthenticatedEntregadorCadastroRoute
   AuthenticatedEntregadorHistoricoRoute: typeof AuthenticatedEntregadorHistoricoRoute
@@ -591,6 +630,7 @@ interface AuthenticatedEntregadorRouteChildren {
 const AuthenticatedEntregadorRouteChildren: AuthenticatedEntregadorRouteChildren =
   {
     AuthenticatedEntregadorAceitosRoute: AuthenticatedEntregadorAceitosRoute,
+    AuthenticatedEntregadorGruposRoute: AuthenticatedEntregadorGruposRoute,
     AuthenticatedEntregadorCadastroRoute: AuthenticatedEntregadorCadastroRoute,
     AuthenticatedEntregadorHistoricoRoute:
       AuthenticatedEntregadorHistoricoRoute,
@@ -604,12 +644,14 @@ const AuthenticatedEntregadorRouteWithChildren =
   )
 
 interface AuthenticatedPedidosIdRouteChildren {
+  AuthenticatedPedidosIdPropostasRoute: typeof AuthenticatedPedidosIdPropostasRoute
   AuthenticatedPedidosIdAvaliarRoute: typeof AuthenticatedPedidosIdAvaliarRoute
   AuthenticatedPedidosIdDisputaRoute: typeof AuthenticatedPedidosIdDisputaRoute
 }
 
 const AuthenticatedPedidosIdRouteChildren: AuthenticatedPedidosIdRouteChildren =
   {
+    AuthenticatedPedidosIdPropostasRoute: AuthenticatedPedidosIdPropostasRoute,
     AuthenticatedPedidosIdAvaliarRoute: AuthenticatedPedidosIdAvaliarRoute,
     AuthenticatedPedidosIdDisputaRoute: AuthenticatedPedidosIdDisputaRoute,
   }
