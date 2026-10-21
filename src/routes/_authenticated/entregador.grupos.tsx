@@ -128,6 +128,7 @@ function GruposPrestador() {
       </header>
 
       <div className="px-5 space-y-5">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200 leading-relaxed">Prévia de interface: as categorias e contagens desta tela são exemplos. As inscrições ainda não são gravadas no Supabase; a integração será feita junto com o modelo de dados e a análise administrativa.</div>
         <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-secondary border border-border">
           <button
             type="button"
