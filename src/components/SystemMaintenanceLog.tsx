@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
 
 type Result = "pending" | "completed" | "failed";
 type Entry = {
@@ -20,7 +22,7 @@ export function SystemMaintenanceLog() {
   const [saving, setSaving] = useState(false);
 
   async function load() {
-    const { data, error } = await supabase.from("system_maintenance_log").select("*").order("created_at", { ascending: false }).limit(100);
+    const { data, error } = await db.from("system_maintenance_log").select("*").order("created_at", { ascending: false }).limit(100);
     if (error) return toast.error(error.message);
     setEntries((data ?? []) as Entry[]);
   }
@@ -29,7 +31,7 @@ export function SystemMaintenanceLog() {
   async function register() {
     if (!form.action_description.trim()) return toast.error("Descreva a alteração realizada.");
     setSaving(true);
-    const { error } = await supabase.from("system_maintenance_log").insert({
+    const { error } = await db.from("system_maintenance_log").insert({
       action_description: form.action_description.trim(),
       prompt_reference: form.prompt_reference.trim() || null,
       objective: form.objective.trim() || null,
