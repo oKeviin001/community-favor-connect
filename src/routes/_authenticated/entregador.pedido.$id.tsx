@@ -138,11 +138,16 @@ function PedidoEntregador() {
       return;
     }
     setBusy(true);
-    const { data, error } = await supabase.rpc("accept_order", { _order_id: id });
+    const entrada = window.prompt('Valor da sua proposta em R$ (deixe vazio para "A combinar"):', "");
+    if (entrada === null) { setBusy(false); return; }
+    const valor = Number(entrada.replace(",", "."));
+    const fixo = entrada.trim() !== "" && Number.isFinite(valor) && valor > 0;
+    const { error } = await supabase.rpc("submit_proposal", {
+      _order_id: id, _tipo_valor: fixo ? "fixo" : "a_combinar", _valor: fixo ? valor : (null as unknown as number), _mensagem: "",
+    });
     setBusy(false);
     if (error) return toast.error(error.message);
-    if (!data) return toast.error("Esse pedido já foi aceito por outro entregador.");
-    toast.success("Pedido aceito! Fale com o cliente pelo WhatsApp.");
+    toast.success("Proposta enviada! O cliente vai escolher entre as propostas.");
     load();
   }
 
@@ -275,7 +280,7 @@ function PedidoEntregador() {
             disabled={busy}
             className="w-full h-14 bg-primary text-primary-foreground rounded-2xl font-medium text-base shadow-lg shadow-primary/10 disabled:opacity-60"
           >
-            {busy ? "Aceitando..." : "Aceitar pedido"}
+            {busy ? "Enviando..." : "Enviar proposta"}
           </button>
         )}
         {meu && proximo && (

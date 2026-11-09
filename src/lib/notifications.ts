@@ -170,7 +170,7 @@ export async function subscribeToPush(userId: string) {
     {
       user_id: userId,
       endpoint: json.endpoint,
-      subscription: json,
+      subscription: json as unknown as import("@/integrations/supabase/types").Json,
       user_agent: navigator.userAgent,
       ativo: true,
       atualizado_em: new Date().toISOString(),

@@ -118,7 +118,7 @@ export function NotificationPermissionGate({ userId }: Props) {
               <p className="mt-2 text-xs text-destructive" role="alert">{error}</p>
             )}
 
-            {permission === "granted" && (
+            {(permission as string) === "granted" && (
               <div className="mt-2 flex items-center gap-2 text-xs text-emerald-600">
                 <CheckCircle2 size={15} />
                 Notificações autorizadas neste aparelho.
