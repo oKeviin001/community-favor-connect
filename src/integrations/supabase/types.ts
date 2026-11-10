@@ -1289,6 +1289,7 @@ export type Database = {
           ativo: boolean
           criado_em: string
           descricao: string | null
+          icone: string
           nome: string
           ordem: number
           slug: string
@@ -1297,6 +1298,7 @@ export type Database = {
           ativo?: boolean
           criado_em?: string
           descricao?: string | null
+          icone?: string
           nome: string
           ordem?: number
           slug: string
@@ -1305,6 +1307,7 @@ export type Database = {
           ativo?: boolean
           criado_em?: string
           descricao?: string | null
+          icone?: string
           nome?: string
           ordem?: number
           slug?: string
@@ -1384,6 +1387,19 @@ export type Database = {
           tipo: Database["public"]["Enums"]["user_role"]
           user_id: string
         }[]
+      }
+      admin_list_group_members: {
+        Args: never
+        Returns: {
+          aprovado_em: string
+          categoria_slug: string
+          nome: string
+          user_id: string
+        }[]
+      }
+      admin_remove_provider_category: {
+        Args: { _slug: string; _user_id: string }
+        Returns: undefined
       }
       decide_category_request: {
         Args: { _aprovadas: string[]; _observacao: string; _request_id: string }

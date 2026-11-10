@@ -15,6 +15,13 @@
       "when": 1792587028975,
       "tag": "0001_service_categories_and_proposals",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794327180358,
+      "tag": "0002_collaborator_groups",
+      "breakpoints": true
     }
   ]
 }
