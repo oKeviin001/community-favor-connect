@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { toast } from "sonner";
-import { deleteDevOrder, listDevData, updateDevOrderStatus } from "@/lib/dev-actions.functions";
+import { deleteDevOrder, listDevData, updateDevOrderStatus, connectCentralKevinV2 } from "@/lib/dev-actions.functions";
 import {
   isGodMode,
   setGodMode,
@@ -78,6 +78,7 @@ const STATUSES = Object.keys(STATUS_LABEL);
 
 type TabId =
   | "dashboard"
+  | "sistemaKevin"
   | "usuarios"
   | "entregadores"
   | "grupos"
@@ -98,6 +99,7 @@ type TabId =
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Painel" },
+  { id: "sistemaKevin", label: "Sistema Kevin" },
   { id: "usuarios", label: "Usuários" },
   { id: "entregadores", label: "Colaboradores" },
   { id: "grupos", label: "Grupos" },
@@ -121,12 +123,15 @@ function Dev() {
   const listDevDataFn = useServerFn(listDevData);
   const deleteDevOrderFn = useServerFn(deleteDevOrder);
   const updateDevOrderStatusFn = useServerFn(updateDevOrderStatus);
+  const connectCentralKevinV2Fn = useServerFn(connectCentralKevinV2);
   const [god, setGod] = useState(isGodMode());
   const [ov, setOv] = useState<Overrides>(() => loadOverrides());
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [me, setMe] = useState<string>("");
   const [tab, setTab] = useState<TabId>("dashboard");
+  const [kevinPairingCode, setKevinPairingCode] = useState("");
+  const [kevinConnecting, setKevinConnecting] = useState(false);
 
   async function reload() {
     const { data: u } = await supabase.auth.getUser();
@@ -142,6 +147,20 @@ function Dev() {
   useEffect(() => {
     reload();
   }, []);
+
+  async function connectCentralKevin() {
+    setKevinConnecting(true);
+    try {
+      const result = await connectCentralKevinV2Fn({ data: { code: kevinPairingCode } });
+      toast.success("Central Kevin conectada com sucesso.");
+      setKevinPairingCode("");
+      console.info("Kevin v2 connection", result);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível conectar à Central Kevin.");
+    } finally {
+      setKevinConnecting(false);
+    }
+  }
 
   function updateOv(patch: Partial<Overrides>) {
     const next = { ...ov, ...patch };
@@ -256,6 +275,30 @@ function Dev() {
 
       <div className="px-6 pb-8">
         {tab === "dashboard" && <AdminDashboard />}
+        {tab === "sistemaKevin" && (
+          <section className="space-y-4 rounded-2xl border border-border bg-card p-4">
+            <div>
+              <h2 className="text-base font-semibold">Conectar à Central Kevin</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Insira o código temporário gerado pela Central. A conexão só será ativada após a confirmação criptográfica dos dois aplicativos.</p>
+            </div>
+            <input
+              value={kevinPairingCode}
+              onChange={(event) => setKevinPairingCode(event.target.value.toUpperCase())}
+              placeholder="KVN-XXXX-XXXX-XXXX"
+              autoComplete="off"
+              className="h-12 w-full rounded-xl border border-border bg-background px-3 font-mono text-center tracking-wider"
+            />
+            <button
+              type="button"
+              disabled={kevinConnecting || !kevinPairingCode.trim()}
+              onClick={connectCentralKevin}
+              className="h-11 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-50"
+            >
+              {kevinConnecting ? "Conectando..." : "Conectar à Central Kevin"}
+            </button>
+            <p className="text-[11px] text-muted-foreground">A conexão depende da configuração dos secrets e da ativação do schema v2 no banco deste aplicativo. Nenhum dado de pedido é transferido por esta ação.</p>
+          </section>
+        )}
         {tab === "usuarios" && <AdminUsuarios />}
         {tab === "entregadores" && <AdminEntregadores onVerCandidatura={() => setTab("apps")} />}
         {tab === "grupos" && <AdminGrupos />}
