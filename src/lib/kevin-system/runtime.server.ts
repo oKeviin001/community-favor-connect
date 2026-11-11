@@ -108,14 +108,14 @@ export async function acceptKevinV2Pairing(input: {
 
   const secret = generateKevinSecret();
   const encrypted = await encryptKevinSecret(secret, MASTER_KEY());
-  const { data: connection, error: connectionError } = await supabaseAdmin
-    .from("kevin_v2_connections").upsert({
+  const { data: connection, error: connectionError } = await v2Db
+    .from("kevin_v2_connections").insert({
       local_app_id: identity.app_id, remote_app_id: input.remote.app_id,
       remote_name: input.remote.app_name, remote_slug: input.remote.app_slug ?? null,
       remote_origin: input.remote.origin, remote_version: input.remote.app_version ?? null,
       protocol_version: KEVIN_PROTOCOL, scopes: pairing.requested_scopes,
       encrypted_shared_secret: encrypted, status: "pending", confirmed_at: null,
-    }, { onConflict: "local_app_id,remote_app_id" })
+    })
     .select("id,scopes").single();
   if (connectionError) throw connectionError;
   return { connectionId: connection.id, secret, scopes: connection.scopes, identity };
