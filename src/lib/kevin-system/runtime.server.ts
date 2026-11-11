@@ -7,7 +7,7 @@ import {
 } from "./protocol";
 import {
   decryptKevinSecret, encryptKevinSecret, generateKevinSecret,
-  verifyKevinRequest,
+  verifyKevinRequest, signKevinRequest, generateKevinNonce,
 } from "./crypto.server";
 
 type Connection = {
@@ -16,7 +16,7 @@ type Connection = {
   status: string;
 };
 const MASTER_KEY = () => process.env.KEVIN_MASTER_KEY ?? "";
-const v2Db = supabaseAdmin as unknown as SupabaseClient<any, any, any>;
+const v2Db = supabaseAdmin as unknown as SupabaseClient;
 
 export function requireKevinV2Config() {
   if (!/^[a-f0-9]{64}$/i.test(MASTER_KEY())) {
@@ -71,11 +71,113 @@ export async function acceptKevinV2Pairing(input: {
       remote_name: input.remote.app_name, remote_slug: input.remote.app_slug ?? null,
       remote_origin: input.remote.origin, remote_version: input.remote.app_version ?? null,
       protocol_version: KEVIN_PROTOCOL, scopes: pairing.requested_scopes,
-      encrypted_shared_secret: encrypted, status: "connected", confirmed_at: new Date().toISOString(),
+      encrypted_shared_secret: encrypted, status: "pending", confirmed_at: null,
     }, { onConflict: "local_app_id,remote_app_id" })
     .select("id,scopes").single();
   if (connectionError) throw connectionError;
   return { connectionId: connection.id, secret, scopes: connection.scopes, identity };
+}
+
+
+/** Inicia a conexão com a Central e só a ativa após a confirmação HMAC bilateral. */
+export async function initiateCentralKevinV2Pairing(code: string) {
+  requireKevinV2Config();
+  const centralOrigin = process.env.KEVIN_CENTRAL_ORIGIN ?? "";
+  const localOrigin = process.env.KEVIN_APP_ORIGIN ?? "";
+  if (!centralOrigin || !localOrigin) {
+    throw new Error("Configure KEVIN_CENTRAL_ORIGIN e KEVIN_APP_ORIGIN nos secrets do servidor.");
+  }
+  const central = new URL(centralOrigin);
+  if (central.protocol !== "https:" || central.username || central.password || central.pathname !== "/" || central.search || central.hash) {
+    throw new Error("KEVIN_CENTRAL_ORIGIN precisa ser uma origem HTTPS válida.");
+  }
+  const local = new URL(localOrigin);
+  if (local.protocol !== "https:" || local.username || local.password || local.pathname !== "/" || local.search || local.hash) {
+    throw new Error("KEVIN_APP_ORIGIN precisa ser uma origem HTTPS válida.");
+  }
+  if (typeof code !== "string" || !/^KVN-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/.test(code.trim().toUpperCase())) {
+    throw new Error("Código de pareamento inválido.");
+  }
+  const identity = await getKevinV2Identity();
+  const handshakeBody = {
+    protocol: KEVIN_PROTOCOL,
+    code: code.trim().toUpperCase(),
+    remote: {
+      app_id: identity.app_id,
+      app_name: identity.app_name,
+      app_slug: identity.app_slug,
+      app_version: identity.app_version,
+      origin: local.origin,
+    },
+  };
+  const handshakeResponse = await fetch(new URL("/api/public/kevin/v2/handshake", central.origin), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(handshakeBody),
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
+  });
+  const handshake: unknown = await handshakeResponse.json().catch(() => null);
+  if (!handshakeResponse.ok || !isRecord(handshake) || handshake.ok !== true ||
+      typeof handshake.connectionId !== "string" || !/^[0-9a-f-]{36}$/i.test(handshake.connectionId) ||
+      typeof handshake.secret !== "string" || !/^[a-f0-9]{64}$/i.test(handshake.secret) ||
+      !Array.isArray(handshake.scopes) || !handshake.scopes.every((scope) => typeof scope === "string" && isKevinCategory(scope)) ||
+      !isRecord(handshake.identity) || typeof handshake.identity.app_id !== "string" ||
+      typeof handshake.identity.app_name !== "string") {
+    const message = isRecord(handshake) && typeof handshake.error === "string" ? handshake.error : "A Central recusou o pareamento.";
+    throw new Error(message);
+  }
+  const secret = handshake.secret;
+  const encrypted = await encryptKevinSecret(secret, MASTER_KEY());
+  const remoteIdentity = handshake.identity;
+  const { data: localConnection, error: insertError } = await v2Db.from("kevin_v2_connections").insert({
+    local_app_id: identity.app_id,
+    remote_app_id: remoteIdentity.app_id,
+    remote_name: remoteIdentity.app_name,
+    remote_slug: typeof remoteIdentity.app_slug === "string" ? remoteIdentity.app_slug : null,
+    remote_origin: central.origin,
+    remote_version: typeof remoteIdentity.app_version === "string" ? remoteIdentity.app_version : null,
+    protocol_version: KEVIN_PROTOCOL,
+    scopes: handshake.scopes,
+    encrypted_shared_secret: encrypted,
+    status: "pending",
+    confirmed_at: null,
+  }).select("id").single();
+  if (insertError) throw insertError;
+  const confirmationBody = { connectionId: handshake.connectionId };
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const nonce = generateKevinNonce();
+  const pathAndQuery = "/api/public/kevin/v2/confirm";
+  const signature = await signKevinRequest({
+    secret, method: "POST", pathAndQuery, timestamp, nonce, body: confirmationBody,
+  });
+  const confirmationResponse = await fetch(new URL(pathAndQuery, central.origin), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-kevin-connection": handshake.connectionId,
+      "x-kevin-timestamp": timestamp,
+      "x-kevin-nonce": nonce,
+      "x-kevin-signature": signature,
+    },
+    body: JSON.stringify(confirmationBody),
+    redirect: "error",
+    signal: AbortSignal.timeout(15_000),
+  });
+  const confirmation: unknown = await confirmationResponse.json().catch(() => null);
+  if (!confirmationResponse.ok || !isRecord(confirmation) || confirmation.ok !== true) {
+    const message = isRecord(confirmation) && typeof confirmation.error === "string" ? confirmation.error : "A Central não confirmou o pareamento.";
+    throw new Error(message);
+  }
+  const { error: updateError } = await v2Db.from("kevin_v2_connections").update({
+    status: "connected",
+    confirmed_at: new Date().toISOString(),
+  }).eq("id", localConnection.id).eq("status", "pending");
+  if (updateError) throw updateError;
+  return { status: "connected" as const, remoteName: remoteIdentity.app_name, scopes: handshake.scopes };
+}
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 export async function authenticateKevinV2Request(request: Request, body: unknown) {
