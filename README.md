@@ -61,3 +61,8 @@ Configure as variáveis localmente a partir de `.env.example`. Nunca versione `.
 Migrações SQL versionadas em `supabase/migrations` descrevem alterações desejadas; sua presença no GitHub não prova que foram aplicadas no projeto Supabase conectado. Antes de aplicar migrações em produção, comparar o histórico real, revisar RLS, buckets, permissões e backups. Não executar migrações destrutivas sem revisão e cópia de segurança.
 
 O repositório contém funcionalidades em diferentes estágios. Código presente não significa que o fluxo foi validado em produção. Use testes automatizados e testes manuais com contas separadas antes de disponibilizar publicamente.
+
+
+## Sistema Kevin v2
+
+O núcleo compartilhado do protocolo v2 está em `src/lib/kevin-system/`. A aba **Sistema Kevin** foi adicionada ao Modo Deus. O protocolo v1 continua preservado em `/transferencia` durante a migração. O contrato e o schema proposto estão em `docs/sistema-kevin/`; o schema é um draft e ainda precisa ser aplicado/revisado no Supabase antes de ativar sincronização.

@@ -33,6 +33,7 @@ import { SystemAuditReports } from "@/components/SystemAuditReports";
 import { SystemMaintenanceLog } from "@/components/SystemMaintenanceLog";
 import { NotificationTestPanel } from "@/components/NotificationTestPanel";
 import { GodModeNotificationControls } from "@/components/GodModeNotificationControls";
+import { SistemaKevinOverview } from "@/components/SistemaKevinOverview";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   ssr: false,
@@ -78,6 +79,7 @@ const STATUSES = Object.keys(STATUS_LABEL);
 
 type TabId =
   | "dashboard"
+  | "sistemaKevin"
   | "usuarios"
   | "entregadores"
   | "grupos"
@@ -98,6 +100,7 @@ type TabId =
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Painel" },
+  { id: "sistemaKevin", label: "Sistema Kevin" },
   { id: "usuarios", label: "Usuários" },
   { id: "entregadores", label: "Colaboradores" },
   { id: "grupos", label: "Grupos" },
@@ -256,6 +259,7 @@ function Dev() {
 
       <div className="px-6 pb-8">
         {tab === "dashboard" && <AdminDashboard />}
+        {tab === "sistemaKevin" && <SistemaKevinOverview mode="app" />}
         {tab === "usuarios" && <AdminUsuarios />}
         {tab === "entregadores" && <AdminEntregadores onVerCandidatura={() => setTab("apps")} />}
         {tab === "grupos" && <AdminGrupos />}
