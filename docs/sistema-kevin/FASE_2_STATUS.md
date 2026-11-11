@@ -26,7 +26,7 @@ O runtime usa as tabelas `kevin_v2_*` descritas em `SCHEMA_V2_DRAFT.sql`. O sche
 - Não há worker/dispatcher, lease/claim, backoff, dead-letter nem pull incremental.
 - O outbox ainda não produz snapshots allowlist; nenhuma linha de pedido, perfil ou outro dado real é enviada nesta fase.
 - O teste E2E entre os dois projetos ainda não foi executado.
-- O GitHub Actions confirmou TypeScript e build de produção com sucesso no commit `f2fbd274f2f3545091f602571191cd63efda71b6`. Uma revisão adicional de origem HTTPS pública foi feita depois; essa revisão ainda aguarda nova execução de CI.
+- O GitHub Actions confirmou TypeScript e build de produção com sucesso no commit `f2fbd274f2f3545091f602571191cd63efda71b6`. A revisão adicional de origem HTTPS pública também passou em TypeScript e build de produção no commit `48dfcb3b59dde16e281c94bf0c17a879d5a1e6ac`.
 
 **Estado:** integração de pareamento bilateral adicionada ao código da branch `main`. Não significa que os aplicativos já estejam conectados. Nenhuma alteração de banco, deploy ou transferência de dados foi realizada.
 
