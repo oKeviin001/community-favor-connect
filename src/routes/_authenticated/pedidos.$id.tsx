@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
 import { Comprovantes } from "@/components/Comprovantes";
+import { PropostasCliente } from "@/components/PropostasCliente";
 import {
   STATUS_LABEL,
   TIMELINE_STEPS,
@@ -209,6 +210,15 @@ function PedidoDetail() {
           )}
         </div>
       </section>
+
+      {(isCliente || isAdmin) && (
+        <PropostasCliente
+          orderId={id}
+          ofertaCliente={propostaCliente(order)}
+          canSelect={isCliente && order.status === "aguardando_entregador" && !order.entregador_id}
+          onSelected={load}
+        />
+      )}
 
       {participa && order.entregador_id && outro && (
         <section className="px-6 pt-6">

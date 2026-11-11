@@ -13,8 +13,9 @@ export function CourierShell({ children, hideNav }: Props) {
   const { canOrder, isAdmin } = useUser();
 
   const navItems = [
-    { to: "/entregador", label: "Disponíveis", icon: Bike, exact: true },
-    { to: "/entregador/aceitos", label: "Aceitos", icon: ClipboardCheck, exact: false },
+    { to: "/entregador", label: "Grupos", icon: Bike, exact: true },
+    { to: "/entregador/propostas", label: "Propostas", icon: FileText, exact: false },
+    { to: "/entregador/aceitos", label: "Serviços", icon: ClipboardCheck, exact: false },
     { to: "/entregador/historico", label: "Histórico", icon: History, exact: false },
     ...(canOrder ? [{ to: "/home", label: "Pedir", icon: ShoppingBag, exact: false }] : []),
     ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield, exact: false }] : []),
