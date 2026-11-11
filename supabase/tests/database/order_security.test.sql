@@ -1,6 +1,6 @@
 begin;
 
-select plan(12);
+select plan(13);
 
 select ok(
   exists (
@@ -131,6 +131,19 @@ select ok(
       and position('1.1' in pg_get_functiondef(p.oid)) > 0
   ),
   'consent guard validates the current 1.1 document versions'
+);
+
+
+select ok(
+  exists (
+    select 1
+    from pg_proc p
+    where p.pronamespace = 'public'::regnamespace
+      and p.proname = 'require_whatsapp_attachment_before_delivery'
+      and position('storage.objects' in pg_get_functiondef(p.oid)) > 0
+      and position('uploader_id' in pg_get_functiondef(p.oid)) > 0
+  ),
+  'WhatsApp evidence must reference an uploaded object owned by an order participant'
 );
 
 select * from finish();
