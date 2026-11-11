@@ -14,4 +14,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
-      - run: bun run check
+      - name: TypeScript
+        run: bun run typecheck
+      - name: Production build
+        run: bun run build
