@@ -1,5 +1,6 @@
 /** SERVER-ONLY runtime for Kevin v2. Requires the v2 draft schema to be applied first. */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   KEVIN_PROTOCOL, isKevinCategory, validateKevinEnvelope,
   type KevinEventEnvelope,
@@ -9,14 +10,13 @@ import {
   verifyKevinRequest,
 } from "./crypto.server";
 
-type Db = typeof supabaseAdmin;
 type Connection = {
   id: string; local_app_id: string; remote_app_id: string; remote_name: string;
   remote_origin: string; scopes: string[]; encrypted_shared_secret: string;
   status: string;
 };
 const MASTER_KEY = () => process.env.KEVIN_MASTER_KEY ?? "";
-const APP_ID = () => process.env.KEVIN_APP_ID ?? "pede-pro-kevin";
+const v2Db = supabaseAdmin as unknown as SupabaseClient;
 
 export function requireKevinV2Config() {
   if (!/^[a-f0-9]{64}$/i.test(MASTER_KEY())) {
@@ -25,7 +25,7 @@ export function requireKevinV2Config() {
 }
 
 export async function getKevinV2Identity() {
-  const { data, error } = await supabaseAdmin.from("kevin_v2_app_identity")
+  const { data, error } = await v2Db.from("kevin_v2_app_identity")
     .select("app_id,app_slug,app_name,app_version").eq("singleton", true).maybeSingle();
   if (error) throw error;
   if (!data) throw new Error("Identidade v2 não configurada no banco.");
@@ -131,7 +131,7 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
       });
       if (inboxError?.code === "23505") { accepted.push(event.eventId); continue; }
       if (inboxError) throw inboxError;
-      const { data: applied, error: applyError } = await supabaseAdmin.rpc("kevin_v2_apply_storage", {
+      const { data: applied, error: applyError } = await v2Db.rpc("kevin_v2_apply_storage", {
         p_source_app_id: event.sourceAppId, p_category: event.category,
         p_source_record_id: event.recordId, p_payload: event.payload,
         p_entity_version: event.entityVersion, p_checksum: event.checksum,
