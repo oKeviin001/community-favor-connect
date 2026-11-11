@@ -30,7 +30,6 @@ export async function confirmDeliveryFor(context: AuthContext, orderId: string) 
     .eq("id", orderId);
   if (upErr) throw upErr;
 
-  await context.supabase.from("payments").update({ status: "liberado" }).eq("order_id", orderId);
   await context.supabase
     .from("order_events")
     .insert({ order_id: orderId, autor_id: context.userId, status: "confirmado" });

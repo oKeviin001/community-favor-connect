@@ -5,30 +5,25 @@ export const Route = createFileRoute("/termos")({
   head: () => ({
     meta: [
       { title: "Termos de Uso — Pede pro Kevin" },
-      { name: "description", content: "Plataforma de conexão entre clientes e entregadores independentes: o app não processa pagamentos e os valores são apenas propostas." },
-      { property: "og:title", content: "Termos de Uso — Pede pro Kevin" },
-      { property: "og:description", content: "O Pede pro Kevin conecta pessoas; valores e forma de pagamento são combinados entre cliente e entregador." },
-      { property: "og:type", content: "article" },
-      { name: "twitter:card", content: "summary" },
+      { name: "description", content: "Regras de uso da plataforma de conexão Pede pro Kevin." },
     ],
   }),
   component: Termos,
 });
 
 const SECOES: { t: string; p: string[] }[] = [
-  { t: "1. Sobre a plataforma", p: ["O Pede pro Kevin é uma plataforma de conexão entre clientes e entregadores independentes. O objetivo é conectar pessoas que precisam de ajuda com pessoas dispostas a realizar favores, compras e entregas.", "O aplicativo não vende produtos próprios e não é um marketplace com pagamento integrado: atua exclusivamente como ponto de encontro entre as partes."] },
-  { t: "2. O aplicativo não processa pagamentos", p: ["O Pede pro Kevin não realiza pagamentos.", "O Pede pro Kevin não recebe depósitos.", "O Pede pro Kevin não retém valores.", "O Pede pro Kevin não processa transações financeiras.", "Não existe saldo interno, carteira digital ou repasse de valores dentro do aplicativo."] },
-  { t: "3. Propostas e valores", p: ["Os valores informados pelos usuários representam apenas propostas iniciais.", "O valor final da entrega poderá ser negociado livremente entre cliente e entregador.", "A forma de pagamento será definida entre as partes.", "O Pede pro Kevin não participa da negociação financeira realizada entre cliente e entregador."] },
-  { t: "4. Cadastro", p: ["O usuário deve fornecer informações verdadeiras e atualizadas, manter seus dados corretos, manter seu acesso seguro, não compartilhar senhas e não utilizar dados falsos.", "O fornecimento de informações falsas poderá resultar na suspensão ou exclusão da conta."] },
-  { t: "5. Responsabilidade dos clientes", p: ["Informar corretamente o endereço, os itens desejados e a proposta pela entrega, tratar entregadores com respeito, não solicitar atividades ilegais e não utilizar a plataforma para fraudes.", "O cliente é responsável pelas informações fornecidas e pelos acordos realizados através da plataforma."] },
-  { t: "6. Responsabilidade dos entregadores", p: ["Realizar os serviços aceitos de boa-fé, tratar clientes com respeito, manter comunicação adequada, cumprir o que foi combinado e informar eventuais problemas durante a execução.", "A plataforma poderá remover entregadores com comportamento inadequado, fraudulento ou incompatível com a comunidade."] },
-  { t: "7. Serviços proibidos", p: ["É proibido utilizar a plataforma para atividades ilegais, transporte de itens proibidos por lei, fraudes, golpes, ameaças, assédio, conteúdo ofensivo ou compra de produtos ilícitos. Qualquer violação poderá resultar em bloqueio imediato da conta."] },
-  { t: "8. Disponibilidade do serviço", p: ["Podem ocorrer manutenções, atualizações, falhas técnicas e interrupções temporárias. Não é garantida disponibilidade ininterrupta do sistema."] },
-  { t: "9. Cancelamentos", p: ["Pedidos poderão ser cancelados a qualquer momento antes da conclusão, conforme o combinado entre as partes. Como não há retenção de valores pela plataforma, eventuais acertos são tratados diretamente entre cliente e entregador."] },
-  { t: "10. Suspensão ou encerramento de contas", p: ["Contas poderão ser suspensas ou encerradas em casos de fraude, uso indevido do sistema, violação destes Termos ou conduta prejudicial à comunidade."] },
-  { t: "11. Limitação de responsabilidade", p: ["A plataforma não se responsabiliza por acordos firmados entre usuários, informações incorretas fornecidas pelos usuários, problemas causados por terceiros, produtos indisponíveis em estabelecimentos e atrasos decorrentes de trânsito, clima ou situações imprevisíveis.", "Cada usuário é responsável pelas informações fornecidas e pelos acordos realizados através da plataforma."] },
-  { t: "12. Alterações dos termos", p: ["Estes Termos poderão ser alterados periodicamente. Alterações relevantes serão informadas através da plataforma."] },
-  { t: "13. Contato", p: ["Dúvidas, sugestões ou solicitações poderão ser encaminhadas pelos canais oficiais de atendimento disponibilizados pela plataforma."] },
+  { t: "1. Natureza da plataforma", p: ["O Pede pro Kevin é uma plataforma digital que conecta pessoas que precisam de serviços a colaboradores independentes com habilidades e disponibilidade. A plataforma organiza pedidos, propostas, comunicação e acompanhamento; não é, por si só, a prestadora direta dos serviços anunciados.", "As partes devem avaliar a proposta, combinar escopo, prazo, preço e condições antes de contratar. O colaborador não é empregado da plataforma apenas por utilizar suas ferramentas. A caracterização jurídica de cada relação depende dos fatos e da legislação aplicável."] },
+  { t: "2. Negociação e pagamentos", p: ["Cliente e colaborador negociam e contratam diretamente. O pagamento é realizado diretamente pelo cliente ao colaborador, que recebe 100% do valor combinado pelo serviço.", "A plataforma não recebe, retém, custodia ou repassa o dinheiro dos serviços e não oferece carteira, saldo, escrow ou processamento de pagamento. Comprovantes anexados ao pedido servem para registro e análise, não significam que a plataforma recebeu ou movimentou valores.", "A plataforma não garante que o cliente pagará, que o colaborador executará o serviço, nem que haverá contratação ou renda. Isso não afasta responsabilidades legais próprias da plataforma."] },
+  { t: "3. Ocorrências e desacordos", p: ["Se o cliente não pagar, o colaborador poderá registrar ocorrência. A plataforma poderá solicitar evidências, ouvir o cliente e, após análise, aplicar restrições proporcionais, inclusive impedir temporariamente novos pedidos. A dívida não é automaticamente transferida à plataforma.", "Se o colaborador receber diretamente e não executar o serviço, o cliente poderá registrar ocorrência. O colaborador poderá apresentar sua versão. Pode haver suspensão preventiva fundamentada e, se a irregularidade for confirmada, bloqueio ou remoção. A plataforma não promete devolução automática de valor pago diretamente ao colaborador.", "Denúncias serão avaliadas considerando contexto e evidências. Uma denúncia unilateral não determina, por si só, culpa definitiva ou banimento permanente. A plataforma poderá preservar registros e colaborar com autoridades quando legalmente cabível."] },
+  { t: "4. Cadastro e qualificação", p: ["Os usuários devem fornecer informações verdadeiras e manter seus dados atualizados. Colaboradores podem passar por verificação de identidade, entrevista e análise de documentos, ferramentas, transporte e especialidades.", "A aprovação pode ser específica por categoria. A aprovação em uma especialidade não autoriza automaticamente atuação em todas as demais. Falsidade, fraude ou risco relevante podem resultar em restrições após análise adequada."] },
+  { t: "5. Propostas e contratação", p: ["Valores e mensagens apresentados em propostas são condições oferecidas pelo colaborador. O preço pode ser fixo ou 'A combinar'. O cliente e o colaborador devem confirmar diretamente o escopo e as condições finais.", "A seleção de uma proposta vincula o pedido ao colaborador escolhido. As demais propostas podem deixar de aparecer como disponíveis, mas registros necessários ao histórico e à segurança poderão ser preservados."] },
+  { t: "6. Comprovantes e conversas", p: ["A plataforma poderá solicitar comprovantes, imagens e registros de conversas relacionados ao pedido para auxiliar na análise de ocorrências e na confirmação das etapas.", "Ferramentas automatizadas ou inteligência artificial poderão auxiliar a classificar registros como consistentes, suspeitos ou inconclusivos. A análise automatizada não é prova absoluta de execução e casos duvidosos poderão ser revisados por uma pessoa."] },
+  { t: "7. Responsabilidades dos usuários", p: ["Clientes devem informar corretamente o pedido, endereço, escopo e condições, pagar diretamente o valor combinado e tratar colaboradores com respeito.", "Colaboradores devem informar suas qualificações de forma verdadeira, negociar claramente, executar o que aceitaram ou comunicar impedimentos, respeitar clientes e manter evidências pertinentes.", "É proibido usar a plataforma para fraude, ameaça, assédio, discriminação, atividades ilícitas ou transporte de itens proibidos."] },
+  { t: "8. Responsabilidade da plataforma", p: ["A plataforma deve tratar falhas próprias do serviço digital, como indisponibilidade, acesso contratado que não seja liberado, falhas de funcionalidades sob seu controle e incidentes de segurança, conforme as obrigações legais aplicáveis.", "A plataforma não assume automaticamente dívidas ou prejuízos decorrentes exclusivamente de acordos entre usuários ou pagamentos realizados diretamente entre eles. Nenhuma disposição destes Termos elimina direitos indisponíveis ou responsabilidades que a lei atribua à plataforma."] },
+  { t: "9. Fase piloto e eventual mensalidade", p: ["A fase inicial de testes será gratuita. Uma possível fase comercial poderá prever primeiro mês gratuito e mensalidade estimada de R$ 10 por colaborador, sujeita a revisão e comunicação antes de entrar em vigor.", "Qualquer mensalidade remunerará acesso, ferramentas e oportunidades de conexão. Não garante quantidade de pedidos, contratação, faturamento ou renda. Regras de cobrança e cancelamento deverão ser informadas antes da contratação."] },
+  { t: "10. Segurança, suspensão e recurso", p: ["A plataforma poderá solicitar informações, preservar registros e aplicar medidas proporcionais para proteger usuários e o serviço. Sempre que apropriado, a pessoa afetada poderá conhecer o motivo e apresentar sua versão.", "Medidas preventivas podem ser adotadas diante de risco relevante, com revisão posterior. A plataforma poderá suspender ou encerrar contas em casos de fraude, violação destes Termos ou risco à comunidade."] },
+  { t: "11. Disponibilidade e alterações", p: ["Podem ocorrer manutenção, atualização, falhas e interrupções temporárias. A plataforma buscará corrigir problemas sob seu controle, sem prometer disponibilidade ininterrupta.", "Estes Termos podem ser atualizados. Alterações relevantes serão comunicadas e poderão exigir novo aceite antes da continuidade de funcionalidades afetadas."] },
+  { t: "12. Contato e direitos legais", p: ["Dúvidas, reclamações e solicitações podem ser encaminhadas pelos canais de atendimento disponibilizados no aplicativo. Estes Termos devem ser interpretados conforme a legislação brasileira, preservados os direitos dos usuários."] },
 ];
 
 function Termos() {
@@ -38,18 +33,14 @@ function Termos() {
         <Link to="/home" className="text-xs text-primary font-semibold">← Voltar</Link>
         <h1 className="text-2xl font-semibold">Termos de Uso</h1>
         <p className="text-xs text-muted-foreground">Versão {TERMOS_VERSAO}</p>
-        <p className="text-sm text-muted-foreground">
-          Ao criar uma conta ou utilizar qualquer funcionalidade da plataforma, o usuário declara ter lido, compreendido
-          e concordado integralmente com estes Termos de Uso.
-        </p>
+        <p className="text-sm text-muted-foreground">Leia este documento antes de aceitar. O aceite registra sua concordância, mas não elimina direitos ou obrigações previstos em lei.</p>
         {SECOES.map((s) => (
           <section key={s.t} className="space-y-2">
             <h2 className="text-sm font-semibold">{s.t}</h2>
-            {s.p.map((p) => (
-              <p key={p} className="text-sm text-muted-foreground leading-relaxed">{p}</p>
-            ))}
+            {s.p.map((p) => <p key={p} className="text-sm text-muted-foreground leading-relaxed">{p}</p>)}
           </section>
         ))}
+        <Link to="/privacidade" className="text-sm text-primary font-semibold">Consultar Política de Privacidade</Link>
       </div>
     </main>
   );
