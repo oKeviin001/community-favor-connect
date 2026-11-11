@@ -1,7 +1,5 @@
 /** SERVER-ONLY runtime for Kevin v2. Requires the v2 draft schema to be applied first. */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Json } from "@/integrations/supabase/types";
 import {
   KEVIN_PROTOCOL, isKevinCategory, validateKevinEnvelope,
   type KevinEventEnvelope,
@@ -17,49 +15,8 @@ type Connection = {
   status: string;
 };
 
-type V2Table = {
-  Row: Record<string, unknown>;
-  Insert: Record<string, unknown>;
-  Update: Record<string, unknown>;
-  Relationships: [];
-};
-type KevinV2Tables = {
-  kevin_v2_app_identity: V2Table;
-  kevin_v2_pairing_codes: V2Table;
-  kevin_v2_connections: V2Table;
-  kevin_v2_outbox: V2Table;
-  kevin_v2_deliveries: V2Table;
-  kevin_v2_inbox: V2Table;
-  kevin_storage: V2Table;
-  kevin_v2_sync_cursors: V2Table;
-  kevin_v2_nonces: V2Table;
-  kevin_v2_transfer_history: V2Table;
-  kevin_v2_admin_commands: V2Table;
-  kevin_v2_learning_snapshots: V2Table;
-  kevin_v2_artifacts: V2Table;
-};
-type KevinV2Database = Omit<Database, "public"> & {
-  public: Omit<Database["public"], "Tables" | "Functions"> & {
-    Tables: Database["public"]["Tables"] & KevinV2Tables;
-    Functions: Database["public"]["Functions"] & {
-      kevin_v2_apply_storage: {
-        Args: {
-          p_source_app_id: string;
-          p_category: string;
-          p_source_record_id: string;
-          p_payload: Json;
-          p_entity_version: number;
-          p_checksum: string;
-          p_deleted_at: string | null;
-        };
-        Returns: string;
-      };
-    };
-  };
-};
-
 const MASTER_KEY = () => process.env.KEVIN_MASTER_KEY ?? "";
-const v2Db = supabaseAdmin as unknown as SupabaseClient<KevinV2Database>;
+const v2Db = supabaseAdmin;
 
 export function requireKevinV2Config() {
   if (!/^[a-f0-9]{64}$/i.test(MASTER_KEY())) {
@@ -171,6 +128,7 @@ export async function initiateCentralKevinV2Pairing(code: string) {
     throw new Error(message);
   }
   const secret = handshake.secret;
+  const scopes = handshake.scopes.filter((scope): scope is import("./protocol").KevinCategory => typeof scope === "string" && isKevinCategory(scope));
   const encrypted = await encryptKevinSecret(secret, MASTER_KEY());
   const remoteIdentity = handshake.identity;
   const { data: localConnection, error: insertError } = await v2Db.from("kevin_v2_connections").insert({
@@ -181,7 +139,7 @@ export async function initiateCentralKevinV2Pairing(code: string) {
     remote_origin: central.origin,
     remote_version: typeof remoteIdentity.app_version === "string" ? remoteIdentity.app_version : null,
     protocol_version: KEVIN_PROTOCOL,
-    scopes: handshake.scopes,
+    scopes,
     encrypted_shared_secret: encrypted,
     status: "pending",
     confirmed_at: null,
@@ -217,7 +175,7 @@ export async function initiateCentralKevinV2Pairing(code: string) {
     confirmed_at: new Date().toISOString(),
   }).eq("id", localConnection.id).eq("status", "pending");
   if (updateError) throw updateError;
-  return { status: "connected" as const, remoteName: String(remoteIdentity.app_name), scopes: handshake.scopes };
+  return { status: "connected" as const, remoteName: String(remoteIdentity.app_name), scopes };
 }
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
