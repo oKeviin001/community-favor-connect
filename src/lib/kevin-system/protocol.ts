@@ -48,7 +48,7 @@ export function isPlainRecord(value: unknown): value is Record<string, unknown> 
   return proto === Object.prototype || proto === null;
 }
 export function canonicalJson(value: unknown): string {
-  if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
+  if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value) ?? "null";
   if (typeof value === "number") {
     if (!Number.isFinite(value)) throw new Error("Número não finito no payload Kevin.");
     return JSON.stringify(value);
@@ -111,7 +111,7 @@ export function normalizeKevinOrigin(value: string): string {
   if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash ||
       (url.pathname !== "/" && url.pathname !== "") ||
       host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
-      host === "0.0.0.0" || host === "::1" || /^127\./.test(host) ||
+      host === "0.0.0.0" || host.includes(":") || /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host) || /^127\./.test(host) ||
       /^10\./.test(host) || /^192\.168\./.test(host) || /^169\.254\./.test(host) ||
       /^172\.(1[6-9]|2\d|3[01])\./.test(host)) {
     throw new Error("Origem HTTPS pública obrigatória; endereços locais não são aceitos.");
