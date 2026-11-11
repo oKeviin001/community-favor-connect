@@ -57,13 +57,32 @@ function AuthPage() {
 
   useEffect(() => {
     let mounted = true;
+    const registrarAceitePendente = async (userId: string) => {
+      const pending = window.sessionStorage.getItem("pede-kevin:consent-pending");
+      if (!pending) return;
+      try {
+        const parsed = JSON.parse(pending) as { termos: string; privacidade: string };
+        const { error } = await supabase.from("user_consents").insert({
+          user_id: userId,
+          termos_versao: parsed.termos,
+          privacidade_versao: parsed.privacidade,
+        });
+        if (!error) window.sessionStorage.removeItem("pede-kevin:consent-pending");
+      } catch {
+        // Mantém o aceite pendente para nova tentativa; não descarta evidência de concordância.
+      }
+    };
     supabase.auth.getUser().then(({ data }) => {
       if (!mounted) return;
       if (data.user) {
+        void registrarAceitePendente(data.user.id);
         navigate({ to: "/home", replace: true });
       }
     });
-    return () => { mounted = false; };
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) void registrarAceitePendente(session.user.id);
+    });
+    return () => { mounted = false; listener.subscription.unsubscribe(); };
   }, [navigate]);
 
   if (!hydrated) {
@@ -86,11 +105,15 @@ function AuthPage() {
         const digitos = soDigitos(telefone);
         if (digitos.length < 10) throw new Error("Informe um telefone válido com DDD.");
         const emailFinal = email.trim() || `${digitos}@telefone.pedeprokevin.app`;
+        window.sessionStorage.setItem("pede-kevin:consent-pending", JSON.stringify({
+          termos: TERMOS_VERSAO,
+          privacidade: PRIVACIDADE_VERSAO,
+        }));
         const { error } = await supabase.auth.signUp({
           email: emailFinal,
           password: senha,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/auth`,
             data: { nome, tipo, telefone: formatarTelefone(telefone) },
           },
         });
@@ -101,11 +124,13 @@ function AuthPage() {
             .from("profiles")
             .update({ nome, telefone: formatarTelefone(telefone) })
             .eq("id", sess.user.id);
-          await supabase.from("user_consents").insert({
+          const { error: consentError } = await supabase.from("user_consents").insert({
             user_id: sess.user.id,
             termos_versao: TERMOS_VERSAO,
             privacidade_versao: PRIVACIDADE_VERSAO,
           });
+          if (consentError) throw consentError;
+          window.sessionStorage.removeItem("pede-kevin:consent-pending");
         }
         toast.success("Conta criada! Bem-vindo ao Pede pro Kevin.");
       } else {
@@ -131,8 +156,14 @@ function AuthPage() {
       return;
     }
     setLoading(true);
+    if (mode === "signup") {
+      window.sessionStorage.setItem("pede-kevin:consent-pending", JSON.stringify({
+        termos: TERMOS_VERSAO,
+        privacidade: PRIVACIDADE_VERSAO,
+      }));
+    }
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth`,
     });
     if (result.error) {
       toast.error("Erro no login com Google");
