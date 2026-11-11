@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { Activity, ArrowUpRight, BookOpen, Database, GitBranch, KeyRound, ShieldCheck } from "lucide-react";
 
 type Props = { mode: "central" | "app" };
@@ -74,9 +73,9 @@ export function SistemaKevinOverview({ mode }: Props) {
 
         {!isCentral && (
           <div className="mt-6">
-            <Link to="/transferencia" className="inline-flex items-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold hover:bg-secondary/80">
+            <a href="/transferencia" className="inline-flex items-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold hover:bg-secondary/80">
               Abrir painel legado de transferência v1 <ArrowUpRight size={16} />
-            </Link>
+            </a>
             <p className="mt-2 text-xs text-muted-foreground">
               O protocolo v1 permanece separado para não quebrar a integração existente enquanto a versão 2 é concluída.
             </p>
