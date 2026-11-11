@@ -217,7 +217,7 @@ export async function initiateCentralKevinV2Pairing(code: string) {
     confirmed_at: new Date().toISOString(),
   }).eq("id", localConnection.id).eq("status", "pending");
   if (updateError) throw updateError;
-  return { status: "connected" as const, remoteName: remoteIdentity.app_name, scopes: handshake.scopes };
+  return { status: "connected" as const, remoteName: String(remoteIdentity.app_name), scopes: handshake.scopes };
 }
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
