@@ -6,6 +6,8 @@ import {
   parseOrderIdInput,
   parseStatusInput,
   updateDevOrderStatusFor,
+  connectCentralKevinV2For,
+  parseKevinPairingCodeInput,
 } from "./dev-actions.server";
 
 export const listDevData = createServerFn({ method: "GET" })
@@ -21,3 +23,7 @@ export const updateDevOrderStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(parseStatusInput)
   .handler(async ({ context, data }) => updateDevOrderStatusFor(context, data.id, data.status));
+export const connectCentralKevinV2 = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(parseKevinPairingCodeInput)
+  .handler(async ({ context, data }) => connectCentralKevinV2For(context, data.code));
