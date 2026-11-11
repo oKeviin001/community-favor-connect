@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { acceptKevinV2Pairing } from "@/lib/kevin-system/runtime.server";
 import { normalizeKevinOrigin, KEVIN_PROTOCOL } from "@/lib/kevin-system/protocol";
 
-export const Route = createFileRoute("/api/public/kevin/v2/handshake" as never)({
+export const Route = createFileRoute("/api/public/kevin/v2/handshake")({
   server: { handlers: {
     OPTIONS: async () => new Response(null, { status: 204, headers: cors }),
     POST: async ({ request }) => {
