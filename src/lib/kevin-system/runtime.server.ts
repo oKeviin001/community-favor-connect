@@ -180,6 +180,42 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+
+/** Confirma o lado local somente após o remoto provar posse do segredo compartilhado. */
+export async function confirmKevinV2Pairing(request: Request, body: unknown) {
+  requireKevinV2Config();
+  const connectionId = request.headers.get("x-kevin-connection") ?? "";
+  const timestamp = request.headers.get("x-kevin-timestamp") ?? "";
+  const nonce = request.headers.get("x-kevin-nonce") ?? "";
+  const signature = request.headers.get("x-kevin-signature") ?? "";
+  if (!/^[0-9a-f-]{36}$/i.test(connectionId) || !/^\d{10}$/.test(timestamp) ||
+      !/^[a-f0-9]{32}$/i.test(nonce) || !/^[a-f0-9]{64}$/i.test(signature)) {
+    throw new Error("Cabeçalhos de autenticação inválidos.");
+  }
+  if (!isRecord(body) || body.connectionId !== connectionId) throw new Error("Confirmação inválida.");
+  const { data: connection, error } = await v2Db.from("kevin_v2_connections")
+    .select("id,encrypted_shared_secret").eq("id", connectionId).eq("status", "pending").maybeSingle();
+  if (error) throw error;
+  if (!connection) throw new Error("Pareamento pendente não encontrado ou já confirmado.");
+  const secret = await decryptKevinSecret(connection.encrypted_shared_secret, MASTER_KEY());
+  const url = new URL(request.url);
+  const valid = await verifyKevinRequest({
+    secret, method: request.method, pathAndQuery: url.pathname + url.search,
+    timestamp, nonce, body, signature,
+  });
+  if (!valid) throw new Error("Assinatura inválida ou expirada.");
+  const { error: nonceError } = await v2Db.from("kevin_v2_nonces").insert({
+    connection_id: connection.id, nonce, expires_at: new Date(Date.now() + 10 * 60_000).toISOString(),
+  });
+  if (nonceError) throw new Error(nonceError.code === "23505" ? "Requisição repetida." : "Não foi possível registrar o nonce.");
+  const { data: updated, error: updateError } = await v2Db.from("kevin_v2_connections")
+    .update({ status: "connected", confirmed_at: new Date().toISOString() })
+    .eq("id", connection.id).eq("status", "pending").select("id").maybeSingle();
+  if (updateError) throw updateError;
+  if (!updated) throw new Error("A conexão foi alterada antes da confirmação.");
+  return { connectionId, status: "connected" as const };
+}
+
 export async function authenticateKevinV2Request(request: Request, body: unknown) {
   requireKevinV2Config();
   const connectionId = request.headers.get("x-kevin-connection");
