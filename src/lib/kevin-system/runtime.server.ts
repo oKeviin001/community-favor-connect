@@ -33,7 +33,7 @@ export async function getKevinV2Identity() {
 }
 
 export async function createKevinV2PairingCode(input: {
-  scopes: string[]; createdBy: string; expiresInMinutes?: number;
+  scopes: string[]; createdBy?: string; expiresInMinutes?: number;
 }) {
   requireKevinV2Config();
   const allowed = input.scopes.filter(isKevinCategory);
@@ -42,7 +42,7 @@ export async function createKevinV2PairingCode(input: {
   const codeHash = await digest(code);
   const expiresAt = new Date(Date.now() + Math.min(1440, Math.max(5, input.expiresInMinutes ?? 15)) * 60_000);
   const { error } = await supabaseAdmin.from("kevin_v2_pairing_codes").insert({
-    code_hash: codeHash, requested_scopes: allowed, created_by: input.createdBy,
+    code_hash: codeHash, requested_scopes: allowed, created_by: input.createdBy ?? null,
     expires_at: expiresAt.toISOString(), status: "active",
   });
   if (error) throw error;
