@@ -10,7 +10,7 @@ function authorized(request: Request) {
   for (let i = 0; i < expected.length; i++) mismatch |= expected.charCodeAt(i) ^ supplied.charCodeAt(i);
   return mismatch === 0;
 }
-export const Route = createFileRoute("/api/kevin/v2/pairing-codes")({
+export const Route = createFileRoute("/api/kevin/v2/pairing-codes" as never)({
   server: { handlers: {
     POST: async ({ request }) => {
       if (!authorized(request)) return Response.json({ error: "Não autorizado." }, { status: 401 });
