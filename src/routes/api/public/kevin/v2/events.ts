@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { receiveKevinV2Events } from "@/lib/kevin-system/runtime.server";
 
-export const Route = createFileRoute("/api/public/kevin/v2/events")({
+export const Route = createFileRoute("/api/public/kevin/v2/events" as never)({
   server: { handlers: {
     OPTIONS: async () => new Response(null, { status: 204, headers: cors }),
     POST: async ({ request }) => {
