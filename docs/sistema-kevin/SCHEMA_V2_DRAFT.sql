@@ -58,6 +58,31 @@ create table if not exists public.kevin_storage (
  updated_at timestamptz not null default now(), unique(source_app_id,category,source_record_id)
 );
 create index if not exists kevin_storage_category_updated_idx on public.kevin_storage(category,updated_at desc);
+
+-- Upsert atômico: evento antigo nunca sobrescreve uma versão mais nova.
+create or replace function public.kevin_v2_apply_storage(
+ p_source_app_id text, p_category text, p_source_record_id text,
+ p_payload jsonb, p_entity_version bigint, p_checksum text, p_deleted_at timestamptz
+) returns text
+language plpgsql
+security definer
+set search_path=''
+as $
+begin
+ insert into public.kevin_storage(
+  source_app_id,category,source_record_id,payload,entity_version,checksum,deleted_at,received_at,updated_at
+ ) values (
+  p_source_app_id,p_category,p_source_record_id,p_payload,p_entity_version,p_checksum,p_deleted_at,now(),now()
+ )
+ on conflict(source_app_id,category,source_record_id) do update
+ set payload=excluded.payload, entity_version=excluded.entity_version, checksum=excluded.checksum,
+     deleted_at=excluded.deleted_at, received_at=now(), updated_at=now()
+ where excluded.entity_version > public.kevin_storage.entity_version;
+ if found then return 'applied'; end if;
+ return 'stale';
+end $;
+revoke all on function public.kevin_v2_apply_storage(text,text,text,jsonb,bigint,text,timestamptz) from public,anon,authenticated;
+grant execute on function public.kevin_v2_apply_storage(text,text,text,jsonb,bigint,text,timestamptz) to service_role;
 create table if not exists public.kevin_v2_sync_cursors (
  connection_id uuid not null references public.kevin_v2_connections(id) on delete cascade,
  category text not null, cursor_value text, updated_at timestamptz not null default now(),
