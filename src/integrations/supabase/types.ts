@@ -6,6 +6,13 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+type KevinV2Table<Row extends Record<string, unknown>> = {
+  Row: Row;
+  Insert: Partial<Row>;
+  Update: Partial<Row>;
+  Relationships: [];
+};
+
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
@@ -1346,6 +1353,19 @@ export type Database = {
           },
         ]
       }
+      kevin_v2_app_identity: KevinV2Table<{ singleton: boolean; app_id: string; app_slug: string; app_name: string; app_version: string; created_at: string }>;
+      kevin_v2_pairing_codes: KevinV2Table<{ id: string; code_hash: string; requested_scopes: string[]; created_by: string | null; created_at: string; expires_at: string; consumed_at: string | null; consumed_by_app_id: string | null; status: string }>;
+      kevin_v2_connections: KevinV2Table<{ id: string; local_app_id: string; remote_app_id: string; remote_name: string; remote_slug: string | null; remote_origin: string; remote_version: string | null; protocol_version: string; scopes: string[]; encrypted_shared_secret: string; status: string; created_at: string; confirmed_at: string | null; last_seen_at: string | null; last_successful_sync_at: string | null; last_error_code: string | null; last_error_message: string | null; revoked_at: string | null }>;
+      kevin_v2_outbox: KevinV2Table<{ id: string; event_id: string; source_app_id: string; category: string; source_record_id: string; operation: string; entity_version: number; occurred_at: string; created_at: string }>;
+      kevin_v2_deliveries: KevinV2Table<{ id: string; outbox_id: string; connection_id: string; status: string; attempts: number; available_at: string; lease_until: string | null; last_error_code: string | null; last_error_message: string | null; created_at: string; delivered_at: string | null }>;
+      kevin_v2_inbox: KevinV2Table<{ id: string; source_app_id: string; event_id: string; category: string; source_record_id: string; entity_version: number; operation: string; checksum: string; status: string; received_at: string; applied_at: string | null; error_code: string | null }>;
+      kevin_storage: KevinV2Table<{ id: string; source_app_id: string; category: string; source_record_id: string; payload: Json | null; entity_version: number; checksum: string; deleted_at: string | null; received_at: string; updated_at: string }>;
+      kevin_v2_sync_cursors: KevinV2Table<{ connection_id: string; category: string; cursor_value: string | null; updated_at: string }>;
+      kevin_v2_nonces: KevinV2Table<{ id: number; connection_id: string; nonce: string; expires_at: string; created_at: string }>;
+      kevin_v2_transfer_history: KevinV2Table<{ id: string; correlation_id: string; connection_id: string | null; operation: string; direction: string; source_app_id: string | null; target_app_id: string | null; category: string | null; item_count: number; status: string; error_code: string | null; detail: string | null; created_at: string }>;
+      kevin_v2_admin_commands: KevinV2Table<{ id: string; target_app_id: string; command_type: string; payload: Json; scopes: string[]; idempotency_key: string; requested_by: string | null; approved_by: string | null; status: string; expires_at: string; created_at: string; completed_at: string | null; result: Json | null }>;
+      kevin_v2_learning_snapshots: KevinV2Table<{ id: string; app_id: string; repository: string; commit_sha: string; manifest: Json; dependency_graph: Json; scan_status: string; created_at: string }>;
+      kevin_v2_artifacts: KevinV2Table<{ id: string; source_app_id: string; module_id: string; module_version: string; source_commit_sha: string; artifact_manifest: Json; artifact_checksum: string; license_id: string | null; compatibility: Json; review_status: string; created_at: string }>;
       user_roles: {
         Row: {
           created_at: string
@@ -1530,7 +1550,19 @@ export type Database = {
         }
         Returns: string
       }
-      withdraw_proposal: { Args: { _proposal_id: string }; Returns: undefined }
+      withdraw_proposal: { Args: { _proposal_id: string }; Returns: undefined },
+      kevin_v2_apply_storage: {
+        Args: {
+          p_source_app_id: string;
+          p_category: string;
+          p_source_record_id: string;
+          p_payload: Json;
+          p_entity_version: number;
+          p_checksum: string;
+          p_deleted_at: string | null;
+        };
+        Returns: string;
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
