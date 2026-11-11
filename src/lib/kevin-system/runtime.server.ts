@@ -1,5 +1,6 @@
 /** SERVER-ONLY runtime for Kevin v2. Requires the v2 draft schema to be applied first. */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Json } from "@/integrations/supabase/types";
 import {
   KEVIN_PROTOCOL, isKevinCategory, validateKevinEnvelope,
   type KevinEventEnvelope,
@@ -133,8 +134,8 @@ export async function initiateCentralKevinV2Pairing(code: string) {
   const remoteIdentity = handshake.identity;
   const { data: localConnection, error: insertError } = await v2Db.from("kevin_v2_connections").insert({
     local_app_id: identity.app_id,
-    remote_app_id: remoteIdentity.app_id,
-    remote_name: remoteIdentity.app_name,
+    remote_app_id: String(remoteIdentity.app_id),
+    remote_name: String(remoteIdentity.app_name),
     remote_slug: typeof remoteIdentity.app_slug === "string" ? remoteIdentity.app_slug : null,
     remote_origin: central.origin,
     remote_version: typeof remoteIdentity.app_version === "string" ? remoteIdentity.app_version : null,
@@ -260,6 +261,7 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
   for (const raw of events) {
     try {
       const event = await validateKevinEnvelope(raw) as KevinEventEnvelope;
+      if (event.payload !== null && !isJsonValue(event.payload)) throw new Error("Payload não é JSON válido.");
       if (event.sourceAppId !== connection.remote_app_id || !connection.scopes.includes(event.category)) {
         throw new Error("Origem ou escopo não autorizado.");
       }
@@ -312,6 +314,14 @@ export async function ackKevinV2Deliveries(request: Request, body: unknown) {
     if (error) throw error;
   }
   return { acknowledged: outboxIds.length };
+}
+
+function isJsonValue(value: unknown): value is Json {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return true;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every(isJsonValue);
+  if (value !== null && typeof value === "object") return Object.values(value).every(isJsonValue);
+  return false;
 }
 
 function safeMessage(error: unknown) {
