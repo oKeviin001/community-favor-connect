@@ -16,7 +16,7 @@ type Connection = {
   status: string;
 };
 const MASTER_KEY = () => process.env.KEVIN_MASTER_KEY ?? "";
-const v2Db = supabaseAdmin as unknown as SupabaseClient;
+const v2Db = supabaseAdmin as unknown as SupabaseClient<any, any, any>;
 
 export function requireKevinV2Config() {
   if (!/^[a-f0-9]{64}$/i.test(MASTER_KEY())) {
