@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { confirmKevinV2Pairing } from "@/lib/kevin-system/runtime.server";
 
-export const Route = createFileRoute("/api/public/kevin/v2/confirm" as never)({
+export const Route = createFileRoute("/api/public/kevin/v2/confirm")({
   server: { handlers: {
     OPTIONS: async () => new Response(null, { status: 204, headers: cors }),
     POST: async ({ request }) => {
