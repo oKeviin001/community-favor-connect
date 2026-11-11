@@ -26,7 +26,7 @@ Aplicar/revisar o schema de `SCHEMA_V2_DRAFT.sql` pelo fluxo do Lovable, inserir
 - O fluxo de emissão/aceitação ainda precisa armazenar o segredo recebido também no app iniciador e concluir a confirmação bilateral; não existe UI de pareamento v2 conectada.
 - Não há worker de outbox, lease/claim, backoff, dead-letter, dispatcher nem pull incremental completo.
 - O trigger atual do schema gera metadados no outbox, mas não guarda snapshot do registro; a extração de dados reais precisa de projeções allowlist por tabela e categoria antes de enviar qualquer payload.
-- ACK está implementado no Pede, mas falta o endpoint equivalente na Central e o dispatcher que o consome.
+- ACK autenticado está implementado nos dois aplicativos; ainda falta o dispatcher que envia lotes e chama o ACK do destino.
 - Falta autenticação administrativa integrada à sessão/roles real do Modo Deus; os endpoints de código usam segredo de servidor provisório.
 - Falta E2E com dois bancos Supabase reais, testes de concorrência/replay, revisão de RLS, validação de CORS/origem e testes de falha.
 - A Central não tem ainda integração Lovable/Supabase configurada neste repositório. O runtime depende das variáveis server-side descritas acima.
