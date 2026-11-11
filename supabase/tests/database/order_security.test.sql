@@ -1,6 +1,6 @@
 begin;
 
-select plan(10);
+select plan(12);
 
 select ok(
   exists (
@@ -108,6 +108,29 @@ select ok(
       and proname = 'require_whatsapp_attachment_before_delivery'
   ),
   'WhatsApp attachment guard function exists'
+);
+
+
+select ok(
+  exists (
+    select 1
+    from pg_trigger
+    where tgrelid = 'public.user_consents'::regclass
+      and tgname = 'trg_force_current_consent_versions'
+      and not tgisinternal
+  ),
+  'consent insert is guarded by the current-version trigger'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_proc p
+    where p.pronamespace = 'public'::regnamespace
+      and p.proname = 'force_current_consent_versions'
+      and position('1.1' in pg_get_functiondef(p.oid)) > 0
+  ),
+  'consent guard validates the current 1.1 document versions'
 );
 
 select * from finish();
