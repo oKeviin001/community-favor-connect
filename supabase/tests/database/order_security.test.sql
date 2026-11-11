@@ -1,6 +1,6 @@
 begin;
 
-select plan(8);
+select plan(10);
 
 select ok(
   exists (
@@ -88,6 +88,26 @@ select ok(
       )
   ),
   'no direct SELECT policy exposes unassigned orders'
+);
+
+
+select ok(
+  exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.orders'::regclass
+      and tgname = 'trg_require_whatsapp_attachment_before_delivery'
+      and not tgisinternal
+  ),
+  'delivery transition requires a WhatsApp attachment at database level'
+);
+
+select ok(
+  exists (
+    select 1 from pg_proc
+    where pronamespace = 'public'::regnamespace
+      and proname = 'require_whatsapp_attachment_before_delivery'
+  ),
+  'WhatsApp attachment guard function exists'
 );
 
 select * from finish();
