@@ -69,8 +69,11 @@ export function Comprovantes({
       descricao: file.name.slice(0, 120),
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Comprovante enviado");
+    if (error) {
+      await supabase.storage.from("comprovantes").remove([path]);
+      return toast.error(error.message);
+    }
+    toast.success(tipoAnexo === "whatsapp" ? "Registro da conversa anexado" : "Comprovante enviado");
     load();
   }
 
@@ -150,7 +153,8 @@ export function Comprovantes({
                 if (f) upload(f);
               }}
             />
-          </label>
+            </label>
+          </div>
         )}
       </div>
     </section>
