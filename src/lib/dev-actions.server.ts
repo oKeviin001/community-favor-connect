@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { initiateCentralKevinV2Pairing } from "@/lib/kevin-system/runtime.server";
 import type { Database } from "@/integrations/supabase/types";
 
 type AuthContext = {
@@ -104,4 +105,16 @@ export async function updateDevOrderStatusFor(context: AuthContext, id: string, 
     .eq("id", id);
   if (error) throw error;
   return { ok: true };
+}
+export function parseKevinPairingCodeInput(value: unknown): { code: string } {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) throw new Error("Código inválido.");
+  const code = (value as Record<string, unknown>).code;
+  if (typeof code !== "string" || !/^KVN-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/i.test(code.trim())) {
+    throw new Error("Informe um código KVN válido.");
+  }
+  return { code: code.trim().toUpperCase() };
+}
+export async function connectCentralKevinV2For(context: AuthContext, code: string) {
+  await assertDevAccess(context);
+  return initiateCentralKevinV2Pairing(code);
 }
