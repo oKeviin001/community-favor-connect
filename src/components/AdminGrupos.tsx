@@ -48,7 +48,7 @@ export function AdminGrupos() {
     setLoading(true);
     try {
       const result = await query({ data: { view: "grupos", filtro: "todos", busca: "" } });
-      setData(result as Data);
+      setData(result as unknown as Data);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível carregar os grupos");
     } finally {
