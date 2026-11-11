@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getKevinV2Identity } from "@/lib/kevin-system/runtime.server";
 import { KEVIN_CATEGORIES, KEVIN_PROTOCOL } from "@/lib/kevin-system/protocol";
 
-export const Route = createFileRoute("/api/public/kevin/v2/manifest" as never)({
+export const Route = createFileRoute("/api/public/kevin/v2/manifest")({
   server: { handlers: {
     GET: async () => {
       try {
