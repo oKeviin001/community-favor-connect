@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/order-helpers";
 import { toast } from "sonner";
-import { Check, Clock, Loader2, Star, UserRound } from "lucide-react";
+import { Check, Clock, Loader2, Star, UserRound, MapPin } from "lucide-react";
 
 interface HistoricoItem {
   evento: string;
@@ -11,7 +11,7 @@ interface HistoricoItem {
   criado_em: string;
 }
 
-interface Proposta {
+interface LocalizacaoColaborador { colaborador_id: string; nome: string; latitude: number; longitude: number; atualizado_em: string; }\n\ninterface Proposta {
   id: string;
   prestador_id: string;
   prestador_nome: string | null;
@@ -55,10 +55,10 @@ export function PropostasCliente({
   const [propostas, setPropostas] = useState<Proposta[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);\n  const [localizacoes, setLocalizacoes] = useState<LocalizacaoColaborador[]>([]);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.rpc("list_order_proposals", { _order_id: orderId });
+    const [{ data, error }, { data: locais }] = await Promise.all([\n      supabase.rpc("list_order_proposals", { _order_id: orderId }),\n      supabase.rpc("list_order_proposal_locations" as never, { _order_id: orderId } as never),\n    ]);\n    setLocalizacoes((locais as unknown as LocalizacaoColaborador[]) ?? []);
     if (error) {
       setErro(error.message);
     } else {
@@ -72,7 +72,7 @@ export function PropostasCliente({
     void load();
     const channel = supabase
       .channel(`propostas-cliente-${orderId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "order_proposals", filter: `order_id=eq.${orderId}` }, load)
+       .on("postgres_changes", { event: "*", schema: "public", table: "order_proposals", filter: `order_id=eq.${orderId}` }, load)\n      .on("postgres_changes", { event: "*", schema: "public", table: "collaborator_presence" }, load)
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -169,6 +169,26 @@ export function PropostasCliente({
               </div>
               <p className="text-[10px] text-muted-foreground">Referência da diferença: sua oferta de {ofertaCliente > 0 ? formatBRL(ofertaCliente) : "A combinar"}.</p>
 
+              {(() => {
+                const local = localizacoes.find((item) => item.colaborador_id === p.prestador_id);
+                if (!local) return (
+                  <div className="rounded-xl bg-secondary/70 p-3 flex items-start gap-2">
+                    <MapPin size={16} className="text-muted-foreground mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-muted-foreground">Localização indisponível no momento. O colaborador só aparece no mapa quando ativa a disponibilidade e permite o acesso à localização.</p>
+                  </div>
+                );
+                const mapa = `https://www.google.com/maps?q=${local.latitude},${local.longitude}`;
+                return (
+                  <a href={mapa} target="_blank" rel="noreferrer" className="rounded-xl border border-success/30 bg-success/5 p-3 flex items-center gap-2">
+                    <MapPin size={17} className="text-success shrink-0" />
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-xs font-semibold">Colaborador disponível — ver localização</span>
+                      <span className="block text-[10px] text-muted-foreground">Atualizada às {new Date(local.atualizado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+                    </span>
+                    <span className="text-[10px] font-semibold text-success">Abrir mapa</span>
+                  </a>
+                );
+              })()}
               {p.qualificacao && (
                 <div>
                   <p className="label-kicker">Qualificação aprovada</p>
