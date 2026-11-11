@@ -124,13 +124,6 @@ function AuthPage() {
             .from("profiles")
             .update({ nome, telefone: formatarTelefone(telefone) })
             .eq("id", sess.user.id);
-          const { error: consentError } = await supabase.from("user_consents").insert({
-            user_id: sess.user.id,
-            termos_versao: TERMOS_VERSAO,
-            privacidade_versao: PRIVACIDADE_VERSAO,
-          });
-          if (consentError) throw consentError;
-          window.sessionStorage.removeItem("pede-kevin:consent-pending");
         }
         toast.success("Conta criada! Bem-vindo ao Pede pro Kevin.");
       } else {
