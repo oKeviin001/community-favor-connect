@@ -60,7 +60,8 @@ Comandos tipados e allowlisted, com idempotency key, destino, solicitante, aprov
 
 ## Ativação
 - Aplicar SCHEMA_V2_DRAFT.sql em cada Supabase após comparar schema e migrations.
-- Configurar KEVIN_MASTER_KEY (64 hex chars) e credencial privilegiada somente como secrets server-side.
+- Configurar KEVIN_MASTER_KEY (64 hex chars) e credencial privilegiada somente como secrets server-side. Gere a chave localmente com `openssl rand -hex 32`; nunca compartilhe nem commite o valor.
+- Inserir a identidade do banco: `central-kevin` na Central e `pede-pro-kevin` no Pede pro Kevin.
 - Configurar worker agendado no backend; a UI não é worker.
 - Executar E2E entre dois ambientes reais antes de produção.
 

@@ -107,10 +107,10 @@ export async function validateKevinEnvelope(value: unknown): Promise<KevinEventE
 export function normalizeKevinOrigin(value: string): string {
   let url: URL;
   try { url = new URL(value); } catch { throw new Error("URL remota inválida."); }
-  const host = url.hostname.toLowerCase();
+  const host = url.hostname.toLowerCase().replace(/\.$/, "");
   if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash ||
       (url.pathname !== "/" && url.pathname !== "") ||
-      host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
+      host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal") || host.endsWith(".lan") ||
       host === "0.0.0.0" || host.includes(":") || /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host) || /^127\./.test(host) ||
       /^10\./.test(host) || /^192\.168\./.test(host) || /^169\.254\./.test(host) ||
       /^172\.(1[6-9]|2\d|3[01])\./.test(host)) {

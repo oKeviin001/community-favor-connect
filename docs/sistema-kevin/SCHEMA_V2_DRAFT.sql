@@ -5,6 +5,9 @@ create table if not exists public.kevin_v2_app_identity (
  app_id text not null unique, app_slug text not null, app_name text not null,
  app_version text not null default '2.0.0', created_at timestamptz not null default now()
 );
+-- Depois de aplicar o schema, inserir uma única identidade por banco:
+-- Central: insert into public.kevin_v2_app_identity(singleton,app_id,app_slug,app_name) values(true,'central-kevin','central-kevin','Central Kevin');
+-- Pede:    insert into public.kevin_v2_app_identity(singleton,app_id,app_slug,app_name) values(true,'pede-pro-kevin','pede-pro-kevin','Pede pro Kevin');
 create table if not exists public.kevin_v2_pairing_codes (
  id uuid primary key default gen_random_uuid(), code_hash text not null unique,
  requested_scopes text[] not null default '{}', created_by uuid,
@@ -115,7 +118,7 @@ grant usage,select on sequence public.kevin_v2_nonces_id_seq, public.kevin_v2_ou
 
 -- Somente no Pede pro Kevin, depois de conferir que estas tabelas e colunas existem:
 create or replace function public.kevin_v2_enqueue_change()
-returns trigger language plpgsql security definer set search_path=public as $$
+returns trigger language plpgsql security definer set search_path='' as $
 declare app_id_value text; record_id_value text; operation_value text; event_row public.kevin_v2_outbox%rowtype;
 begin
  select app_id into app_id_value from public.kevin_v2_app_identity where singleton=true;
