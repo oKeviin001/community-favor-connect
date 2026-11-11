@@ -93,7 +93,7 @@ export function Comprovantes({
         )}
         {items.map((a) => (
           <div key={a.id} className="flex items-center gap-3">
-            {a.tipo === "foto" && urls[a.id] ? (
+            {(a.tipo === "foto" || a.tipo === "whatsapp") && urls[a.id] ? (
               <img
                 src={urls[a.id]}
                 alt={a.descricao ?? "Comprovante"}

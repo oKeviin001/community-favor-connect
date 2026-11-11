@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bike, ClipboardCheck, History, User, ShoppingBag, Shield } from "lucide-react";
+import { Bike, ClipboardCheck, FileText, History, User, ShoppingBag, Shield } from "lucide-react";
 import { useUser } from "@/lib/use-user";
 
 interface Props {
