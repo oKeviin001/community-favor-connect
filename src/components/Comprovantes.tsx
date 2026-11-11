@@ -24,6 +24,7 @@ export function Comprovantes({
   const [items, setItems] = useState<Attachment[]>([]);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [tipoAnexo, setTipoAnexo] = useState<"foto" | "comprovante" | "whatsapp">("foto");
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -64,7 +65,7 @@ export function Comprovantes({
       order_id: orderId,
       uploader_id: userId,
       path,
-      tipo: file.type.startsWith("image/") ? "foto" : "comprovante",
+      tipo: tipoAnexo,
       descricao: file.name.slice(0, 120),
     });
     setBusy(false);
@@ -113,6 +114,7 @@ export function Comprovantes({
                 className="text-sm font-medium truncate block"
               >
                 {a.descricao ?? "Arquivo"}
+                <span className="ml-2 text-[10px] uppercase text-muted-foreground">{a.tipo === "whatsapp" ? "Conversa WhatsApp" : a.tipo === "foto" ? "Foto" : "Comprovante"}</span>
               </a>
               <p className="text-[11px] text-muted-foreground">
                 {new Date(a.criado_em).toLocaleString("pt-BR")}
@@ -127,7 +129,14 @@ export function Comprovantes({
         ))}
 
         {canUpload && (
-          <label className="mt-2 w-full h-12 rounded-2xl bg-secondary flex items-center justify-center gap-2 text-sm font-medium cursor-pointer">
+          <div className="space-y-2">
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="tipo-anexo">Tipo de anexo</label>
+            <select id="tipo-anexo" value={tipoAnexo} onChange={(e) => setTipoAnexo(e.target.value as "foto" | "comprovante" | "whatsapp")} disabled={busy} className="w-full h-11 rounded-xl border border-border bg-background px-3 text-sm">
+              <option value="foto">Foto do pedido</option>
+              <option value="comprovante">Comprovante / recibo</option>
+              <option value="whatsapp">Registro da conversa no WhatsApp</option>
+            </select>
+            <label className="mt-2 w-full h-12 rounded-2xl bg-secondary flex items-center justify-center gap-2 text-sm font-medium cursor-pointer">
             <Paperclip size={16} />
             {busy ? "Enviando..." : "Anexar foto ou comprovante"}
             <input
