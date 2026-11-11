@@ -188,7 +188,7 @@ function PedidoColaborador() {
     const { error } = await supabase.rpc("submit_proposal", {
       _order_id: id,
       _tipo_valor: aCombinar ? "a_combinar" : "fixo",
-      _valor: aCombinar ? null : numero,
+      _valor: aCombinar ? (null as unknown as number) : numero,
       _mensagem: texto,
     });
     setBusy(false);
