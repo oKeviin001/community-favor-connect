@@ -5,26 +5,23 @@ export const Route = createFileRoute("/privacidade")({
   head: () => ({
     meta: [
       { title: "Política de Privacidade — Pede pro Kevin" },
-      { name: "description", content: "Como o Pede pro Kevin coleta, utiliza, protege e armazena os dados dos usuários, conforme a LGPD." },
-      { property: "og:title", content: "Política de Privacidade — Pede pro Kevin" },
-      { property: "og:description", content: "Transparência sobre dados coletados, finalidade, segurança e direitos do usuário (LGPD)." },
-      { property: "og:type", content: "article" },
-      { name: "twitter:card", content: "summary" },
+      { name: "description", content: "Como o Pede pro Kevin trata dados pessoais, segurança e direitos dos usuários." },
     ],
   }),
   component: Privacidade,
 });
 
 const SECOES: { t: string; p: string[] }[] = [
-  { t: "1. Quais dados são armazenados", p: ["Dados de cadastro: nome, telefone, endereço, e-mail (quando informado) e foto de perfil (quando fornecida).", "Dados de utilização: pedidos criados, propostas informadas, histórico de entregas, mensagens trocadas dentro da plataforma e avaliações.", "Dados de candidatura a entregador: documentos enviados, dados de contato e informações de disponibilidade.", "Dados técnicos: data e horário de acesso, informações básicas do dispositivo e registros necessários para a segurança da plataforma."] },
-  { t: "2. Por que esses dados são armazenados", p: ["Para identificar usuários, permitir a conexão entre clientes e entregadores, possibilitar o contato entre as partes, manter o histórico dos pedidos, prevenir fraudes, garantir a segurança da comunidade e cumprir obrigações legais.", "Nenhum dado é coletado sem finalidade legítima relacionada ao funcionamento do serviço."] },
-  { t: "3. Como os dados são utilizados", p: ["Os dados são utilizados apenas dentro do aplicativo, para exibir pedidos aos entregadores, permitir a conversa entre as partes, mostrar avaliações e melhorar a experiência de uso.", "O Pede pro Kevin não processa pagamentos e, portanto, não armazena dados bancários, dados de cartão ou informações de transações financeiras.", "O Pede pro Kevin não comercializa dados pessoais dos usuários."] },
-  { t: "4. Compartilhamento de dados", p: ["Alguns dados são exibidos à outra parte do pedido (nome, telefone e endereço de entrega) exatamente para viabilizar a entrega combinada.", "Fora isso, os dados só poderão ser compartilhados para cumprimento de obrigação legal, atendimento de ordem judicial ou proteção da segurança da plataforma."] },
-  { t: "5. Segurança dos dados", p: ["Adotamos medidas razoáveis contra acesso não autorizado, alteração, divulgação e destruição indevidas. Apesar dos esforços, nenhum sistema é totalmente imune a riscos."] },
-  { t: "6. Direitos dos usuários (LGPD)", p: ["Nos termos da Lei Geral de Proteção de Dados, o usuário pode solicitar a confirmação do tratamento, o acesso aos seus dados, a correção de dados incompletos ou desatualizados, a portabilidade, a revogação do consentimento e a exclusão dos dados pessoais quando aplicável."] },
-  { t: "7. Como solicitar a exclusão da conta", p: ["A solicitação pode ser feita diretamente no aplicativo, na tela de Perfil, pela opção de exclusão de conta, ou pelos canais oficiais de atendimento.", "Após a solicitação, a conta é desativada e os dados que não precisem ser mantidos por obrigação legal são removidos. Registros exigidos por lei podem ser mantidos pelo prazo legal aplicável."] },
-  { t: "8. Retenção de dados", p: ["Os dados são armazenados apenas pelo tempo necessário para a prestação dos serviços, cumprimento de obrigações legais e proteção da plataforma e dos usuários."] },
-  { t: "9. Alterações desta política", p: ["Esta Política poderá ser atualizada periodicamente. Alterações relevantes serão comunicadas através da plataforma."] },
+  { t: "1. Dados tratados", p: ["Podem ser tratados dados de cadastro e contato, como nome, telefone, e-mail e dados de perfil; dados de pedidos, propostas, mensagens, anexos e ocorrências; dados de candidatura e qualificação de colaboradores; e registros técnicos e de segurança.", "A candidatura pode exigir CPF, data de nascimento, comprovante de residência, fotografias e documentos de qualificação quando necessários à finalidade informada. Esses dados são pessoais e exigem proteção reforçada."] },
+  { t: "2. Finalidades", p: ["Os dados são utilizados para criar e proteger contas, conectar clientes e colaboradores, exibir propostas, permitir contato, acompanhar pedidos, analisar denúncias, prevenir fraudes, administrar permissões, prestar suporte e cumprir obrigações legais.", "A coleta deve ser limitada ao mínimo necessário para cada finalidade. Dados não devem ser coletados apenas por conveniência ou mantidos indefinidamente sem justificativa."] },
+  { t: "3. Bases legais e transparência", p: ["O tratamento poderá se apoiar, conforme o caso, em execução de contrato ou procedimentos preliminares, cumprimento de obrigação legal, exercício regular de direitos, legítimo interesse avaliado e outras bases legais aplicáveis. Consentimento será utilizado quando for a base adequada e deverá ser específico e informado.", "O aceite dos Termos e o registro de ciência desta Política não substituem a identificação da base legal correta para cada operação de tratamento."] },
+  { t: "4. Compartilhamento", p: ["Dados estritamente necessários podem ser compartilhados entre cliente e colaborador vinculados ao mesmo pedido para viabilizar a execução e o contato. Documentos pessoais de candidatura não são exibidos a clientes nem a outros colaboradores.", "Prestadores de infraestrutura e tecnologia podem tratar dados sob instruções e controles apropriados. Dados também poderão ser fornecidos para cumprir obrigação legal, ordem válida ou proteger direitos e segurança, nos limites aplicáveis."] },
+  { t: "5. Documentos e acesso administrativo", p: ["Documentos de identificação e residência devem ficar em armazenamento privado, com acesso restrito ao titular e a administradores autorizados. Consultas administrativas excepcionais devem ter finalidade, justificativa e registro de auditoria.", "Quando tecnicamente disponível, serão usadas permissões temporárias, URLs assinadas com curta duração, logs de acesso, controles de tipo e tamanho de arquivo e revisão periódica de permissões."] },
+  { t: "6. Segurança", p: ["São esperados controles como autenticação, políticas de acesso por função, RLS no banco, armazenamento privado, proteção de segredos no servidor, logs, backups e correção de vulnerabilidades. Nenhum sistema pode prometer risco zero.", "Incidentes envolvendo dados pessoais serão avaliados e tratados conforme as obrigações legais e regulamentares aplicáveis."] },
+  { t: "7. Inteligência artificial e análise de anexos", p: ["Anexos e prints poderão ser analisados por ferramentas automatizadas para auxiliar a verificar coerência com o pedido e identificar situações suspeitas ou inconclusivas. A automação é apoio, não prova definitiva nem decisão infalível.", "Quando necessário, casos serão encaminhados para revisão humana. O uso de fornecedores externos deverá considerar finalidade, segurança, retenção e compartilhamento de dados."] },
+  { t: "8. Retenção e descarte", p: ["Os dados serão mantidos pelo tempo necessário às finalidades informadas, à segurança, à resolução de ocorrências e ao cumprimento de obrigações legais. Prazos e critérios devem ser definidos por categoria de dado.", "Encerrada a finalidade e inexistindo base legal para conservação, os dados deverão ser eliminados ou anonimizados de forma segura, respeitadas retenções obrigatórias e preservação legítima de provas."] },
+  { t: "9. Direitos dos titulares", p: ["O titular pode solicitar confirmação de tratamento, acesso, correção, informação sobre compartilhamento, portabilidade quando aplicável, anonimização, bloqueio ou eliminação nos termos da LGPD, além de exercer os demais direitos previstos em lei.", "Solicitações serão avaliadas considerando identidade do solicitante, direitos de terceiros, obrigações legais e limites aplicáveis."] },
+  { t: "10. Contato e atualizações", p: ["Solicitações de privacidade podem ser encaminhadas pelos canais oficiais de atendimento disponibilizados no aplicativo. Esta Política poderá ser atualizada; alterações relevantes serão comunicadas e poderão exigir novo aceite quando necessário."] },
 ];
 
 function Privacidade() {
@@ -34,14 +31,14 @@ function Privacidade() {
         <Link to="/home" className="text-xs text-primary font-semibold">← Voltar</Link>
         <h1 className="text-2xl font-semibold">Política de Privacidade</h1>
         <p className="text-xs text-muted-foreground">Versão {PRIVACIDADE_VERSAO}</p>
+        <p className="text-sm text-muted-foreground">Este documento explica como os dados pessoais são tratados. O tratamento deve respeitar a LGPD e as bases legais aplicáveis a cada finalidade.</p>
         {SECOES.map((s) => (
           <section key={s.t} className="space-y-2">
             <h2 className="text-sm font-semibold">{s.t}</h2>
-            {s.p.map((p) => (
-              <p key={p} className="text-sm text-muted-foreground leading-relaxed">{p}</p>
-            ))}
+            {s.p.map((p) => <p key={p} className="text-sm text-muted-foreground leading-relaxed">{p}</p>)}
           </section>
         ))}
+        <Link to="/termos" className="text-sm text-primary font-semibold">Consultar Termos de Uso</Link>
       </div>
     </main>
   );
