@@ -2,7 +2,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Json } from "@/integrations/supabase/types";
 import {
-  KEVIN_PROTOCOL, isKevinCategory, validateKevinEnvelope,
+  KEVIN_PROTOCOL, isKevinCategory, validateKevinEnvelope, normalizeKevinOrigin,
   type KevinEventEnvelope,
 } from "./protocol";
 import {
@@ -88,14 +88,8 @@ export async function initiateCentralKevinV2Pairing(code: string) {
   if (!centralOrigin || !localOrigin) {
     throw new Error("Configure KEVIN_CENTRAL_ORIGIN e KEVIN_APP_ORIGIN nos secrets do servidor.");
   }
-  const central = new URL(centralOrigin);
-  if (central.protocol !== "https:" || central.username || central.password || central.pathname !== "/" || central.search || central.hash) {
-    throw new Error("KEVIN_CENTRAL_ORIGIN precisa ser uma origem HTTPS válida.");
-  }
-  const local = new URL(localOrigin);
-  if (local.protocol !== "https:" || local.username || local.password || local.pathname !== "/" || local.search || local.hash) {
-    throw new Error("KEVIN_APP_ORIGIN precisa ser uma origem HTTPS válida.");
-  }
+  const central = new URL(normalizeKevinOrigin(centralOrigin));
+  const local = new URL(normalizeKevinOrigin(localOrigin));
   if (typeof code !== "string" || !/^KVN-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/.test(code.trim().toUpperCase())) {
     throw new Error("Código de pareamento inválido.");
   }
