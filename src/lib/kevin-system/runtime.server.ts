@@ -1,6 +1,7 @@
 /** SERVER-ONLY runtime for Kevin v2. Requires the v2 draft schema to be applied first. */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database, Json } from "@/integrations/supabase/types";
 import {
   KEVIN_PROTOCOL, isKevinCategory, validateKevinEnvelope,
   type KevinEventEnvelope,
@@ -15,8 +16,50 @@ type Connection = {
   remote_origin: string; scopes: string[]; encrypted_shared_secret: string;
   status: string;
 };
+
+type V2Table = {
+  Row: Record<string, unknown>;
+  Insert: Record<string, unknown>;
+  Update: Record<string, unknown>;
+  Relationships: [];
+};
+type KevinV2Tables = {
+  kevin_v2_app_identity: V2Table;
+  kevin_v2_pairing_codes: V2Table;
+  kevin_v2_connections: V2Table;
+  kevin_v2_outbox: V2Table;
+  kevin_v2_deliveries: V2Table;
+  kevin_v2_inbox: V2Table;
+  kevin_storage: V2Table;
+  kevin_v2_sync_cursors: V2Table;
+  kevin_v2_nonces: V2Table;
+  kevin_v2_transfer_history: V2Table;
+  kevin_v2_admin_commands: V2Table;
+  kevin_v2_learning_snapshots: V2Table;
+  kevin_v2_artifacts: V2Table;
+};
+type KevinV2Database = Omit<Database, "public"> & {
+  public: Omit<Database["public"], "Tables" | "Functions"> & {
+    Tables: Database["public"]["Tables"] & KevinV2Tables;
+    Functions: Database["public"]["Functions"] & {
+      kevin_v2_apply_storage: {
+        Args: {
+          p_source_app_id: string;
+          p_category: string;
+          p_source_record_id: string;
+          p_payload: Json;
+          p_entity_version: number;
+          p_checksum: string;
+          p_deleted_at: string | null;
+        };
+        Returns: string;
+      };
+    };
+  };
+};
+
 const MASTER_KEY = () => process.env.KEVIN_MASTER_KEY ?? "";
-const v2Db = supabaseAdmin as unknown as SupabaseClient;
+const v2Db = supabaseAdmin as unknown as SupabaseClient<KevinV2Database>;
 
 export function requireKevinV2Config() {
   if (!/^[a-f0-9]{64}$/i.test(MASTER_KEY())) {
@@ -41,7 +84,7 @@ export async function createKevinV2PairingCode(input: {
   const code = `KVN-${randomChars(4)}-${randomChars(4)}-${randomChars(4)}`;
   const codeHash = await digest(code);
   const expiresAt = new Date(Date.now() + Math.min(1440, Math.max(5, input.expiresInMinutes ?? 15)) * 60_000);
-  const { error } = await supabaseAdmin.from("kevin_v2_pairing_codes").insert({
+  const { error } = await v2Db.from("kevin_v2_pairing_codes").insert({
     code_hash: codeHash, requested_scopes: allowed, created_by: input.createdBy ?? null,
     expires_at: expiresAt.toISOString(), status: "active",
   });
@@ -56,7 +99,7 @@ export async function acceptKevinV2Pairing(input: {
   const identity = await getKevinV2Identity();
   const codeHash = await digest(input.code.trim().toUpperCase());
   // Conditional UPDATE is the single-use lock: only one concurrent request can consume it.
-  const { data: pairing, error } = await supabaseAdmin.from("kevin_v2_pairing_codes")
+  const { data: pairing, error } = await v2Db.from("kevin_v2_pairing_codes")
     .update({ status: "consumed", consumed_at: new Date().toISOString(), consumed_by_app_id: input.remote.app_id })
     .eq("code_hash", codeHash).eq("status", "active").gt("expires_at", new Date().toISOString())
     .select("id,requested_scopes").maybeSingle();
@@ -225,11 +268,11 @@ export async function authenticateKevinV2Request(request: Request, body: unknown
   if (!connectionId || !/^\d{10}$/.test(timestamp) || !/^[a-f0-9]{32}$/i.test(nonce) ||
       !/^[a-f0-9]{64}$/i.test(signature)) throw new Error("Cabeçalhos de autenticação ausentes ou inválidos.");
 
-  const { data: connection, error } = await supabaseAdmin.from("kevin_v2_connections")
+  const { data: connection, error } = await v2Db.from("kevin_v2_connections")
     .select("*").eq("id", connectionId).eq("status", "connected").maybeSingle();
   if (error) throw error;
   if (!connection) throw new Error("Conexão Kevin não encontrada.");
-  const row = connection as Connection;
+  const row = connection as unknown as Connection;
   const secret = await decryptKevinSecret(row.encrypted_shared_secret, MASTER_KEY());
   const valid = await verifyKevinRequest({
     secret, method: request.method, pathAndQuery: new URL(request.url).pathname + new URL(request.url).search,
@@ -237,14 +280,14 @@ export async function authenticateKevinV2Request(request: Request, body: unknown
   });
   if (!valid) throw new Error("Assinatura inválida ou expirada.");
 
-  const { error: nonceError } = await supabaseAdmin.from("kevin_v2_nonces").insert({
+  const { error: nonceError } = await v2Db.from("kevin_v2_nonces").insert({
     connection_id: row.id, nonce, expires_at: new Date(Date.now() + 10 * 60_000).toISOString(),
   });
   if (nonceError) {
     if (nonceError.code === "23505") throw new Error("Requisição repetida.");
     throw nonceError;
   }
-  await supabaseAdmin.from("kevin_v2_connections").update({ last_seen_at: new Date().toISOString() }).eq("id", row.id);
+  await v2Db.from("kevin_v2_connections").update({ last_seen_at: new Date().toISOString() }).eq("id", row.id);
   return row;
 }
 
@@ -262,7 +305,7 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
       if (event.sourceAppId !== connection.remote_app_id || !connection.scopes.includes(event.category)) {
         throw new Error("Origem ou escopo não autorizado.");
       }
-      const { error: inboxError } = await supabaseAdmin.from("kevin_v2_inbox").insert({
+      const { error: inboxError } = await v2Db.from("kevin_v2_inbox").insert({
         source_app_id: event.sourceAppId, event_id: event.eventId, category: event.category,
         source_record_id: event.recordId, entity_version: event.entityVersion,
         operation: event.operation, checksum: event.checksum, status: "received",
@@ -276,7 +319,7 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
         p_deleted_at: event.operation === "delete" ? event.occurredAt : null,
       });
       if (applyError) throw applyError;
-      await supabaseAdmin.from("kevin_v2_inbox").update({
+      await v2Db.from("kevin_v2_inbox").update({
         status: applied === "applied" ? "applied" : "duplicate", applied_at: new Date().toISOString(),
       }).eq("source_app_id", event.sourceAppId).eq("event_id", event.eventId);
       accepted.push(event.eventId);
@@ -284,7 +327,7 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
       rejected.push({ eventId: (raw as { eventId?: string })?.eventId, error: safeMessage(error) });
     }
   }
-  await supabaseAdmin.from("kevin_v2_transfer_history").insert({
+  await v2Db.from("kevin_v2_transfer_history").insert({
     correlation_id: crypto.randomUUID(), connection_id: connection.id, operation: "push",
     direction: "inbound", source_app_id: connection.remote_app_id, target_app_id: connection.local_app_id,
     item_count: accepted.length, status: rejected.length ? (accepted.length ? "partial" : "error") : "success",
@@ -301,11 +344,11 @@ export async function ackKevinV2Deliveries(request: Request, body: unknown) {
   }
   const eventIds = (body as { eventIds: unknown[] }).eventIds.filter((v): v is string => typeof v === "string").slice(0, 100);
   if (!eventIds.length) throw new Error("Nenhum eventId informado.");
-  const { data: outbox } = await supabaseAdmin.from("kevin_v2_outbox")
+  const { data: outbox } = await v2Db.from("kevin_v2_outbox")
     .select("id,event_id").in("event_id", eventIds);
   const outboxIds = (outbox ?? []).map((row) => row.id);
   if (outboxIds.length) {
-    const { error } = await supabaseAdmin.from("kevin_v2_deliveries").update({
+    const { error } = await v2Db.from("kevin_v2_deliveries").update({
       status: "delivered", delivered_at: new Date().toISOString(), lease_until: null,
     }).eq("connection_id", connection.id).in("outbox_id", outboxIds).in("status", ["pending", "leased"]);
     if (error) throw error;
