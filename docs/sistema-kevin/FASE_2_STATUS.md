@@ -29,3 +29,6 @@ O runtime usa as tabelas `kevin_v2_*` descritas em `SCHEMA_V2_DRAFT.sql`. O sche
 - O build e o typecheck dos commits recentes precisam ser confirmados pelo GitHub Actions.
 
 **Estado:** integração de pareamento bilateral adicionada ao código da branch `main`. Não significa que os aplicativos já estejam conectados. Nenhuma alteração de banco, deploy ou transferência de dados foi realizada.
+
+
+Última revisão: os tipos locais do adaptador v2 foram ampliados para representar as tabelas do contrato sem usar `any` explícito. A validação do GitHub Actions está sendo repetida.
