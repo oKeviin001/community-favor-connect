@@ -15,6 +15,7 @@ begin
       join storage.objects s
         on s.bucket_id = 'comprovantes'
        and s.name = a.path
+       and s.name like a.uploader_id::text || '/' || old.id::text || '/%'
       where a.order_id = old.id
         and a.tipo = 'whatsapp'
         and a.uploader_id in (old.cliente_id, old.entregador_id)
