@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CourierShell } from "@/components/CourierShell";
-import { Field, PageHeader, StepBar } from "@/components/kit";
+import { Field, StepBar } from "@/components/kit";
+import { useGrupos } from "@/lib/groups";
 import { toast } from "sonner";
 import {
   Bike,
@@ -20,10 +21,10 @@ import {
 export const Route = createFileRoute("/_authenticated/entregador/cadastro")({
   head: () => ({
     meta: [
-      { title: "Cadastro de entregador — Pede pro Kevin" },
-      { name: "description", content: "Cadastre-se como entregador: dados pessoais, documentos e disponibilidade." },
-      { property: "og:title", content: "Cadastro de entregador — Pede pro Kevin" },
-      { property: "og:description", content: "Cadastre-se como entregador: dados pessoais, documentos e disponibilidade." },
+      { title: "Cadastro de colaborador — Pede pro Kevin" },
+      { name: "description", content: "Cadastre-se como colaborador: dados, documentos, disponibilidade e grupos de serviço." },
+      { property: "og:title", content: "Cadastro de colaborador — Pede pro Kevin" },
+      { property: "og:description", content: "Cadastre-se como colaborador e escolha seus grupos de serviço." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -70,12 +71,15 @@ function fmtTel(v: string) {
 
 function CadastroEntregador() {
   const navigate = useNavigate();
+  const { grupos } = useGrupos();
   const [passo, setPasso] = useState(1);
   const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [uploading, setUploading] = useState<DocKey | null>(null);
   const [statusExistente, setStatusExistente] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [areas, setAreas] = useState<Record<string, string>>({});
+  const [gruposAtuais, setGruposAtuais] = useState<Set<string>>(new Set());
 
   const [f, setF] = useState({
     nome_completo: "",
@@ -117,10 +121,12 @@ function CadastroEntregador() {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return setCarregando(false);
       setUserId(u.user.id);
-      const [{ data: app }, { data: prof }] = await Promise.all([
+      const [{ data: app }, { data: prof }, { data: categoriasAtuais }] = await Promise.all([
         supabase.from("courier_applications").select("*").eq("user_id", u.user.id).maybeSingle(),
         supabase.from("profiles").select("nome, telefone, bairro").eq("id", u.user.id).maybeSingle(),
+        supabase.from("provider_categories").select("categoria_slug").eq("user_id", u.user.id),
       ]);
+      setGruposAtuais(new Set((categoriasAtuais ?? []).map((c) => c.categoria_slug)));
       if (app) {
         setStatusExistente(app.status);
         setF((p) => ({
@@ -190,6 +196,8 @@ function CadastroEntregador() {
     q.ja_trabalhou_entregas !== null &&
     q.possui_smartphone !== null &&
     q.possui_documento !== null;
+  const itensAreas = Object.entries(areas).map(([slug, justificativa]) => ({ slug, justificativa: justificativa.trim() }));
+  const passo5Ok = gruposAtuais.size > 0 || (itensAreas.length > 0 && itensAreas.every((item) => item.justificativa.length >= 10 && item.justificativa.length <= 600));
 
   async function enviarCadastro() {
     if (!userId) return;
@@ -235,11 +243,20 @@ function CadastroEntregador() {
         application_id: salvo.id,
         autor_id: userId,
         status: "pendente",
-        nota: "Candidatura enviada pelo entregador",
+        nota: "Candidatura enviada pelo colaborador",
       });
+    }
+    let erroGrupos: string | null = null;
+    if (!error && itensAreas.length > 0) {
+      const { error: categoryError } = await supabase.rpc("submit_category_request", { _itens: itensAreas });
+      if (categoryError) erroGrupos = categoryError.message;
     }
     setEnviando(false);
     if (error) return toast.error(error.message);
+    if (erroGrupos) {
+      toast.error(`Cadastro salvo, mas as inscrições nos grupos não foram enviadas: ${erroGrupos}`);
+      return;
+    }
     setStatusExistente("pendente");
     toast.success("Candidatura enviada para análise.");
     navigate({ to: "/entregador" });
@@ -265,12 +282,12 @@ function CadastroEntregador() {
         >
           <ChevronLeft size={18} />
         </button>
-        <h1 className="text-lg font-semibold flex-1 text-center pr-10">Cadastro de entregador</h1>
+        <h1 className="text-lg font-semibold flex-1 text-center pr-10">Cadastro de colaborador</h1>
       </header>
 
       <div className="px-6 pt-4">
-        <StepBar total={4} current={passo} />
-        <p className="text-center text-[11px] text-muted-foreground mt-2">Passo {passo} de 4</p>
+        <StepBar total={5} current={passo} />
+        <p className="text-center text-[11px] text-muted-foreground mt-2">Passo {passo} de 5</p>
       </div>
 
       {statusExistente && (
@@ -474,7 +491,7 @@ function CadastroEntregador() {
                 </div>
               </div>
 
-              <Field label="Por que você quer ser um entregador do Pede pro Kevin?">
+              <Field label="Por que você quer ser um colaborador do Pede pro Kevin?">
                 <textarea rows={2} value={f.motivo} onChange={(e) => set("motivo")(e.target.value)} placeholder="Conte o seu motivo" className="field-textarea" />
               </Field>
 
@@ -498,10 +515,59 @@ function CadastroEntregador() {
           </>
         )}
 
-        {passo < 4 ? (
+        {passo === 5 && (
+          <>
+            <h2 className="text-xl font-semibold">Escolha seus grupos</h2>
+            <p className="text-sm text-muted-foreground -mt-3">Selecione as áreas em que quer trabalhar e conte sua experiência em cada uma. Cada inscrição passa pela administração.</p>
+            <div className="space-y-3">
+              {grupos.map((grupo) => {
+                const atual = gruposAtuais.has(grupo.slug);
+                const selecionado = Object.hasOwn(areas, grupo.slug);
+                return (
+                  <div key={grupo.slug} className={`surface p-4 space-y-3 ${atual ? "opacity-70" : ""}`}>
+                    <button
+                      type="button"
+                      disabled={atual}
+                      onClick={() => setAreas((prev) => {
+                        const next = { ...prev };
+                        if (selecionado) delete next[grupo.slug];
+                        else next[grupo.slug] = "";
+                        return next;
+                      })}
+                      className="w-full flex items-center gap-3 text-left"
+                    >
+                      <span className="text-2xl">{grupo.icone}</span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-sm font-semibold">{grupo.nome}</span>
+                        <span className="block text-[11px] text-muted-foreground">{atual ? "Você já participa deste grupo" : grupo.descricao}</span>
+                      </span>
+                      <span className={`size-5 rounded-md border-2 flex items-center justify-center ${atual || selecionado ? "bg-primary border-primary text-primary-foreground" : "border-border"}`}>
+                        {(atual || selecionado) && <CheckCircle2 size={12} />}
+                      </span>
+                    </button>
+                    {selecionado && !atual && (
+                      <Field label={`Sua experiência em ${grupo.nome}`} required>
+                        <textarea
+                          rows={3}
+                          value={areas[grupo.slug] ?? ""}
+                          onChange={(e) => setAreas((prev) => ({ ...prev, [grupo.slug]: e.target.value.slice(0, 600) }))}
+                          placeholder="Descreva sua experiência, ferramentas ou qualificação (mínimo de 10 caracteres)."
+                          className="field-textarea"
+                        />
+                      </Field>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-muted-foreground">Você poderá se inscrever em outros grupos depois pela área do colaborador.</p>
+          </>
+        )}
+
+        {passo < 5 ? (
           <button
             onClick={() => setPasso(passo + 1)}
-            disabled={(passo === 1 && !passo1Ok) || (passo === 2 && !passo2Ok) || (passo === 3 && !passo3Ok)}
+            disabled={(passo === 1 && !passo1Ok) || (passo === 2 && !passo2Ok) || (passo === 3 && !passo3Ok) || (passo === 4 && !passo4Ok)}
             className="btn-base btn-base-active btn-primary-solid w-full h-14"
           >
             Continuar
@@ -509,10 +575,10 @@ function CadastroEntregador() {
         ) : (
           <button
             onClick={enviarCadastro}
-            disabled={enviando || !passo4Ok}
+            disabled={enviando || !passo5Ok}
             className="btn-base btn-base-active btn-primary-solid w-full h-14"
           >
-            {enviando ? "Enviando..." : "Enviar cadastro"}
+            {enviando ? "Enviando..." : "Enviar cadastro e inscrições"}
           </button>
         )}
         <p className="text-center text-[11px] text-muted-foreground">Cadastro 100% gratuito</p>

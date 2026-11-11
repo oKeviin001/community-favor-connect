@@ -14,6 +14,7 @@ import {
   type Overrides,
 } from "@/lib/dev-mode";
 import { CandidaturasAdmin } from "@/components/CandidaturasAdmin";
+import { AdminGrupos } from "@/components/AdminGrupos";
 import {
   AdminAuditoria,
   AdminAvisos,
@@ -79,6 +80,7 @@ type TabId =
   | "dashboard"
   | "usuarios"
   | "entregadores"
+  | "grupos"
   | "apps"
   | "pedidos"
   | "avisos"
@@ -97,7 +99,8 @@ type TabId =
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard", label: "Painel" },
   { id: "usuarios", label: "Usuários" },
-  { id: "entregadores", label: "Entregadores" },
+  { id: "entregadores", label: "Colaboradores" },
+  { id: "grupos", label: "Grupos" },
   { id: "apps", label: "Candidaturas" },
   { id: "pedidos", label: "Pedidos" },
   { id: "avisos", label: "Avisos" },
@@ -255,6 +258,7 @@ function Dev() {
         {tab === "dashboard" && <AdminDashboard />}
         {tab === "usuarios" && <AdminUsuarios />}
         {tab === "entregadores" && <AdminEntregadores onVerCandidatura={() => setTab("apps")} />}
+        {tab === "grupos" && <AdminGrupos />}
         {tab === "pedidos" && <AdminPedidos />}
         {tab === "avisos" && <AdminAvisos />}
         {tab === "conteudo" && <AdminConteudo />}
@@ -349,7 +353,7 @@ function Dev() {
       {tab === "apps" && (
         <div className="pb-4">
           <div className="px-6 pb-3">
-            <h2 className="text-base font-semibold">Candidaturas de entregadores</h2>
+            <h2 className="text-base font-semibold">Candidaturas de colaboradores</h2>
             <p className="text-[12px] text-muted-foreground">Gerencie e aprove as candidaturas recebidas.</p>
           </div>
           <CandidaturasAdmin />

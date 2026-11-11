@@ -5,20 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { useAppConfig } from "@/lib/app-config";
 import { Field, PageHeader, SectionTitle } from "@/components/kit";
-import {
-  CATEGORIAS_PRINCIPAIS,
-  PROPOSTA_AVISO,
-  corClasses,
-  formatBRL,
-  getCategorias,
-  type CategoriaId,
-} from "@/lib/order-helpers";
+import { PROPOSTA_AVISO, corClasses, formatBRL } from "@/lib/order-helpers";
+import { categoriaLegada, useGrupos } from "@/lib/groups";
 import { useGodMode } from "@/lib/dev-mode";
 import { toast } from "sonner";
 import { Check, Info, MapPin, Navigation, ShoppingBag, Wallet } from "lucide-react";
 
 const searchSchema = z.object({
-  categoria: z.enum(["mercado", "farmacia", "padaria", "lojas", "retirada", "favor", "livre"]).optional(),
+  categoria: z.string().max(60).regex(/^[a-z0-9-]+$/).optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/novo-pedido")({
@@ -40,13 +34,20 @@ function NovoPedido() {
   const { categoria: initialCat } = Route.useSearch();
   const navigate = useNavigate();
   const god = useGodMode();
-  const categorias = getCategorias();
+  const { grupos } = useGrupos();
+  const cores = ["brand-green", "brand-blue", "brand-purple", "brand-orange", "brand-amber", "brand-pink"];
   const cards = useMemo(
-    () => CATEGORIAS_PRINCIPAIS.map((id) => categorias.find((c) => c.id === id)!).filter(Boolean),
-    [categorias],
+    () => grupos.map((g, index) => ({
+      id: g.slug,
+      label: g.nome,
+      emoji: g.icone,
+      descricao: g.descricao ?? "Peça ajuda neste grupo de serviço.",
+      color: cores[index % cores.length] ?? "brand-blue",
+    })),
+    [grupos],
   );
 
-  const [categoria, setCategoria] = useState<CategoriaId | null>(initialCat ?? null);
+  const [categoria, setCategoria] = useState<string | null>(initialCat ?? null);
   const [descricao, setDescricao] = useState("");
   const [origem, setOrigem] = useState("");
   const [destino, setDestino] = useState("");
@@ -59,7 +60,7 @@ function NovoPedido() {
   const pedidosPausados = config.pausarPedidos === true;
 
   const valorNum = Number(valor.replace(",", ".")) || 0;
-  const catSel = categorias.find((c) => c.id === categoria);
+  const catSel = grupos.find((g) => g.slug === categoria);
 
   const podeEnviar = !pedidosPausados && (god || Boolean(categoria && descricao.trim() && destino.trim() && valorNum > 0));
 
@@ -74,7 +75,8 @@ function NovoPedido() {
         .from("orders")
         .insert({
           cliente_id: u.user.id,
-          categoria: (categoria ?? "livre") as never,
+          categoria: categoriaLegada(categoria ?? "livre") as never,
+          categoria_servico: categoria ?? "livre",
           descricao: descricao.trim() || (god ? "(teste dev)" : ""),
           loja: origem.trim() || null,
           endereco_loja: origem.trim() || null,
@@ -92,7 +94,7 @@ function NovoPedido() {
         .select("id")
         .single();
       if (error) throw error;
-      toast.success("Pedido solicitado! Já está visível para os entregadores.");
+      toast.success("Pedido solicitado! Já está visível no grupo correspondente.");
       navigate({ to: "/pedidos/$id", params: { id: data.id } });
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erro ao criar pedido");
@@ -128,7 +130,7 @@ function NovoPedido() {
                 <button
                   type="button"
                   key={c.id}
-                  onClick={() => setCategoria(c.id as CategoriaId)}
+                  onClick={() => setCategoria(c.id)}
                   className={`text-left p-4 rounded-2xl border transition-all motion-interactive ${
                     ativo
                       ? "border-primary bg-primary/5 shadow-soft"
@@ -271,7 +273,7 @@ function NovoPedido() {
         <section className="fade-rise">
           <SectionTitle index={5}>Resumo</SectionTitle>
           <div className="surface p-4 space-y-3 motion-fade-in">
-            <ResumoLinha label="Tipo de serviço" value={catSel?.label ?? "Não selecionado"} />
+            <ResumoLinha label="Tipo de serviço" value={catSel?.nome ?? "Não selecionado"} />
             <ResumoLinha label="Origem" value={origem || "Não informada"} />
             <ResumoLinha label="Destino" value={destino || "Não informado"} />
             <ResumoLinha label="Região" value={bairro || "Não informada"} />
@@ -289,7 +291,7 @@ function NovoPedido() {
             {loading ? "Enviando..." : "Solicitar pedido"}
           </button>
           <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-            O Pede pro Kevin apenas conecta pessoas: o valor final e a forma de pagamento são combinados diretamente entre você e o entregador.
+            O Pede pro Kevin apenas conecta pessoas: o valor final e a forma de pagamento são combinados diretamente entre você e o colaborador escolhido.
           </p>
         </div>
       </form>

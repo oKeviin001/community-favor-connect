@@ -223,6 +223,27 @@ async function listCouriers(filtro: string, busca: string) {
   return { couriers: rows };
 }
 
+async function listGroups() {
+  const [categorias, solicitacoes, membros] = await Promise.all([
+    supabaseAdmin.from("service_categories").select("slug, nome, descricao, icone, ativo, ordem, criado_em").order("ordem"),
+    supabaseAdmin.from("provider_category_requests").select("*").order("criado_em", { ascending: false }).limit(200),
+    supabaseAdmin.from("provider_categories").select("user_id, categoria_slug, qualificacao, aprovado_em, aprovado_por").order("aprovado_em", { ascending: false }),
+  ]);
+  const ids = [...new Set([
+    ...(solicitacoes.data ?? []).map((r) => r.user_id),
+    ...(membros.data ?? []).map((r) => r.user_id),
+  ])];
+  const { data: profiles } = ids.length
+    ? await supabaseAdmin.from("profiles").select("id, nome").in("id", ids)
+    : { data: [] as { id: string; nome: string }[] };
+  const nomes = new Map((profiles ?? []).map((p) => [p.id, p.nome]));
+  return {
+    grupos: categorias.data ?? [],
+    solicitacoes: (solicitacoes.data ?? []).map((r) => ({ ...r, nome: nomes.get(r.user_id) ?? "Usuário" })),
+    membros: (membros.data ?? []).map((r) => ({ ...r, nome: nomes.get(r.user_id) ?? "Usuário" })),
+  };
+}
+
 async function listOrders(filtro: string, busca: string) {
   let q = supabaseAdmin
     .from("orders")
@@ -263,6 +284,8 @@ export async function adminQueryFor(context: AuthContext, view: string, filtro: 
       return listUsers(filtro, busca);
     case "entregadores":
       return listCouriers(filtro, busca);
+    case "grupos":
+      return listGroups();
     case "pedidos":
       return listOrders(filtro, busca);
     case "avisos": {
@@ -402,6 +425,86 @@ async function mutate(admin: { id: string; nome: string }, acao: string, p: Reco
       await setProfileFlags(id, { suspenso: false, bloqueado: false });
       await log(admin, "Reativou entregador", "entregador", id);
       return { ok: true };
+
+    // ---- grupos de colaboradores
+    case "grupo_salvar": {
+      const originalSlug = optStr(p, "originalSlug", 60);
+      const slug = (typeof p["slug"] === "string" ? p["slug"] : "").trim().toLowerCase();
+      const nome = (typeof p["nome"] === "string" ? p["nome"] : "").trim();
+      const descricao = (typeof p["descricao"] === "string" ? p["descricao"] : "").trim();
+      const icone = (typeof p["icone"] === "string" ? p["icone"] : "🧩").trim() || "🧩";
+      const ativo = p["ativo"] !== false;
+      const ordem = Math.max(0, Math.min(9999, Math.trunc(Number(p["ordem"]) || 0)));
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 60) throw new Error("Identificador do grupo inválido");
+      if (nome.length < 2 || nome.length > 80) throw new Error("Nome do grupo deve ter de 2 a 80 caracteres");
+      if (descricao.length > 240 || icone.length > 16) throw new Error("Descrição ou ícone muito longo");
+      const { data: duplicados } = await supabaseAdmin.from("service_categories").select("slug").ilike("nome", nome);
+      if ((duplicados ?? []).some((g) => g.slug !== (originalSlug ?? slug))) throw new Error("Já existe um grupo com este nome");
+      const values = { slug, nome, descricao: descricao || null, icone, ativo, ordem };
+      if (originalSlug) {
+        if (originalSlug !== slug) throw new Error("O identificador de um grupo existente não pode ser alterado");
+        const { error } = await supabaseAdmin.from("service_categories").update(values).eq("slug", originalSlug);
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseAdmin.from("service_categories").insert(values);
+        if (error) throw error;
+      }
+      await log(admin, originalSlug ? "Editou grupo" : "Criou grupo", "grupo", slug, { nome, ativo, ordem });
+      return { ok: true, mensagem: originalSlug ? "Grupo atualizado" : "Grupo criado" };
+    }
+    case "grupo_inscricao_decidir": {
+      const requestId = typeof p["id"] === "string" ? p["id"] : "";
+      const aprovadas = Array.isArray(p["aprovadas"])
+        ? [...new Set(p["aprovadas"].filter((v): v is string => typeof v === "string"))]
+        : [];
+      const observacao = typeof p["observacao"] === "string" ? p["observacao"].trim().slice(0, 600) : "";
+      const { data: request, error: requestError } = await supabaseAdmin
+        .from("provider_category_requests")
+        .select("*")
+        .eq("id", requestId)
+        .maybeSingle();
+      if (requestError) throw requestError;
+      if (!request || request.status !== "pendente") throw new Error("Solicitação não está pendente");
+      const itens = Array.isArray(request.itens) ? request.itens as { slug?: unknown; justificativa?: unknown }[] : [];
+      const validas: string[] = [];
+      for (const item of itens) {
+        const slug = typeof item.slug === "string" ? item.slug : "";
+        if (!slug || !aprovadas.includes(slug)) continue;
+        const qualificacao = typeof item.justificativa === "string" ? item.justificativa.slice(0, 600) : "";
+        const { error } = await supabaseAdmin.from("provider_categories").upsert({
+          user_id: request.user_id,
+          categoria_slug: slug,
+          qualificacao,
+          aprovado_por: admin.id,
+          aprovado_em: new Date().toISOString(),
+        }, { onConflict: "user_id,categoria_slug" });
+        if (error) throw error;
+        validas.push(slug);
+      }
+      const status = validas.length === 0 ? "recusada" : validas.length === itens.length ? "aprovada" : "parcial";
+      const { error: updateError } = await supabaseAdmin.from("provider_category_requests").update({
+        status,
+        categorias_aprovadas: validas,
+        observacao_admin: observacao || null,
+        analisado_em: new Date().toISOString(),
+        analisado_por: admin.id,
+      }).eq("id", requestId);
+      if (updateError) throw updateError;
+      if (validas.length > 0) {
+        await supabaseAdmin.from("profiles").update({ tipo: "ambos" }).eq("id", request.user_id).eq("tipo", "cliente");
+      }
+      await log(admin, "Analisou inscrição em grupos", "colaborador", request.user_id, { solicitacao: requestId, aprovadas: validas, status });
+      return { ok: true, mensagem: "Análise salva" };
+    }
+    case "grupo_remover_membro": {
+      const userId = typeof p["userId"] === "string" ? p["userId"] : "";
+      const slug = typeof p["slug"] === "string" ? p["slug"] : "";
+      if (!userId || !slug) throw new Error("Dados inválidos");
+      const { error } = await supabaseAdmin.from("provider_categories").delete().eq("user_id", userId).eq("categoria_slug", slug);
+      if (error) throw error;
+      await log(admin, "Removeu membro de grupo", "colaborador", userId, { grupo: slug });
+      return { ok: true, mensagem: "Membro removido do grupo" };
+    }
 
     // ---- pedidos
     case "order_status": {
