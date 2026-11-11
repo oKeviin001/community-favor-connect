@@ -62,11 +62,17 @@ function AuthPage() {
       if (!pending) return;
       try {
         const parsed = JSON.parse(pending) as { termos: string; privacidade: string };
-        const { error } = await supabase.from("user_consents").insert({
-          user_id: userId,
-          termos_versao: parsed.termos,
-          privacidade_versao: parsed.privacidade,
-        });
+        const { error } = await supabase.from("user_consents").upsert(
+          {
+            user_id: userId,
+            termos_versao: parsed.termos,
+            privacidade_versao: parsed.privacidade,
+          },
+          {
+            onConflict: "user_id,termos_versao,privacidade_versao",
+            ignoreDuplicates: true,
+          },
+        );
         if (!error) window.sessionStorage.removeItem("pede-kevin:consent-pending");
       } catch {
         // Mantém o aceite pendente para nova tentativa; não descarta evidência de concordância.
