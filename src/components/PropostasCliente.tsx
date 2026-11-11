@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/order-helpers";
 import { toast } from "sonner";
-import { Check, Clock, Loader2, Star, UserRound } from "lucide-react";
+import { Check, Clock, Loader2, Star, UserRound, MapPin } from "lucide-react";
 
 interface HistoricoItem {
   evento: string;
@@ -10,6 +10,8 @@ interface HistoricoItem {
   valor: number | null;
   criado_em: string;
 }
+
+interface LocalizacaoColaborador { colaborador_id: string; nome: string; latitude: number; longitude: number; atualizado_em: string; }
 
 interface Proposta {
   id: string;
@@ -56,9 +58,14 @@ export function PropostasCliente({
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [localizacoes, setLocalizacoes] = useState<LocalizacaoColaborador[]>([]);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.rpc("list_order_proposals", { _order_id: orderId });
+    const [{ data, error }, { data: locais }] = await Promise.all([
+      supabase.rpc("list_order_proposals", { _order_id: orderId }),
+      supabase.rpc("list_order_proposal_locations" as never, { _order_id: orderId } as never),
+    ]);
+    setLocalizacoes((locais as unknown as LocalizacaoColaborador[]) ?? []);
     if (error) {
       setErro(error.message);
     } else {
@@ -73,8 +80,12 @@ export function PropostasCliente({
     const channel = supabase
       .channel(`propostas-cliente-${orderId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "order_proposals", filter: `order_id=eq.${orderId}` }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "collaborator_presence" }, load)
       .subscribe();
+    // Polling keeps the map fresh even if Realtime is not enabled for the presence table.
+    const refresh = window.setInterval(() => void load(), 15000);
     return () => {
+      window.clearInterval(refresh);
       supabase.removeChannel(channel);
     };
   }, [orderId, load]);
@@ -169,6 +180,36 @@ export function PropostasCliente({
               </div>
               <p className="text-[10px] text-muted-foreground">Referência da diferença: sua oferta de {ofertaCliente > 0 ? formatBRL(ofertaCliente) : "A combinar"}.</p>
 
+              {(() => {
+                const local = localizacoes.find((item) => item.colaborador_id === p.prestador_id);
+                if (!local) return (
+                  <div className="rounded-xl bg-secondary/70 p-3 flex items-start gap-2">
+                    <MapPin size={16} className="text-muted-foreground mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-muted-foreground">Localização indisponível no momento. O colaborador só aparece no mapa quando ativa a disponibilidade e permite o acesso à localização.</p>
+                  </div>
+                );
+                const margem = 0.008;
+                const bbox = [
+                  local.longitude - margem,
+                  local.latitude - margem,
+                  local.longitude + margem,
+                  local.latitude + margem,
+                ].join("%2C");
+                const mapa = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${local.latitude}%2C${local.longitude}`;
+                return (
+                  <div className="rounded-xl border border-success/30 overflow-hidden">
+                    <div className="p-3 flex items-center gap-2">
+                      <MapPin size={17} className="text-success shrink-0" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-xs font-semibold">Colaborador disponível</span>
+                        <span className="block text-[10px] text-muted-foreground">Atualizada às {new Date(local.atualizado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+                      </span>
+                    </div>
+                    <iframe title={`Localização de ${p.prestador_nome ?? "colaborador"}`} src={mapa} className="w-full h-48 border-0" loading="lazy" referrerPolicy="no-referrer" />
+                    <p className="px-3 py-2 text-[10px] text-muted-foreground">Mapa © OpenStreetMap contributors</p>
+                  </div>
+                );
+              })()}
               {p.qualificacao && (
                 <div>
                   <p className="label-kicker">Qualificação aprovada</p>
