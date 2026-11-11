@@ -79,10 +79,13 @@ export function PropostasCliente({
     void load();
     const channel = supabase
       .channel(`propostas-cliente-${orderId}`)
-       .on("postgres_changes", { event: "*", schema: "public", table: "order_proposals", filter: `order_id=eq.${orderId}` }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "order_proposals", filter: `order_id=eq.${orderId}` }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "collaborator_presence" }, load)
       .subscribe();
+    // Polling keeps the map fresh even if Realtime is not enabled for the presence table.
+    const refresh = window.setInterval(() => void load(), 15000);
     return () => {
+      window.clearInterval(refresh);
       supabase.removeChannel(channel);
     };
   }, [orderId, load]);
