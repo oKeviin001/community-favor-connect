@@ -3,8 +3,8 @@ export const APP_SLUG = "pede-pro-kevin";
 export const APP_NOME = "Pede pro Kevin";
 export const APP_VERSAO = "1.0.0";
 
-export const TERMOS_VERSAO = "1.0";
-export const PRIVACIDADE_VERSAO = "1.0";
+export const TERMOS_VERSAO = "1.1";
+export const PRIVACIDADE_VERSAO = "1.1";
 
 export const TIPOS_DADOS = [
   { id: "usuarios", label: "Usuários" },
