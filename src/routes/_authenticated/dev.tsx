@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { toast } from "sonner";
-import { deleteDevOrder, listDevData, updateDevOrderStatus, connectCentralKevinV2 } from "@/lib/dev-actions.functions";
+import { deleteDevOrder, listDevData, updateDevOrderStatus, connectCentralKevinV2, sendKevinV2SettingsPing } from "@/lib/dev-actions.functions";
 import {
   isGodMode,
   setGodMode,
@@ -124,6 +124,7 @@ function Dev() {
   const deleteDevOrderFn = useServerFn(deleteDevOrder);
   const updateDevOrderStatusFn = useServerFn(updateDevOrderStatus);
   const connectCentralKevinV2Fn = useServerFn(connectCentralKevinV2);
+  const sendKevinV2SettingsPingFn = useServerFn(sendKevinV2SettingsPing);
   const [god, setGod] = useState(isGodMode());
   const [ov, setOv] = useState<Overrides>(() => loadOverrides());
   const [orders, setOrders] = useState<OrderRow[]>([]);
@@ -132,6 +133,7 @@ function Dev() {
   const [tab, setTab] = useState<TabId>("dashboard");
   const [kevinPairingCode, setKevinPairingCode] = useState("");
   const [kevinConnecting, setKevinConnecting] = useState(false);
+  const [kevinPingSending, setKevinPingSending] = useState(false);
 
   async function reload() {
     const { data: u } = await supabase.auth.getUser();
@@ -159,6 +161,19 @@ function Dev() {
       toast.error(error instanceof Error ? error.message : "Não foi possível conectar à Central Kevin.");
     } finally {
       setKevinConnecting(false);
+    }
+  }
+
+  async function sendKevinSettingsPing() {
+    setKevinPingSending(true);
+    try {
+      const result = await sendKevinV2SettingsPingFn();
+      toast.success(`Ping recebido pela Central (HTTP ${result.httpStatus}).`);
+      console.info("Kevin v2 settings ping", result);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Falha ao enviar ping à Central.");
+    } finally {
+      setKevinPingSending(false);
     }
   }
 
@@ -297,6 +312,13 @@ function Dev() {
               {kevinConnecting ? "Conectando..." : "Conectar à Central Kevin"}
             </button>
             <p className="text-[11px] text-muted-foreground">A conexão depende da configuração dos secrets e da ativação do schema v2 no banco deste aplicativo. Nenhum dado de pedido é transferido por esta ação.</p>
+            <div className="border-t border-border pt-4 space-y-2">
+              <h3 className="text-sm font-semibold">Teste de comunicação</h3>
+              <p className="text-[11px] text-muted-foreground">Envia um único evento técnico pelo escopo settings. Não inclui pedidos, usuários nem configurações reais. A Central registrará o marcador de diagnóstico app-config-test.</p>
+              <button type="button" disabled={kevinPingSending} onClick={sendKevinSettingsPing} className="h-11 w-full rounded-xl border border-primary bg-primary/10 text-sm font-semibold text-primary disabled:opacity-50">
+                {kevinPingSending ? "Enviando ping..." : "Enviar ping de teste (settings)"}
+              </button>
+            </div>
           </section>
         )}
         {tab === "usuarios" && <AdminUsuarios />}
