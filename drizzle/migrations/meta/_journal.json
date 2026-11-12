@@ -29,6 +29,13 @@
       "when": 1794446241505,
       "tag": "0003_kevin_v2_core_activation",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794500000000,
+      "tag": "0004_kevin_v2_remote_connection_id",
+      "breakpoints": true
     }
   ]
 }
