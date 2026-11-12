@@ -20,8 +20,9 @@ const MASTER_KEY = () => process.env.KEVIN_MASTER_KEY ?? "";
 const v2Db = supabaseAdmin;
 
 export function requireKevinV2Config() {
-  if (!/^[a-f0-9]{64}$/i.test(MASTER_KEY())) {
-    throw new Error("KEVIN_MASTER_KEY ausente ou inválida (64 caracteres hexadecimais).");
+  const key = MASTER_KEY();
+  if (!/^[a-f0-9]{64}$/i.test(key) && !/^[A-Za-z0-9]{64,}$/.test(key)) {
+    throw new Error("KEVIN_MASTER_KEY ausente ou inválida.");
   }
 }
 
@@ -270,7 +271,7 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
         p_source_app_id: event.sourceAppId, p_category: event.category,
         p_source_record_id: event.recordId, p_payload: event.payload,
         p_entity_version: event.entityVersion, p_checksum: event.checksum,
-        p_deleted_at: event.operation === "delete" ? event.occurredAt : null,
+        p_deleted_at: event.operation === "delete" ? event.occurredAt : (null as unknown as string),
       });
       if (applyError) throw applyError;
       await v2Db.from("kevin_v2_inbox").update({

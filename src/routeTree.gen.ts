@@ -39,12 +39,11 @@ import { Route as ApiPublicKevinHandshakeRouteImport } from './routes/api/public
 import { Route as ApiPublicKevinLearnRouteImport } from './routes/api/public/kevin/learn'
 import { Route as ApiPublicKevinManifestRouteImport } from './routes/api/public/kevin/manifest'
 import { Route as ApiPublicKevinReceiveRouteImport } from './routes/api/public/kevin/receive'
-
-import { Route as ApiPublicKevinV2ManifestRouteImport } from './routes/api/public/kevin/v2/manifest'
-import { Route as ApiPublicKevinV2HandshakeRouteImport } from './routes/api/public/kevin/v2/handshake'
-import { Route as ApiPublicKevinV2EventsRouteImport } from './routes/api/public/kevin/v2/events'
 import { Route as ApiPublicKevinV2AckRouteImport } from './routes/api/public/kevin/v2/ack'
 import { Route as ApiPublicKevinV2ConfirmRouteImport } from './routes/api/public/kevin/v2/confirm'
+import { Route as ApiPublicKevinV2EventsRouteImport } from './routes/api/public/kevin/v2/events'
+import { Route as ApiPublicKevinV2HandshakeRouteImport } from './routes/api/public/kevin/v2/handshake'
+import { Route as ApiPublicKevinV2ManifestRouteImport } from './routes/api/public/kevin/v2/manifest'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -207,23 +206,6 @@ const ApiPublicKevinReceiveRoute = ApiPublicKevinReceiveRouteImport.update({
   path: '/api/public/kevin/receive',
   getParentRoute: () => rootRouteImport,
 } as any)
-
-
-const ApiPublicKevinV2ManifestRoute = ApiPublicKevinV2ManifestRouteImport.update({
-  id: '/api/public/kevin/v2/manifest',
-  path: '/api/public/kevin/v2/manifest',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicKevinV2HandshakeRoute = ApiPublicKevinV2HandshakeRouteImport.update({
-  id: '/api/public/kevin/v2/handshake',
-  path: '/api/public/kevin/v2/handshake',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicKevinV2EventsRoute = ApiPublicKevinV2EventsRouteImport.update({
-  id: '/api/public/kevin/v2/events',
-  path: '/api/public/kevin/v2/events',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicKevinV2AckRoute = ApiPublicKevinV2AckRouteImport.update({
   id: '/api/public/kevin/v2/ack',
   path: '/api/public/kevin/v2/ack',
@@ -234,6 +216,23 @@ const ApiPublicKevinV2ConfirmRoute = ApiPublicKevinV2ConfirmRouteImport.update({
   path: '/api/public/kevin/v2/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicKevinV2EventsRoute = ApiPublicKevinV2EventsRouteImport.update({
+  id: '/api/public/kevin/v2/events',
+  path: '/api/public/kevin/v2/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKevinV2HandshakeRoute =
+  ApiPublicKevinV2HandshakeRouteImport.update({
+    id: '/api/public/kevin/v2/handshake',
+    path: '/api/public/kevin/v2/handshake',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicKevinV2ManifestRoute =
+  ApiPublicKevinV2ManifestRouteImport.update({
+    id: '/api/public/kevin/v2/manifest',
+    path: '/api/public/kevin/v2/manifest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -265,12 +264,11 @@ export interface FileRoutesByFullPath {
   '/api/public/kevin/learn': typeof ApiPublicKevinLearnRoute
   '/api/public/kevin/manifest': typeof ApiPublicKevinManifestRoute
   '/api/public/kevin/receive': typeof ApiPublicKevinReceiveRoute
-
-  '/api/public/kevin/v2/manifest': typeof ApiPublicKevinV2ManifestRoute
-  '/api/public/kevin/v2/handshake': typeof ApiPublicKevinV2HandshakeRoute
-  '/api/public/kevin/v2/events': typeof ApiPublicKevinV2EventsRoute
   '/api/public/kevin/v2/ack': typeof ApiPublicKevinV2AckRoute
   '/api/public/kevin/v2/confirm': typeof ApiPublicKevinV2ConfirmRoute
+  '/api/public/kevin/v2/events': typeof ApiPublicKevinV2EventsRoute
+  '/api/public/kevin/v2/handshake': typeof ApiPublicKevinV2HandshakeRoute
+  '/api/public/kevin/v2/manifest': typeof ApiPublicKevinV2ManifestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -301,12 +299,11 @@ export interface FileRoutesByTo {
   '/api/public/kevin/learn': typeof ApiPublicKevinLearnRoute
   '/api/public/kevin/manifest': typeof ApiPublicKevinManifestRoute
   '/api/public/kevin/receive': typeof ApiPublicKevinReceiveRoute
-
-  '/api/public/kevin/v2/manifest': typeof ApiPublicKevinV2ManifestRoute
-  '/api/public/kevin/v2/handshake': typeof ApiPublicKevinV2HandshakeRoute
-  '/api/public/kevin/v2/events': typeof ApiPublicKevinV2EventsRoute
   '/api/public/kevin/v2/ack': typeof ApiPublicKevinV2AckRoute
   '/api/public/kevin/v2/confirm': typeof ApiPublicKevinV2ConfirmRoute
+  '/api/public/kevin/v2/events': typeof ApiPublicKevinV2EventsRoute
+  '/api/public/kevin/v2/handshake': typeof ApiPublicKevinV2HandshakeRoute
+  '/api/public/kevin/v2/manifest': typeof ApiPublicKevinV2ManifestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -340,6 +337,11 @@ export interface FileRoutesById {
   '/api/public/kevin/learn': typeof ApiPublicKevinLearnRoute
   '/api/public/kevin/manifest': typeof ApiPublicKevinManifestRoute
   '/api/public/kevin/receive': typeof ApiPublicKevinReceiveRoute
+  '/api/public/kevin/v2/ack': typeof ApiPublicKevinV2AckRoute
+  '/api/public/kevin/v2/confirm': typeof ApiPublicKevinV2ConfirmRoute
+  '/api/public/kevin/v2/events': typeof ApiPublicKevinV2EventsRoute
+  '/api/public/kevin/v2/handshake': typeof ApiPublicKevinV2HandshakeRoute
+  '/api/public/kevin/v2/manifest': typeof ApiPublicKevinV2ManifestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -373,11 +375,11 @@ export interface FileRouteTypes {
     | '/api/public/kevin/learn'
     | '/api/public/kevin/manifest'
     | '/api/public/kevin/receive'
-    | '/api/public/kevin/v2/manifest'
-    | '/api/public/kevin/v2/handshake'
-    | '/api/public/kevin/v2/events'
     | '/api/public/kevin/v2/ack'
     | '/api/public/kevin/v2/confirm'
+    | '/api/public/kevin/v2/events'
+    | '/api/public/kevin/v2/handshake'
+    | '/api/public/kevin/v2/manifest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -408,6 +410,11 @@ export interface FileRouteTypes {
     | '/api/public/kevin/learn'
     | '/api/public/kevin/manifest'
     | '/api/public/kevin/receive'
+    | '/api/public/kevin/v2/ack'
+    | '/api/public/kevin/v2/confirm'
+    | '/api/public/kevin/v2/events'
+    | '/api/public/kevin/v2/handshake'
+    | '/api/public/kevin/v2/manifest'
   id:
     | '__root__'
     | '/'
@@ -440,6 +447,11 @@ export interface FileRouteTypes {
     | '/api/public/kevin/learn'
     | '/api/public/kevin/manifest'
     | '/api/public/kevin/receive'
+    | '/api/public/kevin/v2/ack'
+    | '/api/public/kevin/v2/confirm'
+    | '/api/public/kevin/v2/events'
+    | '/api/public/kevin/v2/handshake'
+    | '/api/public/kevin/v2/manifest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -453,11 +465,11 @@ export interface RootRouteChildren {
   ApiPublicKevinLearnRoute: typeof ApiPublicKevinLearnRoute
   ApiPublicKevinManifestRoute: typeof ApiPublicKevinManifestRoute
   ApiPublicKevinReceiveRoute: typeof ApiPublicKevinReceiveRoute
-  ApiPublicKevinV2ManifestRoute: typeof ApiPublicKevinV2ManifestRoute
-  ApiPublicKevinV2HandshakeRoute: typeof ApiPublicKevinV2HandshakeRoute
-  ApiPublicKevinV2EventsRoute: typeof ApiPublicKevinV2EventsRoute
   ApiPublicKevinV2AckRoute: typeof ApiPublicKevinV2AckRoute
   ApiPublicKevinV2ConfirmRoute: typeof ApiPublicKevinV2ConfirmRoute
+  ApiPublicKevinV2EventsRoute: typeof ApiPublicKevinV2EventsRoute
+  ApiPublicKevinV2HandshakeRoute: typeof ApiPublicKevinV2HandshakeRoute
+  ApiPublicKevinV2ManifestRoute: typeof ApiPublicKevinV2ManifestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -672,28 +684,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicKevinReceiveRouteImport
       parentRoute: typeof rootRouteImport
     }
-
-    '/api/public/kevin/v2/manifest': {
-      id: '/api/public/kevin/v2/manifest'
-      path: '/api/public/kevin/v2/manifest'
-      fullPath: '/api/public/kevin/v2/manifest'
-      preLoaderRoute: typeof ApiPublicKevinV2ManifestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/kevin/v2/handshake': {
-      id: '/api/public/kevin/v2/handshake'
-      path: '/api/public/kevin/v2/handshake'
-      fullPath: '/api/public/kevin/v2/handshake'
-      preLoaderRoute: typeof ApiPublicKevinV2HandshakeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/kevin/v2/events': {
-      id: '/api/public/kevin/v2/events'
-      path: '/api/public/kevin/v2/events'
-      fullPath: '/api/public/kevin/v2/events'
-      preLoaderRoute: typeof ApiPublicKevinV2EventsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/kevin/v2/ack': {
       id: '/api/public/kevin/v2/ack'
       path: '/api/public/kevin/v2/ack'
@@ -706,6 +696,27 @@ declare module '@tanstack/react-router' {
       path: '/api/public/kevin/v2/confirm'
       fullPath: '/api/public/kevin/v2/confirm'
       preLoaderRoute: typeof ApiPublicKevinV2ConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kevin/v2/events': {
+      id: '/api/public/kevin/v2/events'
+      path: '/api/public/kevin/v2/events'
+      fullPath: '/api/public/kevin/v2/events'
+      preLoaderRoute: typeof ApiPublicKevinV2EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kevin/v2/handshake': {
+      id: '/api/public/kevin/v2/handshake'
+      path: '/api/public/kevin/v2/handshake'
+      fullPath: '/api/public/kevin/v2/handshake'
+      preLoaderRoute: typeof ApiPublicKevinV2HandshakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kevin/v2/manifest': {
+      id: '/api/public/kevin/v2/manifest'
+      path: '/api/public/kevin/v2/manifest'
+      fullPath: '/api/public/kevin/v2/manifest'
+      preLoaderRoute: typeof ApiPublicKevinV2ManifestRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -809,11 +820,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicKevinLearnRoute: ApiPublicKevinLearnRoute,
   ApiPublicKevinManifestRoute: ApiPublicKevinManifestRoute,
   ApiPublicKevinReceiveRoute: ApiPublicKevinReceiveRoute,
-  ApiPublicKevinV2ManifestRoute: ApiPublicKevinV2ManifestRoute,
-  ApiPublicKevinV2HandshakeRoute: ApiPublicKevinV2HandshakeRoute,
-  ApiPublicKevinV2EventsRoute: ApiPublicKevinV2EventsRoute,
   ApiPublicKevinV2AckRoute: ApiPublicKevinV2AckRoute,
   ApiPublicKevinV2ConfirmRoute: ApiPublicKevinV2ConfirmRoute,
+  ApiPublicKevinV2EventsRoute: ApiPublicKevinV2EventsRoute,
+  ApiPublicKevinV2HandshakeRoute: ApiPublicKevinV2HandshakeRoute,
+  ApiPublicKevinV2ManifestRoute: ApiPublicKevinV2ManifestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
