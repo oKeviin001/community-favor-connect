@@ -22,6 +22,13 @@
       "when": 1794327180358,
       "tag": "0002_collaborator_groups",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794446241505,
+      "tag": "0003_kevin_v2_core_activation",
+      "breakpoints": true
     }
   ]
 }

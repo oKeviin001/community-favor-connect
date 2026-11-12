@@ -568,6 +568,45 @@ export type Database = {
           },
         ]
       }
+      kevin_storage: {
+        Row: {
+          category: string
+          checksum: string
+          deleted_at: string | null
+          entity_version: number
+          id: string
+          payload: Json | null
+          received_at: string
+          source_app_id: string
+          source_record_id: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          checksum: string
+          deleted_at?: string | null
+          entity_version: number
+          id?: string
+          payload?: Json | null
+          received_at?: string
+          source_app_id: string
+          source_record_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          checksum?: string
+          deleted_at?: string | null
+          entity_version?: number
+          id?: string
+          payload?: Json | null
+          received_at?: string
+          source_app_id?: string
+          source_record_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       kevin_sync_queue: {
         Row: {
           criado_em: string
@@ -644,6 +683,510 @@ export type Database = {
             columns: ["conexao_id"]
             isOneToOne: false
             referencedRelation: "kevin_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kevin_v2_admin_commands: {
+        Row: {
+          approved_by: string | null
+          command_type: string
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          idempotency_key: string
+          payload: Json
+          requested_by: string | null
+          result: Json | null
+          scopes: string[]
+          status: string
+          target_app_id: string
+        }
+        Insert: {
+          approved_by?: string | null
+          command_type: string
+          completed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          idempotency_key: string
+          payload?: Json
+          requested_by?: string | null
+          result?: Json | null
+          scopes?: string[]
+          status?: string
+          target_app_id: string
+        }
+        Update: {
+          approved_by?: string | null
+          command_type?: string
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          payload?: Json
+          requested_by?: string | null
+          result?: Json | null
+          scopes?: string[]
+          status?: string
+          target_app_id?: string
+        }
+        Relationships: []
+      }
+      kevin_v2_app_identity: {
+        Row: {
+          app_id: string
+          app_name: string
+          app_slug: string
+          app_version: string
+          created_at: string
+          singleton: boolean
+        }
+        Insert: {
+          app_id?: string
+          app_name?: string
+          app_slug?: string
+          app_version?: string
+          created_at?: string
+          singleton?: boolean
+        }
+        Update: {
+          app_id?: string
+          app_name?: string
+          app_slug?: string
+          app_version?: string
+          created_at?: string
+          singleton?: boolean
+        }
+        Relationships: []
+      }
+      kevin_v2_artifacts: {
+        Row: {
+          artifact_checksum: string
+          artifact_manifest: Json
+          compatibility: Json
+          created_at: string
+          id: string
+          license_id: string | null
+          module_id: string
+          module_version: string
+          review_status: string
+          source_app_id: string
+          source_commit_sha: string
+        }
+        Insert: {
+          artifact_checksum: string
+          artifact_manifest: Json
+          compatibility?: Json
+          created_at?: string
+          id?: string
+          license_id?: string | null
+          module_id: string
+          module_version: string
+          review_status?: string
+          source_app_id: string
+          source_commit_sha: string
+        }
+        Update: {
+          artifact_checksum?: string
+          artifact_manifest?: Json
+          compatibility?: Json
+          created_at?: string
+          id?: string
+          license_id?: string | null
+          module_id?: string
+          module_version?: string
+          review_status?: string
+          source_app_id?: string
+          source_commit_sha?: string
+        }
+        Relationships: []
+      }
+      kevin_v2_connections: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string
+          encrypted_shared_secret: string
+          id: string
+          last_error_code: string | null
+          last_error_message: string | null
+          last_seen_at: string | null
+          last_successful_sync_at: string | null
+          local_app_id: string
+          protocol_version: string
+          remote_app_id: string
+          remote_name: string
+          remote_origin: string
+          remote_slug: string | null
+          remote_version: string | null
+          revoked_at: string | null
+          scopes: string[]
+          status: string
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string
+          encrypted_shared_secret: string
+          id?: string
+          last_error_code?: string | null
+          last_error_message?: string | null
+          last_seen_at?: string | null
+          last_successful_sync_at?: string | null
+          local_app_id: string
+          protocol_version?: string
+          remote_app_id: string
+          remote_name: string
+          remote_origin: string
+          remote_slug?: string | null
+          remote_version?: string | null
+          revoked_at?: string | null
+          scopes?: string[]
+          status?: string
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string
+          encrypted_shared_secret?: string
+          id?: string
+          last_error_code?: string | null
+          last_error_message?: string | null
+          last_seen_at?: string | null
+          last_successful_sync_at?: string | null
+          local_app_id?: string
+          protocol_version?: string
+          remote_app_id?: string
+          remote_name?: string
+          remote_origin?: string
+          remote_slug?: string | null
+          remote_version?: string | null
+          revoked_at?: string | null
+          scopes?: string[]
+          status?: string
+        }
+        Relationships: []
+      }
+      kevin_v2_deliveries: {
+        Row: {
+          attempts: number
+          available_at: string
+          connection_id: string
+          created_at: string
+          delivered_at: string | null
+          id: string
+          last_error_code: string | null
+          last_error_message: string | null
+          lease_until: string | null
+          outbox_id: string
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          available_at?: string
+          connection_id: string
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          last_error_code?: string | null
+          last_error_message?: string | null
+          lease_until?: string | null
+          outbox_id: string
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          available_at?: string
+          connection_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          last_error_code?: string | null
+          last_error_message?: string | null
+          lease_until?: string | null
+          outbox_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kevin_v2_deliveries_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "kevin_v2_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kevin_v2_deliveries_outbox_id_fkey"
+            columns: ["outbox_id"]
+            isOneToOne: false
+            referencedRelation: "kevin_v2_outbox"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kevin_v2_inbox: {
+        Row: {
+          applied_at: string | null
+          category: string
+          checksum: string
+          entity_version: number
+          error_code: string | null
+          event_id: string
+          id: string
+          operation: string
+          received_at: string
+          source_app_id: string
+          source_record_id: string
+          status: string
+        }
+        Insert: {
+          applied_at?: string | null
+          category: string
+          checksum: string
+          entity_version: number
+          error_code?: string | null
+          event_id: string
+          id?: string
+          operation: string
+          received_at?: string
+          source_app_id: string
+          source_record_id: string
+          status?: string
+        }
+        Update: {
+          applied_at?: string | null
+          category?: string
+          checksum?: string
+          entity_version?: number
+          error_code?: string | null
+          event_id?: string
+          id?: string
+          operation?: string
+          received_at?: string
+          source_app_id?: string
+          source_record_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      kevin_v2_learning_snapshots: {
+        Row: {
+          app_id: string
+          commit_sha: string
+          created_at: string
+          dependency_graph: Json
+          id: string
+          manifest: Json
+          repository: string
+          scan_status: string
+        }
+        Insert: {
+          app_id: string
+          commit_sha: string
+          created_at?: string
+          dependency_graph?: Json
+          id?: string
+          manifest: Json
+          repository: string
+          scan_status?: string
+        }
+        Update: {
+          app_id?: string
+          commit_sha?: string
+          created_at?: string
+          dependency_graph?: Json
+          id?: string
+          manifest?: Json
+          repository?: string
+          scan_status?: string
+        }
+        Relationships: []
+      }
+      kevin_v2_nonces: {
+        Row: {
+          connection_id: string
+          created_at: string
+          expires_at: string
+          id: number
+          nonce: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          expires_at: string
+          id?: number
+          nonce: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: number
+          nonce?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kevin_v2_nonces_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "kevin_v2_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kevin_v2_outbox: {
+        Row: {
+          category: string
+          created_at: string
+          entity_version: number
+          event_id: string
+          id: string
+          occurred_at: string
+          operation: string
+          source_app_id: string
+          source_record_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          entity_version?: never
+          event_id?: string
+          id?: string
+          occurred_at?: string
+          operation: string
+          source_app_id: string
+          source_record_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          entity_version?: never
+          event_id?: string
+          id?: string
+          occurred_at?: string
+          operation?: string
+          source_app_id?: string
+          source_record_id?: string
+        }
+        Relationships: []
+      }
+      kevin_v2_pairing_codes: {
+        Row: {
+          code_hash: string
+          consumed_at: string | null
+          consumed_by_app_id: string | null
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          requested_scopes: string[]
+          status: string
+        }
+        Insert: {
+          code_hash: string
+          consumed_at?: string | null
+          consumed_by_app_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          requested_scopes?: string[]
+          status?: string
+        }
+        Update: {
+          code_hash?: string
+          consumed_at?: string | null
+          consumed_by_app_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          requested_scopes?: string[]
+          status?: string
+        }
+        Relationships: []
+      }
+      kevin_v2_sync_cursors: {
+        Row: {
+          category: string
+          connection_id: string
+          cursor_value: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          connection_id: string
+          cursor_value?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          connection_id?: string
+          cursor_value?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kevin_v2_sync_cursors_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "kevin_v2_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kevin_v2_transfer_history: {
+        Row: {
+          category: string | null
+          connection_id: string | null
+          correlation_id: string
+          created_at: string
+          detail: string | null
+          direction: string
+          error_code: string | null
+          id: string
+          item_count: number
+          operation: string
+          source_app_id: string | null
+          status: string
+          target_app_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          connection_id?: string | null
+          correlation_id: string
+          created_at?: string
+          detail?: string | null
+          direction: string
+          error_code?: string | null
+          id?: string
+          item_count?: number
+          operation: string
+          source_app_id?: string | null
+          status: string
+          target_app_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          connection_id?: string | null
+          correlation_id?: string
+          created_at?: string
+          detail?: string | null
+          direction?: string
+          error_code?: string | null
+          id?: string
+          item_count?: number
+          operation?: string
+          source_app_id?: string | null
+          status?: string
+          target_app_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kevin_v2_transfer_history_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "kevin_v2_connections"
             referencedColumns: ["id"]
           },
         ]
@@ -1423,6 +1966,18 @@ export type Database = {
       }
       is_active_provider: { Args: { _uid: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      kevin_v2_apply_storage: {
+        Args: {
+          p_category: string
+          p_checksum: string
+          p_deleted_at: string
+          p_entity_version: number
+          p_payload: Json
+          p_source_app_id: string
+          p_source_record_id: string
+        }
+        Returns: string
+      }
       list_available_orders: {
         Args: never
         Returns: {
