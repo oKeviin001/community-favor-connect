@@ -267,7 +267,7 @@ export async function sendKevinV2SettingsPing() {
     recordId: "app-config-test",
     operation: "upsert",
     entityVersion: 1,
-    occurredAt: new Date().toISOString(),
+    occurredAt: "2026-11-12T02:00:00.000Z",
     payload: { test: true, ping: "handshake-check" },
   });
   const body = { events: [event] };
