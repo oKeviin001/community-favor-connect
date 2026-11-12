@@ -11,7 +11,7 @@ import {
 } from "./crypto.server";
 
 type Connection = {
-  id: string; local_app_id: string; remote_app_id: string; remote_name: string;
+  id: string; remote_connection_id: string; local_app_id: string; remote_app_id: string; remote_name: string;
   remote_origin: string; scopes: string[]; encrypted_shared_secret: string;
   status: string;
 };
@@ -133,6 +133,7 @@ export async function initiateCentralKevinV2Pairing(code: string) {
     remote_name: String(remoteIdentity.app_name),
     remote_slug: typeof remoteIdentity.app_slug === "string" ? remoteIdentity.app_slug : null,
     remote_origin: central.origin,
+    remote_connection_id: handshake.connectionId,
     remote_version: typeof remoteIdentity.app_version === "string" ? remoteIdentity.app_version : null,
     protocol_version: KEVIN_PROTOCOL,
     scopes,
@@ -252,11 +253,12 @@ export async function sendKevinV2SettingsPing() {
   if (!centralOrigin) throw new Error("KEVIN_CENTRAL_ORIGIN não configurada.");
   const central = new URL(normalizeKevinOrigin(centralOrigin));
   const { data: rows, error: connectionError } = await v2Db.from("kevin_v2_connections")
-    .select("id,local_app_id,remote_app_id,remote_name,remote_origin,scopes,encrypted_shared_secret,status")
+    .select("id,remote_connection_id,local_app_id,remote_app_id,remote_name,remote_origin,scopes,encrypted_shared_secret,status")
     .eq("status", "connected").eq("remote_origin", central.origin).limit(2);
   if (connectionError) throw connectionError;
   if (!rows || rows.length !== 1) throw new Error("É necessário exatamente um pareamento ativo com a Central Kevin.");
   const connection = rows[0] as unknown as Connection;
+  if (!connection.remote_connection_id) throw new Error("A conexão local não possui o ID correspondente da Central. É necessária a atualização de compatibilidade.");
   if (!connection.scopes.includes("settings")) throw new Error("A conexão não possui o escopo settings.");
   const identity = await getKevinV2Identity();
   // Stable diagnostic identity makes retries idempotent at the Central inbox.
@@ -301,7 +303,7 @@ export async function sendKevinV2SettingsPing() {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-kevin-connection": connection.id,
+        "x-kevin-connection": connection.remote_connection_id,
         "x-kevin-timestamp": timestamp,
         "x-kevin-nonce": nonce,
         "x-kevin-signature": signature,
