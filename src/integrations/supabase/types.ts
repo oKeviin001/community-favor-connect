@@ -806,6 +806,7 @@ export type Database = {
       }
       kevin_v2_connections: {
         Row: {
+          remote_connection_id: string | null
           confirmed_at: string | null
           created_at: string
           encrypted_shared_secret: string
@@ -826,6 +827,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          remote_connection_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           encrypted_shared_secret: string
@@ -846,6 +848,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          remote_connection_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           encrypted_shared_secret?: string
