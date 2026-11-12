@@ -110,7 +110,7 @@ export async function initiateCentralKevinV2Pairing(code: string) {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(handshakeBody),
-    redirect: "error",
+    redirect: "manual",
     signal: AbortSignal.timeout(15_000),
   });
   const handshake: unknown = await handshakeResponse.json().catch(() => null);
@@ -158,7 +158,7 @@ export async function initiateCentralKevinV2Pairing(code: string) {
       "x-kevin-signature": signature,
     },
     body: JSON.stringify(confirmationBody),
-    redirect: "error",
+    redirect: "manual",
     signal: AbortSignal.timeout(15_000),
   });
   const confirmation: unknown = await confirmationResponse.json().catch(() => null);
