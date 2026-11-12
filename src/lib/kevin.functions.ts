@@ -39,12 +39,12 @@ async function conexao(id: string): Promise<KevinConnection> {
 
 export const carregarPainelKevin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => carregarPainelFor(context));
+  .handler(async ({ context }) => { await assertAdmin(context); return carregarPainelFor(context); });
 
 export const gerarCodigoKevin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => ({ permissoes: list(d, "permissoes"), minutos: Number(rec(d).minutos) || 30 }))
-  .handler(async ({ context, data }) => gerarCodigoFor(context, data.permissoes, data.minutos));
+  .handler(async ({ context, data }) => { await assertAdmin(context); return gerarCodigoFor(context, data.permissoes, data.minutos); });
 
 export const conectarCodigoKevin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -53,9 +53,10 @@ export const conectarCodigoKevin = createServerFn({ method: "POST" })
     remoteBaseUrl: str(d, "remoteBaseUrl"),
     baseUrl: str(d, "baseUrl"),
   }))
-  .handler(async ({ context, data }) =>
-    conectarComCodigoFor(context, data.codigo, data.remoteBaseUrl, data.baseUrl),
-  );
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    return conectarComCodigoFor(context, data.codigo, data.remoteBaseUrl, data.baseUrl);
+  });
 
 export const enviarDadosKevin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -130,4 +131,4 @@ export const sincronizarKevin = createServerFn({ method: "POST" })
 export const autotesteKevin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => ({ baseUrl: str(d, "baseUrl") }))
-  .handler(async ({ context, data }) => autotesteFor(context, data.baseUrl.replace(/\/+$/, "")));
+  .handler(async ({ context, data }) => { await assertAdmin(context); return autotesteFor(context, data.baseUrl.replace(/\/+$/, "")); });
