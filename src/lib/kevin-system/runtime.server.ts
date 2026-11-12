@@ -259,25 +259,34 @@ export async function sendKevinV2SettingsPing() {
   const connection = rows[0] as unknown as Connection;
   if (!connection.scopes.includes("settings")) throw new Error("A conexão não possui o escopo settings.");
   const identity = await getKevinV2Identity();
-  // Each manual diagnostic attempt is a distinct, truthful heartbeat event.
-  // It contains protocol metadata only: no customer, order, profile, or app-setting data.
-  const occurredAt = new Date().toISOString();
-  const eventId = crypto.randomUUID();
+  // Stable diagnostic identity makes retries idempotent at the Central inbox.
+  // This is the exact, explicitly approved test payload; it contains no business data.
+  const eventId = "8e3d5c2a-7b91-4f06-a2c8-91d7e5b4c630";
+  const occurredAt = "2026-11-12T00:00:00.000Z";
+  const { data: priorSuccess, error: priorError } = await v2Db
+    .from("kevin_v2_transfer_history")
+    .select("id")
+    .eq("connection_id", connection.id)
+    .eq("direction", "outbound")
+    .eq("category", "settings")
+    .eq("status", "success")
+    .ilike("detail", `%${eventId}%`)
+    .limit(1)
+    .maybeSingle();
+  if (priorError) throw priorError;
+  if (priorSuccess) {
+    return { ok: true as const, eventId, alreadyDelivered: true, category: "settings" as const };
+  }
   const event = await createKevinEnvelope({
     eventId,
     sourceAppId: String(identity.app_id),
     sourceAppName: String(identity.app_name),
     category: "settings",
-    recordId: `diagnostic-heartbeat:${eventId}`,
+    recordId: "app-config-test",
     operation: "upsert",
     entityVersion: 1,
     occurredAt,
-    payload: {
-      kind: "diagnostic_heartbeat",
-      purpose: "verify_signed_event_delivery",
-      protocol: KEVIN_PROTOCOL,
-      sentAt: occurredAt,
-    },
+    payload: { test: true, ping: "handshake-check" },
   });
   const body = { events: [event] };
   const pathAndQuery = "/api/public/kevin/v2/events";
@@ -312,8 +321,8 @@ export async function sendKevinV2SettingsPing() {
       direction: "outbound", source_app_id: connection.local_app_id, target_app_id: connection.remote_app_id,
       category: "settings", item_count: success ? 1 : 0, status: success ? "success" : "error",
       error_code: success ? null : "SETTINGS_PING_REJECTED",
-      detail: success ? "Diagnóstico settings ping confirmado pela Central." : JSON.stringify({
-        httpStatus: responseStatus, response: responseBody,
+      detail: success ? `Diagnóstico settings ping confirmado pela Central. eventId=${eventId}` : JSON.stringify({
+        eventId, httpStatus: responseStatus, response: responseBody,
       }).slice(0, 1500),
     });
     if (historyError) throw historyError;
@@ -334,7 +343,7 @@ export async function sendKevinV2SettingsPing() {
       correlation_id: crypto.randomUUID(), connection_id: connection.id, operation: "push",
       direction: "outbound", source_app_id: connection.local_app_id, target_app_id: connection.remote_app_id,
       category: "settings", item_count: 0, status: "error", error_code: "SETTINGS_PING_FAILED",
-      detail: error instanceof Error ? error.message.slice(0, 1500) : "Falha no envio.",
+      detail: JSON.stringify({ eventId, error: error instanceof Error ? error.message.slice(0, 1200) : "Falha no envio." }),
     });
     await v2Db.from("kevin_v2_connections").update({
       last_error_code: "SETTINGS_PING_FAILED",
