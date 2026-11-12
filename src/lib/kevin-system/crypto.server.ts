@@ -45,9 +45,14 @@ export async function verifyKevinRequest(input: {
     return await crypto.subtle.verify("HMAC", await hmacKey(input.secret), asArrayBuffer(unhex(input.signature)), asArrayBuffer(enc.encode(signed)));
   } catch { return false; }
 }
-/** KEVIN_MASTER_KEY: 32 bytes encoded as 64 hexadecimal characters, server secret only. */
+/** KEVIN_MASTER_KEY: 64 hex chars used raw, or any 64+ char random string derived via SHA-256 to 32 bytes. */
+async function masterKeyBytes(masterKey: string): Promise<Uint8Array> {
+  if (/^[a-f0-9]{64}$/i.test(masterKey)) return unhex(masterKey);
+  if (masterKey.length < 64) throw new Error("KEVIN_MASTER_KEY inválida.");
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", asArrayBuffer(enc.encode(masterKey))));
+}
 export async function encryptKevinSecret(secret: string, masterKeyHex: string): Promise<string> {
-  const rawKey = unhex(masterKeyHex);
+  const rawKey = await masterKeyBytes(masterKeyHex);
   if (rawKey.length !== 32) throw new Error("KEVIN_MASTER_KEY deve ter 32 bytes.");
   const key = await crypto.subtle.importKey("raw", asArrayBuffer(rawKey), "AES-GCM", false, ["encrypt"]);
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -57,7 +62,7 @@ export async function encryptKevinSecret(secret: string, masterKeyHex: string): 
 export async function decryptKevinSecret(ciphertext: string, masterKeyHex: string): Promise<string> {
   const [version, iv, body] = ciphertext.split(".");
   if (version !== "v1" || !iv || !body) throw new Error("Ciphertext inválido.");
-  const rawKey = unhex(masterKeyHex);
+  const rawKey = await masterKeyBytes(masterKeyHex);
   if (rawKey.length !== 32) throw new Error("KEVIN_MASTER_KEY deve ter 32 bytes.");
   const key = await crypto.subtle.importKey("raw", asArrayBuffer(rawKey), "AES-GCM", false, ["decrypt"]);
   const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: asArrayBuffer(unhex(iv)) }, key, asArrayBuffer(unhex(body)));

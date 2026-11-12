@@ -20,8 +20,9 @@ const MASTER_KEY = () => process.env.KEVIN_MASTER_KEY ?? "";
 const v2Db = supabaseAdmin;
 
 export function requireKevinV2Config() {
-  if (!/^[a-f0-9]{64}$/i.test(MASTER_KEY())) {
-    throw new Error("KEVIN_MASTER_KEY ausente ou inválida (64 caracteres hexadecimais).");
+  const key = MASTER_KEY();
+  if (!/^[a-f0-9]{64}$/i.test(key) && !/^[A-Za-z0-9]{64,}$/.test(key)) {
+    throw new Error("KEVIN_MASTER_KEY ausente ou inválida.");
   }
 }
 
