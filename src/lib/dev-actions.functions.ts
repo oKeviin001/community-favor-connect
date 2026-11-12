@@ -8,6 +8,7 @@ import {
   updateDevOrderStatusFor,
   connectCentralKevinV2For,
   parseKevinPairingCodeInput,
+  sendKevinV2SettingsPingFor,
 } from "./dev-actions.server";
 
 export const listDevData = createServerFn({ method: "GET" })
@@ -27,3 +28,7 @@ export const connectCentralKevinV2 = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(parseKevinPairingCodeInput)
   .handler(async ({ context, data }) => connectCentralKevinV2For(context, data.code));
+
+export const sendKevinV2SettingsPing = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => sendKevinV2SettingsPingFor(context));
