@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Json } from "@/integrations/supabase/types";
 import {
   KEVIN_PROTOCOL, isKevinCategory, validateKevinEnvelope, normalizeKevinOrigin,
-  type KevinEventEnvelope,
+  createKevinEnvelope, type KevinEventEnvelope,
 } from "./protocol";
 import {
   decryptKevinSecret, encryptKevinSecret, generateKevinSecret,
@@ -243,6 +243,91 @@ export async function authenticateKevinV2Request(request: Request, body: unknown
   }
   await v2Db.from("kevin_v2_connections").update({ last_seen_at: new Date().toISOString() }).eq("id", row.id);
   return row;
+}
+
+/** Envia um único ping de diagnóstico, sem dados de negócio, à Central já pareada. */
+export async function sendKevinV2SettingsPing() {
+  requireKevinV2Config();
+  const centralOrigin = process.env.KEVIN_CENTRAL_ORIGIN ?? "";
+  if (!centralOrigin) throw new Error("KEVIN_CENTRAL_ORIGIN não configurada.");
+  const central = new URL(normalizeKevinOrigin(centralOrigin));
+  const { data: rows, error: connectionError } = await v2Db.from("kevin_v2_connections")
+    .select("id,local_app_id,remote_app_id,remote_name,remote_origin,scopes,encrypted_shared_secret,status")
+    .eq("status", "connected").eq("remote_origin", central.origin).limit(2);
+  if (connectionError) throw connectionError;
+  if (!rows || rows.length !== 1) throw new Error("É necessário exatamente um pareamento ativo com a Central Kevin.");
+  const connection = rows[0] as unknown as Connection;
+  if (!connection.scopes.includes("settings")) throw new Error("A conexão não possui o escopo settings.");
+  const identity = await getKevinV2Identity();
+  const event = await createKevinEnvelope({
+    eventId: "00000000-0000-4000-8000-000000000002",
+    sourceAppId: String(identity.app_id),
+    sourceAppName: String(identity.app_name),
+    category: "settings",
+    recordId: "app-config-test",
+    operation: "upsert",
+    entityVersion: 1,
+    occurredAt: new Date().toISOString(),
+    payload: { test: true, ping: "handshake-check" },
+  });
+  const body = { events: [event] };
+  const pathAndQuery = "/api/public/kevin/v2/events";
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const nonce = generateKevinNonce();
+  const secret = await decryptKevinSecret(connection.encrypted_shared_secret, MASTER_KEY());
+  const signature = await signKevinRequest({ secret, method: "POST", pathAndQuery, timestamp, nonce, body });
+  let responseStatus = 0;
+  let responseBody: unknown = null;
+  try {
+    const response = await fetch(new URL(pathAndQuery, central.origin), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-kevin-connection": connection.id,
+        "x-kevin-timestamp": timestamp,
+        "x-kevin-nonce": nonce,
+        "x-kevin-signature": signature,
+      },
+      body: JSON.stringify(body),
+      redirect: "manual",
+      signal: AbortSignal.timeout(15_000),
+    });
+    responseStatus = response.status;
+    responseBody = await response.json().catch(() => null);
+    const result = responseBody as { ok?: unknown; accepted?: unknown; rejected?: unknown } | null;
+    const accepted = result && Array.isArray(result.accepted) ? result.accepted : [];
+    const rejected = result && Array.isArray(result.rejected) ? result.rejected : [];
+    const success = response.ok && result?.ok === true && accepted.includes(event.eventId) && rejected.length === 0;
+    const { error: historyError } = await v2Db.from("kevin_v2_transfer_history").insert({
+      correlation_id: crypto.randomUUID(), connection_id: connection.id, operation: "push",
+      direction: "outbound", source_app_id: connection.local_app_id, target_app_id: connection.remote_app_id,
+      category: "settings", item_count: success ? 1 : 0, status: success ? "success" : "error",
+      error_code: success ? null : "SETTINGS_PING_REJECTED",
+      detail: success ? "Diagnóstico settings ping confirmado pela Central." : JSON.stringify({
+        httpStatus: responseStatus, response: responseBody,
+      }).slice(0, 1500),
+    });
+    if (historyError) throw historyError;
+    if (!success) throw new Error("A Central não confirmou o evento de teste. HTTP " + responseStatus + ".");
+    await v2Db.from("kevin_v2_connections").update({
+      last_seen_at: new Date().toISOString(), last_successful_sync_at: new Date().toISOString(),
+      last_error_code: null, last_error_message: null,
+    }).eq("id", connection.id);
+    return { ok: true as const, eventId: event.eventId, httpStatus: responseStatus, accepted: 1, category: "settings" as const };
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("A Central não confirmou")) throw error;
+    await v2Db.from("kevin_v2_transfer_history").insert({
+      correlation_id: crypto.randomUUID(), connection_id: connection.id, operation: "push",
+      direction: "outbound", source_app_id: connection.local_app_id, target_app_id: connection.remote_app_id,
+      category: "settings", item_count: 0, status: "error", error_code: "SETTINGS_PING_FAILED",
+      detail: error instanceof Error ? error.message.slice(0, 1500) : "Falha no envio.",
+    });
+    await v2Db.from("kevin_v2_connections").update({
+      last_error_code: "SETTINGS_PING_FAILED",
+      last_error_message: error instanceof Error ? error.message.slice(0, 500) : "Falha no envio.",
+    }).eq("id", connection.id);
+    throw error;
+  }
 }
 
 export async function receiveKevinV2Events(request: Request, body: unknown) {
