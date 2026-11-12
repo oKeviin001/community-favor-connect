@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { initiateCentralKevinV2Pairing } from "@/lib/kevin-system/runtime.server";
+import { initiateCentralKevinV2Pairing, sendKevinV2SettingsPing } from "@/lib/kevin-system/runtime.server";
 import type { Database } from "@/integrations/supabase/types";
 
 type AuthContext = {
@@ -117,4 +117,9 @@ export function parseKevinPairingCodeInput(value: unknown): { code: string } {
 export async function connectCentralKevinV2For(context: AuthContext, code: string) {
   await assertDevAccess(context);
   return initiateCentralKevinV2Pairing(code);
+}
+
+export async function sendKevinV2SettingsPingFor(context: AuthContext) {
+  await assertDevAccess(context);
+  return sendKevinV2SettingsPing();
 }
