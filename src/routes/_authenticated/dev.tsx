@@ -168,7 +168,7 @@ function Dev() {
     setKevinPingSending(true);
     try {
       const result = await sendKevinV2SettingsPingFn();
-      toast.success(`Ping recebido pela Central (HTTP ${result.httpStatus}).`);
+      toast.success(`Heartbeat confirmado pela Central (HTTP ${result.httpStatus}; evento ${result.eventId.slice(0, 8)}).`);
       console.info("Kevin v2 settings ping", result);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Falha ao enviar ping à Central.");
@@ -311,10 +311,10 @@ function Dev() {
             >
               {kevinConnecting ? "Conectando..." : "Conectar à Central Kevin"}
             </button>
-            <p className="text-[11px] text-muted-foreground">A conexão depende da configuração dos secrets e da ativação do schema v2 no banco deste aplicativo. Nenhum dado de pedido é transferido por esta ação.</p>
+            <p className="text-[11px] text-muted-foreground">A conexão usa autenticação criptográfica entre os servidores. O teste abaixo envia somente metadados técnicos; nenhum pedido ou dado pessoal é transferido.</p>
             <div className="border-t border-border pt-4 space-y-2">
               <h3 className="text-sm font-semibold">Teste de comunicação</h3>
-              <p className="text-[11px] text-muted-foreground">Envia um único evento técnico pelo escopo settings. Não inclui pedidos, usuários nem configurações reais. A Central registrará o marcador de diagnóstico app-config-test.</p>
+              <p className="text-[11px] text-muted-foreground">Envia um heartbeat técnico único pelo escopo settings. Cada tentativa recebe um identificador novo e contém apenas metadados de diagnóstico, sem pedidos, usuários ou configurações reais.</p>
               <button type="button" disabled={kevinPingSending} onClick={sendKevinSettingsPing} className="h-11 w-full rounded-xl border border-primary bg-primary/10 text-sm font-semibold text-primary disabled:opacity-50">
                 {kevinPingSending ? "Enviando ping..." : "Enviar ping de teste (settings)"}
               </button>

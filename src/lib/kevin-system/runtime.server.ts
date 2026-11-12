@@ -259,16 +259,25 @@ export async function sendKevinV2SettingsPing() {
   const connection = rows[0] as unknown as Connection;
   if (!connection.scopes.includes("settings")) throw new Error("A conexão não possui o escopo settings.");
   const identity = await getKevinV2Identity();
+  // Each manual diagnostic attempt is a distinct, truthful heartbeat event.
+  // It contains protocol metadata only: no customer, order, profile, or app-setting data.
+  const occurredAt = new Date().toISOString();
+  const eventId = crypto.randomUUID();
   const event = await createKevinEnvelope({
-    eventId: "00000000-0000-4000-8000-000000000002",
+    eventId,
     sourceAppId: String(identity.app_id),
     sourceAppName: String(identity.app_name),
     category: "settings",
-    recordId: "app-config-test",
+    recordId: `diagnostic-heartbeat:${eventId}`,
     operation: "upsert",
     entityVersion: 1,
-    occurredAt: "2026-11-12T02:00:00.000Z",
-    payload: { test: true, ping: "handshake-check" },
+    occurredAt,
+    payload: {
+      kind: "diagnostic_heartbeat",
+      purpose: "verify_signed_event_delivery",
+      protocol: KEVIN_PROTOCOL,
+      sentAt: occurredAt,
+    },
   });
   const body = { events: [event] };
   const pathAndQuery = "/api/public/kevin/v2/events";
@@ -308,7 +317,12 @@ export async function sendKevinV2SettingsPing() {
       }).slice(0, 1500),
     });
     if (historyError) throw historyError;
-    if (!success) throw new Error("A Central não confirmou o evento de teste. HTTP " + responseStatus + ".");
+    if (!success) {
+      const details = rejected.length
+        ? JSON.stringify(rejected).slice(0, 500)
+        : JSON.stringify(responseBody).slice(0, 500);
+      throw new Error(`A Central não confirmou o heartbeat. HTTP ${responseStatus}. ${details}`);
+    }
     await v2Db.from("kevin_v2_connections").update({
       last_seen_at: new Date().toISOString(), last_successful_sync_at: new Date().toISOString(),
       last_error_code: null, last_error_message: null,
