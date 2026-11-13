@@ -364,19 +364,41 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
   if (events.length < 1 || events.length > 100) throw new Error("O lote deve conter de 1 a 100 eventos.");
   const accepted: string[] = [], rejected: { eventId?: string; error: string }[] = [];
   for (const raw of events) {
+    let event: KevinEventEnvelope | undefined;
+    let inboxRecorded = false;
     try {
-      const event = await validateKevinEnvelope(raw) as KevinEventEnvelope;
+      event = await validateKevinEnvelope(raw) as KevinEventEnvelope;
       if (event.payload !== null && !isJsonValue(event.payload)) throw new Error("Payload não é JSON válido.");
       if (event.sourceAppId !== connection.remote_app_id || !connection.scopes.includes(event.category)) {
         throw new Error("Origem ou escopo não autorizado.");
       }
+
       const { error: inboxError } = await v2Db.from("kevin_v2_inbox").insert({
         source_app_id: event.sourceAppId, event_id: event.eventId, category: event.category,
         source_record_id: event.recordId, entity_version: event.entityVersion,
         operation: event.operation, checksum: event.checksum, status: "received",
       });
-      if (inboxError?.code === "23505") { accepted.push(event.eventId); continue; }
-      if (inboxError) throw inboxError;
+      if (inboxError?.code === "23505") {
+        const { data: existing, error: lookupError } = await v2Db.from("kevin_v2_inbox")
+          .select("status,checksum").eq("source_app_id", event.sourceAppId)
+          .eq("event_id", event.eventId).maybeSingle();
+        if (lookupError) throw lookupError;
+        if (!existing) throw inboxError;
+        if (existing.checksum !== event.checksum) throw new Error("eventId reutilizado com checksum diferente.");
+        if (existing.status === "applied" || existing.status === "duplicate") {
+          accepted.push(event.eventId);
+          continue;
+        }
+        if (existing.status !== "received" && existing.status !== "rejected") {
+          throw new Error("Evento duplicado sem estado recuperável no inbox.");
+        }
+        inboxRecorded = true;
+      } else if (inboxError) {
+        throw inboxError;
+      } else {
+        inboxRecorded = true;
+      }
+
       const { data: applied, error: applyError } = await v2Db.rpc("kevin_v2_apply_storage", {
         p_source_app_id: event.sourceAppId, p_category: event.category,
         p_source_record_id: event.recordId, p_payload: event.payload,
@@ -384,12 +406,25 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
         p_deleted_at: event.operation === "delete" ? event.occurredAt : (null as unknown as string),
       });
       if (applyError) throw applyError;
-      await v2Db.from("kevin_v2_inbox").update({
-        status: applied === "applied" ? "applied" : "duplicate", applied_at: new Date().toISOString(),
-      }).eq("source_app_id", event.sourceAppId).eq("event_id", event.eventId);
+      const { data: updated, error: updateError } = await v2Db.from("kevin_v2_inbox").update({
+        status: applied === "applied" ? "applied" : "duplicate",
+        applied_at: new Date().toISOString(), error_code: null,
+      }).eq("source_app_id", event.sourceAppId).eq("event_id", event.eventId)
+        .in("status", ["received", "rejected"]).select("id").maybeSingle();
+      if (updateError) throw updateError;
+      if (!updated) throw new Error("Espelho atualizado, mas o estado do inbox mudou; ACK não confirmado.");
       accepted.push(event.eventId);
     } catch (error) {
-      rejected.push({ eventId: (raw as { eventId?: string })?.eventId, error: safeMessage(error) });
+      if (event && inboxRecorded) {
+        await v2Db.from("kevin_v2_inbox").update({
+          status: "rejected", error_code: "PROCESSING_FAILED",
+        }).eq("source_app_id", event.sourceAppId).eq("event_id", event.eventId)
+          .in("status", ["received", "rejected"]);
+      }
+      rejected.push({
+        ...(event?.eventId ? { eventId: event.eventId } : {}),
+        error: safeMessage(error),
+      });
     }
   }
   await v2Db.from("kevin_v2_transfer_history").insert({
