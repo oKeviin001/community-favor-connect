@@ -194,7 +194,12 @@ export async function confirmKevinV2Pairing(request: Request, body: unknown) {
       !/^[a-f0-9]{32}$/i.test(nonce) || !/^[a-f0-9]{64}$/i.test(signature)) {
     throw new Error("Cabeçalhos de autenticação inválidos.");
   }
-  if (!isRecord(body) || body.connectionId !== connectionId) throw new Error("Confirmação inválida.");
+  if (!isRecord(body) || body.connectionId !== connectionId ||
+      typeof body.remoteConnectionId !== "string" ||
+      !/^[0-9a-f-]{36}$/i.test(body.remoteConnectionId)) {
+    throw new Error("Confirmação inválida: ID remoto ausente.");
+  }
+  const remoteConnectionId = body.remoteConnectionId;
   const { data: connection, error } = await v2Db.from("kevin_v2_connections")
     .select("id,encrypted_shared_secret").eq("id", connectionId).eq("status", "pending").maybeSingle();
   if (error) throw error;
@@ -211,7 +216,7 @@ export async function confirmKevinV2Pairing(request: Request, body: unknown) {
   });
   if (nonceError) throw new Error(nonceError.code === "23505" ? "Requisição repetida." : "Não foi possível registrar o nonce.");
   const { data: updated, error: updateError } = await v2Db.from("kevin_v2_connections")
-    .update({ status: "connected", confirmed_at: new Date().toISOString() })
+    .update({ status: "connected", confirmed_at: new Date().toISOString(), remote_connection_id: remoteConnectionId })
     .eq("id", connection.id).eq("status", "pending").select("id").maybeSingle();
   if (updateError) throw updateError;
   if (!updated) throw new Error("A conexão foi alterada antes da confirmação.");
