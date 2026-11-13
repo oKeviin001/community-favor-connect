@@ -43,6 +43,13 @@
       "when": 1794528262219,
       "tag": "0005_kevin_v2_remote_connection_id_apply",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794600001000,
+      "tag": "0006_kevin_v2_outbox_payload",
+      "breakpoints": true
     }
   ]
 }
