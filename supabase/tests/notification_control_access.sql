@@ -33,8 +33,11 @@ SET LOCAL ROLE authenticated;
 DO $test$
 DECLARE
   v_count integer;
+  v_before boolean;
+  v_after boolean;
+  v_rows integer;
 BEGIN
-  SELECT count(*) INTO v_count
+  SELECT count(*), max(som) INTO v_count, v_before
   FROM public.notification_control
   WHERE id = TRUE;
 
@@ -42,12 +45,18 @@ BEGIN
     RAISE EXCEPTION 'Authenticated SELECT failed: expected the singleton row';
   END IF;
 
-  BEGIN
-    UPDATE public.notification_control SET som = NOT som WHERE id = TRUE;
-    RAISE EXCEPTION 'Security failure: non-admin UPDATE unexpectedly succeeded';
-  EXCEPTION WHEN insufficient_privilege THEN
-    NULL;
-  END;
+  -- RLS silently filters UPDATE rows for non-admins; it does not necessarily
+  -- raise insufficient_privilege. Verify that zero rows were changed.
+  UPDATE public.notification_control SET som = NOT som WHERE id = TRUE;
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+
+  SELECT som INTO v_after
+  FROM public.notification_control
+  WHERE id = TRUE;
+
+  IF v_rows <> 0 OR v_after IS DISTINCT FROM v_before THEN
+    RAISE EXCEPTION 'Security failure: non-admin UPDATE changed notification_control';
+  END IF;
 
   BEGIN
     PERFORM public.set_notification_control(true,true,true,true,true,true,true,true,true,true);
