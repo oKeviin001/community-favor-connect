@@ -817,6 +817,7 @@ export type Database = {
           local_app_id: string
           protocol_version: string
           remote_app_id: string
+          remote_connection_id: string | null
           remote_name: string
           remote_origin: string
           remote_slug: string | null
@@ -837,6 +838,7 @@ export type Database = {
           local_app_id: string
           protocol_version?: string
           remote_app_id: string
+          remote_connection_id?: string | null
           remote_name: string
           remote_origin: string
           remote_slug?: string | null
@@ -857,6 +859,7 @@ export type Database = {
           local_app_id?: string
           protocol_version?: string
           remote_app_id?: string
+          remote_connection_id?: string | null
           remote_name?: string
           remote_origin?: string
           remote_slug?: string | null
