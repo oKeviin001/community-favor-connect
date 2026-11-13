@@ -129,17 +129,30 @@ export async function buildEstrutura() {
 /* --------------------------------- auth --------------------------------- */
 
 export async function assertAdmin(context: AuthContext) {
-  const { data } = await context.supabase
+  // Resolve the identity from Supabase Auth on the server; never trust
+  // a client-provided email or user_metadata for administrator access.
+  const { data: userData, error: userError } = await context.supabase.auth.getUser();
+  if (userError || !userData.user || userData.user.id !== context.userId) {
+    throw new Error("Autenticação inválida");
+  }
+
+  const email = (userData.user.email ?? "").trim().toLowerCase();
+  const { MASTER_ADMIN_EMAIL } = await import("./dev-constants");
+
+  // The canonical master identity is fixed in source code and checked
+  // against the verified Auth user, not a profile field or client state.
+  if (email === MASTER_ADMIN_EMAIL.toLowerCase()) return;
+
+  const { data, error } = await context.supabase
     .from("user_roles")
     .select("role")
     .eq("user_id", context.userId)
     .eq("role", "admin")
     .maybeSingle();
-  if (data?.role === "admin") return;
-  const { data: userData } = await context.supabase.auth.getUser();
-  const email = (userData.user?.email ?? "").toLowerCase();
-  const { DEV_EMAIL } = await import("./dev-constants");
-  if (email !== DEV_EMAIL) throw new Error("Área restrita a administradores");
+
+  if (error || data?.role !== "admin") {
+    throw new Error("Área restrita a administradores");
+  }
 }
 
 export async function connectionByToken(token: string | null) {
