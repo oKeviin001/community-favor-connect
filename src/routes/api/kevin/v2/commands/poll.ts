@@ -10,7 +10,7 @@ function authorized(request: Request) {
   return mismatch === 0;
 }
 
-export const Route = createFileRoute("/api/kevin/v2/commands/poll")({
+export const Route = createFileRoute("/api/kevin/v2/commands/poll" as any)({
   server: { handlers: {
     POST: async ({ request }) => {
       if (!authorized(request)) return Response.json({ ok: false, error: "Não autorizado." }, { status: 401 });
