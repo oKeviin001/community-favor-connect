@@ -10,7 +10,8 @@ function authorized(request: Request) {
   return mismatch === 0;
 }
 
-export const Route = createFileRoute("/api/kevin/v2/commands/poll" as any)({
+// @ts-expect-error TanStack regenerates the checked-in route tree during the Vite build.
+export const Route = createFileRoute("/api/kevin/v2/commands/poll")({
   server: { handlers: {
     POST: async ({ request }) => {
       if (!authorized(request)) return Response.json({ ok: false, error: "Não autorizado." }, { status: 401 });
