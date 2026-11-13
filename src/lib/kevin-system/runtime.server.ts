@@ -383,6 +383,21 @@ export async function retryKevinV2Files(limit = 10) {
   const results: { transferId: string; status: "verified" | "pending"; error?: string }[] = [];
   for (const file of pending ?? []) {
     const transferId = String(file.transfer_id);
+    const { data: priorErrors, error: historyReadError } = await v2Db.from("kevin_v2_transfer_history")
+      .select("created_at").eq("correlation_id", transferId).eq("direction", "outbound")
+      .eq("operation", "file_push").eq("status", "error").order("created_at", { ascending: false }).limit(6);
+    if (historyReadError) throw historyReadError;
+    const attempts = priorErrors?.length ?? 0;
+    if (attempts >= 6) {
+      results.push({ transferId, status: "pending", error: "Limite de seis tentativas atingido; requer intervenção manual." });
+      continue;
+    }
+    const backoffMs = [60_000, 5 * 60_000, 15 * 60_000, 60 * 60_000, 6 * 60 * 60_000][Math.max(0, attempts - 1)] ?? 24 * 60 * 60_000;
+    const lastAttempt = priorErrors?.[0]?.created_at ? Date.parse(priorErrors[0].created_at) : 0;
+    if (lastAttempt && Date.now() - lastAttempt < backoffMs) {
+      results.push({ transferId, status: "pending", error: "Aguardando intervalo de segurança antes da próxima tentativa." });
+      continue;
+    }
     try {
       const { data: connectionData, error: connectionError } = await v2Db.from("kevin_v2_connections")
         .select("id,remote_connection_id,remote_app_id,remote_origin,encrypted_shared_secret,status")
