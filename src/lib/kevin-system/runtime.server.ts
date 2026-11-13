@@ -142,7 +142,11 @@ export async function initiateCentralKevinV2Pairing(code: string) {
     confirmed_at: null,
   }).select("id").single();
   if (insertError) throw insertError;
-  const confirmationBody = { connectionId: handshake.connectionId };
+  // Send our local connection ID so Central can address this app in reverse.
+  const confirmationBody = {
+    connectionId: handshake.connectionId,
+    remoteConnectionId: localConnection.id,
+  };
   const timestamp = String(Math.floor(Date.now() / 1000));
   const nonce = generateKevinNonce();
   const pathAndQuery = "/api/public/kevin/v2/confirm";
