@@ -255,6 +255,61 @@ export async function authenticateKevinV2Request(request: Request, body: unknown
   return row;
 }
 
+/** Receives a signed file transfer into the private Kevin bucket. */
+export async function receiveKevinV2File(request: Request, body: unknown) {
+  const connection = await authenticateKevinV2Request(request, body);
+  if (!isRecord(body) || typeof body.transferId !== "string" ||
+      !/^[0-9a-f-]{36}$/i.test(body.transferId) ||
+      typeof body.fileName !== "string" || typeof body.contentType !== "string" ||
+      typeof body.base64 !== "string" || typeof body.sha256 !== "string") {
+    throw new Error("Metadados do arquivo inválidos.");
+  }
+  const fileName = body.fileName.trim();
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/.test(fileName) || fileName.includes("..")) {
+    throw new Error("Nome de arquivo não permitido.");
+  }
+  const allowedTypes = new Set(["application/pdf","application/json","application/zip","text/plain","image/jpeg","image/png","image/webp"]);
+  if (!allowedTypes.has(body.contentType)) throw new Error("Tipo de arquivo não permitido.");
+  if (body.base64.length > 14_000_000 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(body.base64)) {
+    throw new Error("Arquivo excede o limite ou está codificado incorretamente.");
+  }
+  const binary = Uint8Array.from(atob(body.base64), (char) => char.charCodeAt(0));
+  if (binary.length < 1 || binary.length > 10 * 1024 * 1024) throw new Error("O arquivo deve ter entre 1 byte e 10 MB.");
+  const hashBytes = await crypto.subtle.digest("SHA-256", binary);
+  const checksum = Array.from(new Uint8Array(hashBytes), (b) => b.toString(16).padStart(2, "0")).join("");
+  if (checksum !== body.sha256.toLowerCase()) throw new Error("Checksum do arquivo não confere.");
+  const { data: existing, error: existingError } = await v2Db.from("kevin_v2_files")
+    .select("id,sha256,status").eq("connection_id", connection.id).eq("transfer_id", body.transferId).maybeSingle();
+  if (existingError) throw existingError;
+  if (existing) {
+    if (existing.sha256 !== checksum) throw new Error("ID de transferência reutilizado com conteúdo diferente.");
+    return { transferId: body.transferId, status: existing.status, duplicate: true };
+  }
+  const objectPath = connection.id + "/" + body.transferId + "/" + fileName;
+  const { error: uploadError } = await v2Db.storage.from("kevin-v2-files").upload(objectPath, binary, {
+    contentType: body.contentType, upsert: false,
+  });
+  if (uploadError) throw uploadError;
+  const identity = await getKevinV2Identity();
+  const { error: insertError } = await v2Db.from("kevin_v2_files").insert({
+    transfer_id: body.transferId, connection_id: connection.id,
+    source_app_id: connection.remote_app_id, target_app_id: identity.app_id,
+    object_path: objectPath, file_name: fileName, content_type: body.contentType,
+    size_bytes: binary.length, sha256: checksum, direction: "inbound", status: "verified",
+    verified_at: new Date().toISOString(),
+  });
+  if (insertError) {
+    await v2Db.storage.from("kevin-v2-files").remove([objectPath]);
+    throw insertError;
+  }
+  await v2Db.from("kevin_v2_transfer_history").insert({
+    correlation_id: body.transferId, connection_id: connection.id, operation: "file_push",
+    direction: "inbound", source_app_id: connection.remote_app_id, target_app_id: identity.app_id,
+    item_count: 1, status: "success", detail: fileName,
+  });
+  return { transferId: body.transferId, status: "verified", sizeBytes: binary.length, sha256: checksum };
+}
+
 /** Envia um único ping de diagnóstico, sem dados de negócio, à Central já pareada. */
 export async function sendKevinV2SettingsPing() {
   requireKevinV2Config();
