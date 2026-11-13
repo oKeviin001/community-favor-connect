@@ -283,7 +283,7 @@ export async function receiveKevinV2File(request: Request, body: unknown) {
   if (existingError) throw existingError;
   if (existing) {
     if (existing.sha256 !== checksum) throw new Error("ID de transferência reutilizado com conteúdo diferente.");
-    return { transferId: body.transferId, status: existing.status, duplicate: true };
+    return { transferId: body.transferId, status: existing.status, sha256: checksum, duplicate: true };
   }
   const objectPath = connection.id + "/" + body.transferId + "/" + fileName;
   const { error: uploadError } = await v2Db.storage.from("kevin-v2-files").upload(objectPath, binary, {
@@ -369,6 +369,70 @@ export async function sendKevinV2File(input: { fileName: string; contentType: st
       item_count:0, status:"error", error_code:"FILE_PUSH_FAILED", detail:sendError instanceof Error ? sendError.message.slice(0,500) : "Falha no envio" });
     throw sendError;
   }
+}
+
+
+/** Reenvia arquivos pendentes preservando transfer_id, objeto e checksum. */
+export async function retryKevinV2Files(limit = 10) {
+  requireKevinV2Config();
+  const identity = await getKevinV2Identity();
+  const { data: pending, error: pendingError } = await v2Db.from("kevin_v2_files")
+    .select("transfer_id,connection_id,object_path,file_name,content_type,size_bytes,sha256")
+    .eq("direction", "outbound").eq("status", "pending").order("created_at", { ascending: true }).limit(Math.max(1, Math.min(10, limit)));
+  if (pendingError) throw pendingError;
+  const results: { transferId: string; status: "verified" | "pending"; error?: string }[] = [];
+  for (const file of pending ?? []) {
+    const transferId = String(file.transfer_id);
+    try {
+      const { data: connectionData, error: connectionError } = await v2Db.from("kevin_v2_connections")
+        .select("id,remote_connection_id,remote_app_id,remote_origin,encrypted_shared_secret,status")
+        .eq("id", file.connection_id).eq("status", "connected").maybeSingle();
+      if (connectionError) throw connectionError;
+      if (!connectionData || !connectionData.remote_connection_id) throw new Error("Conexão bilateral indisponível.");
+      const connection = connectionData as unknown as Connection;
+      const { data: blob, error: downloadError } = await v2Db.storage.from("kevin-v2-files").download(String(file.object_path));
+      if (downloadError || !blob) throw new Error("Não foi possível recuperar o arquivo do armazenamento privado.");
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      if (bytes.length !== Number(file.size_bytes) || bytes.length < 1 || bytes.length > 10 * 1024 * 1024) throw new Error("Tamanho do arquivo armazenado não confere.");
+      const digestBytes = await crypto.subtle.digest("SHA-256", bytes);
+      const sha256 = Array.from(new Uint8Array(digestBytes), b => b.toString(16).padStart(2, "0")).join("");
+      if (sha256 !== String(file.sha256)) throw new Error("Checksum do arquivo armazenado não confere.");
+      let binary = "";
+      for (let offset = 0; offset < bytes.length; offset += 0x8000) binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+      const body = { transferId, fileName: String(file.file_name), contentType: String(file.content_type), base64: btoa(binary), sha256 };
+      const pathAndQuery = "/api/public/kevin/v2/files";
+      const timestamp = String(Math.floor(Date.now() / 1000)), nonce = generateKevinNonce();
+      const secret = await decryptKevinSecret(connection.encrypted_shared_secret, MASTER_KEY());
+      const signature = await signKevinRequest({ secret, method: "POST", pathAndQuery, timestamp, nonce, body });
+      const response = await fetch(new URL(pathAndQuery, connection.remote_origin), {
+        method: "POST", headers: { "content-type": "application/json", "x-kevin-connection": connection.remote_connection_id,
+          "x-kevin-timestamp": timestamp, "x-kevin-nonce": nonce, "x-kevin-signature": signature },
+        body: JSON.stringify(body), redirect: "manual", signal: AbortSignal.timeout(30_000),
+      });
+      const result = await response.json().catch(() => null) as { ok?: boolean; sha256?: string; status?: string } | null;
+      if (!response.ok || result?.ok !== true || result.sha256 !== sha256 || result.status !== "verified") throw new Error("A Central não confirmou a integridade do arquivo.");
+      const { error: updateError } = await v2Db.from("kevin_v2_files").update({ status: "verified", verified_at: new Date().toISOString() })
+        .eq("connection_id", connection.id).eq("transfer_id", transferId).eq("status", "pending");
+      if (updateError) throw updateError;
+      const { error: historyError } = await v2Db.from("kevin_v2_transfer_history").insert({
+        correlation_id: transferId, connection_id: connection.id, operation: "file_push", direction: "outbound",
+        source_app_id: identity.app_id, target_app_id: connection.remote_app_id, item_count: 1, status: "success",
+        detail: "retry:" + String(file.file_name),
+      });
+      if (historyError) throw historyError;
+      results.push({ transferId, status: "verified" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message.slice(0, 500) : "Falha no reenvio.";
+      const { data: connectionData } = await v2Db.from("kevin_v2_connections").select("remote_app_id").eq("id", file.connection_id).maybeSingle();
+      await v2Db.from("kevin_v2_transfer_history").insert({
+        correlation_id: transferId, connection_id: file.connection_id, operation: "file_push", direction: "outbound",
+        source_app_id: identity.app_id, target_app_id: connectionData?.remote_app_id ?? null,
+        item_count: 0, status: "error", error_code: "FILE_RETRY_FAILED", detail: message,
+      });
+      results.push({ transferId, status: "pending", error: message });
+    }
+  }
+  return { ok: true, checked: pending?.length ?? 0, verified: results.filter(item => item.status === "verified").length, pending: results.filter(item => item.status === "pending").length, results };
 }
 
 /** Envia um único ping de diagnóstico, sem dados de negócio, à Central já pareada. */
