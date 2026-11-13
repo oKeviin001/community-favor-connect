@@ -450,3 +450,106 @@ function randomChars(length: number) {
   const bytes = crypto.getRandomValues(new Uint8Array(length));
   return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
 }
+
+
+/** Polls Central for explicitly approved, allowlisted commands and returns signed execution ACKs. */
+export async function pollCentralKevinV2Commands() {
+  requireKevinV2Config();
+  const centralOrigin = process.env.KEVIN_CENTRAL_ORIGIN ?? "";
+  if (!centralOrigin) throw new Error("KEVIN_CENTRAL_ORIGIN não configurada.");
+  const central = new URL(normalizeKevinOrigin(centralOrigin));
+  const { data: rows, error } = await v2Db.from("kevin_v2_connections")
+    .select("id,remote_connection_id,remote_app_id,remote_name,remote_origin,scopes,encrypted_shared_secret,status")
+    .eq("status", "connected").eq("remote_origin", central.origin).limit(2);
+  if (error) throw error;
+  if (!rows || rows.length !== 1) throw new Error("É necessário exatamente um pareamento ativo com a Central Kevin.");
+  const connection = rows[0] as unknown as Connection;
+  if (!connection.remote_connection_id) throw new Error("ID remoto ausente; refaça a confirmação bilateral.");
+  if (!connection.scopes.includes("settings")) throw new Error("A conexão não possui o escopo settings.");
+  const secret = await decryptKevinSecret(connection.encrypted_shared_secret, MASTER_KEY());
+
+  const pullPath = "/api/public/kevin/v2/commands/pull";
+  const pullBody = { limit: 5 };
+  const pullTimestamp = String(Math.floor(Date.now() / 1000));
+  const pullNonce = generateKevinNonce();
+  const pullSignature = await signKevinRequest({
+    secret, method: "POST", pathAndQuery: pullPath,
+    timestamp: pullTimestamp, nonce: pullNonce, body: pullBody,
+  });
+  const pullResponse = await fetch(new URL(pullPath, central.origin), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-kevin-connection": connection.remote_connection_id,
+      "x-kevin-timestamp": pullTimestamp,
+      "x-kevin-nonce": pullNonce,
+      "x-kevin-signature": pullSignature,
+    },
+    body: JSON.stringify(pullBody),
+    redirect: "manual",
+    signal: AbortSignal.timeout(15_000),
+  });
+  const pulled: unknown = await pullResponse.json().catch(() => null);
+  if (!pullResponse.ok || !isRecord(pulled) || pulled.ok !== true || !Array.isArray(pulled.commands)) {
+    throw new Error("A Central não entregou uma fila de comandos válida.");
+  }
+
+  const identity = await getKevinV2Identity();
+  const results: { commandId: string; status: string }[] = [];
+  for (const raw of pulled.commands) {
+    if (!isRecord(raw) || typeof raw.id !== "string" || !/^[0-9a-f-]{36}$/i.test(raw.id)) continue;
+    let status: "succeeded" | "failed" | "rejected" = "rejected";
+    let result: Record<string, unknown> = { error: "Comando não suportado por esta versão." };
+    if (raw.command_type === "system.ping") {
+      status = "succeeded";
+      result = {
+        appId: identity.app_id,
+        appSlug: identity.app_slug,
+        appName: identity.app_name,
+        appVersion: identity.app_version,
+        protocol: KEVIN_PROTOCOL,
+        checkedAt: new Date().toISOString(),
+      };
+    }
+    const ackBody = { commandId: raw.id, status, result };
+    const ackPath = "/api/public/kevin/v2/commands/ack";
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const nonce = generateKevinNonce();
+    const signature = await signKevinRequest({
+      secret, method: "POST", pathAndQuery: ackPath, timestamp, nonce, body: ackBody,
+    });
+    const ackResponse = await fetch(new URL(ackPath, central.origin), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-kevin-connection": connection.remote_connection_id,
+        "x-kevin-timestamp": timestamp,
+        "x-kevin-nonce": nonce,
+        "x-kevin-signature": signature,
+      },
+      body: JSON.stringify(ackBody),
+      redirect: "manual",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const ack = await ackResponse.json().catch(() => null);
+    if (!ackResponse.ok || !isRecord(ack) || ack.ok !== true) {
+      throw new Error("A Central não confirmou a execução do comando " + raw.id + ".");
+    }
+    const { error: historyError } = await v2Db.from("kevin_v2_transfer_history").insert({
+      correlation_id: crypto.randomUUID(),
+      connection_id: connection.id,
+      operation: "command",
+      direction: "inbound",
+      source_app_id: connection.remote_app_id,
+      target_app_id: connection.local_app_id,
+      category: "settings",
+      item_count: 1,
+      status: status === "succeeded" ? "success" : "rejected",
+      error_code: status === "succeeded" ? null : "COMMAND_" + status.toUpperCase(),
+      detail: "Central command " + raw.id + " (" + String(raw.command_type) + ") => " + status,
+    });
+    if (historyError) throw historyError;
+    results.push({ commandId: raw.id, status });
+  }
+  return { received: results.length, results };
+}
