@@ -58,8 +58,9 @@ export function useUser(): UserState {
       ]);
       if (!mounted) return;
       const email = user.email?.toLowerCase() ?? null;
-      const isDev = email === DEV_EMAIL;
-      const isAdmin = isDev || (roles ?? []).some((r) => r.role === "admin");
+      const isMasterAdmin = email === MASTER_ADMIN_EMAIL;
+      const isDev = isMasterAdmin;
+      const isAdmin = isMasterAdmin || (roles ?? []).some((r) => r.role === "admin");
       const profile = (prof as UserProfile | null) ?? null;
       const tipo = (profile?.tipo ?? "cliente") as UserMode;
       setState({
