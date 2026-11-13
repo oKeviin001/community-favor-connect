@@ -37,13 +37,17 @@ DECLARE
   v_after boolean;
   v_rows integer;
 BEGIN
-  SELECT count(*), max(som) INTO v_count, v_before
+  SELECT count(*) INTO v_count
   FROM public.notification_control
   WHERE id = TRUE;
 
   IF v_count <> 1 THEN
     RAISE EXCEPTION 'Authenticated SELECT failed: expected the singleton row';
   END IF;
+
+  SELECT som INTO v_before
+  FROM public.notification_control
+  WHERE id = TRUE;
 
   -- RLS silently filters UPDATE rows for non-admins; it does not necessarily
   -- raise insufficient_privilege. Verify that zero rows were changed.
