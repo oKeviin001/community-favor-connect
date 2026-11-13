@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DEV_EMAIL } from "./dev-constants";
+import { MASTER_ADMIN_EMAIL } from "./dev-constants";
 
 export type UserMode = "cliente" | "entregador" | "ambos";
 
