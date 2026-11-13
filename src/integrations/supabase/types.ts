@@ -1040,6 +1040,8 @@ export type Database = {
       kevin_v2_outbox: {
         Row: {
           category: string
+          checksum: string | null
+          payload: Json
           created_at: string
           entity_version: number
           event_id: string
@@ -1051,6 +1053,8 @@ export type Database = {
         }
         Insert: {
           category: string
+          checksum?: string | null
+          payload?: Json
           created_at?: string
           entity_version?: never
           event_id?: string
@@ -1062,6 +1066,8 @@ export type Database = {
         }
         Update: {
           category?: string
+          checksum?: string | null
+          payload?: Json
           created_at?: string
           entity_version?: never
           event_id?: string
