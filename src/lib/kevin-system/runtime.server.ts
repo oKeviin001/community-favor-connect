@@ -310,6 +310,67 @@ export async function receiveKevinV2File(request: Request, body: unknown) {
   return { transferId: body.transferId, status: "verified", sizeBytes: binary.length, sha256: checksum };
 }
 
+/** Stores a file locally, then sends it to Central using the paired HMAC channel. */
+export async function sendKevinV2File(input: { fileName: string; contentType: string; base64: string }) {
+  requireKevinV2Config();
+  const centralOrigin = process.env.KEVIN_CENTRAL_ORIGIN ?? "";
+  if (!centralOrigin) throw new Error("KEVIN_CENTRAL_ORIGIN não configurada.");
+  const central = new URL(normalizeKevinOrigin(centralOrigin));
+  const fileName = input.fileName.trim();
+  const allowedTypes = new Set(["application/pdf","application/json","application/zip","text/plain","image/jpeg","image/png","image/webp"]);
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/.test(fileName) || fileName.includes("..") || !allowedTypes.has(input.contentType)) {
+    throw new Error("Nome ou tipo de arquivo não permitido.");
+  }
+  if (input.base64.length > 14_000_000 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(input.base64)) throw new Error("Arquivo inválido ou acima de 10 MB.");
+  const bytes = Uint8Array.from(atob(input.base64), c => c.charCodeAt(0));
+  if (!bytes.length || bytes.length > 10 * 1024 * 1024) throw new Error("O arquivo deve ter entre 1 byte e 10 MB.");
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  const sha256 = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2,"0")).join("");
+  const { data: rows, error } = await v2Db.from("kevin_v2_connections")
+    .select("id,remote_connection_id,local_app_id,remote_app_id,remote_origin,encrypted_shared_secret,status")
+    .eq("status","connected").eq("remote_origin",central.origin).limit(2);
+  if (error) throw error;
+  if (!rows || rows.length !== 1 || !rows[0].remote_connection_id) throw new Error("Não existe um único pareamento bilateral ativo.");
+  const connection = rows[0] as unknown as Connection;
+  const identity = await getKevinV2Identity();
+  const transferId = crypto.randomUUID();
+  const objectPath = connection.id + "/" + transferId + "/" + fileName;
+  const { error: uploadError } = await v2Db.storage.from("kevin-v2-files").upload(objectPath, bytes, { contentType: input.contentType, upsert: false });
+  if (uploadError) throw uploadError;
+  const { error: insertError } = await v2Db.from("kevin_v2_files").insert({
+    transfer_id: transferId, connection_id: connection.id, source_app_id: identity.app_id,
+    target_app_id: connection.remote_app_id, object_path: objectPath, file_name: fileName,
+    content_type: input.contentType, size_bytes: bytes.length, sha256, direction: "outbound", status: "pending",
+  });
+  if (insertError) { await v2Db.storage.from("kevin-v2-files").remove([objectPath]); throw insertError; }
+  const body = { transferId, fileName, contentType: input.contentType, base64: input.base64, sha256 };
+  const pathAndQuery = "/api/public/kevin/v2/files";
+  const timestamp = String(Math.floor(Date.now()/1000)), nonce = generateKevinNonce();
+  const secret = await decryptKevinSecret(connection.encrypted_shared_secret, MASTER_KEY());
+  const signature = await signKevinRequest({ secret, method:"POST", pathAndQuery, timestamp, nonce, body });
+  try {
+    const response = await fetch(new URL(pathAndQuery, central.origin), {
+      method:"POST", headers: { "content-type":"application/json", "x-kevin-connection":connection.remote_connection_id,
+        "x-kevin-timestamp":timestamp, "x-kevin-nonce":nonce, "x-kevin-signature":signature },
+      body:JSON.stringify(body), redirect:"manual", signal:AbortSignal.timeout(30_000),
+    });
+    const result = await response.json().catch(()=>null) as {ok?:boolean;sha256?:string;status?:string}|null;
+    if (!response.ok || result?.ok !== true || result.sha256 !== sha256 || result.status !== "verified") throw new Error("Central não confirmou a integridade do arquivo.");
+    const { error: updateError } = await v2Db.from("kevin_v2_files").update({ status:"verified", verified_at:new Date().toISOString() })
+      .eq("connection_id",connection.id).eq("transfer_id",transferId);
+    if (updateError) throw updateError;
+    await v2Db.from("kevin_v2_transfer_history").insert({ correlation_id:transferId, connection_id:connection.id,
+      operation:"file_push", direction:"outbound", source_app_id:identity.app_id, target_app_id:connection.remote_app_id,
+      item_count:1, status:"success", detail:fileName });
+    return { ok:true, transferId, status:"verified", sizeBytes:bytes.length, sha256 };
+  } catch (sendError) {
+    await v2Db.from("kevin_v2_transfer_history").insert({ correlation_id:transferId, connection_id:connection.id,
+      operation:"file_push", direction:"outbound", source_app_id:identity.app_id, target_app_id:connection.remote_app_id,
+      item_count:0, status:"error", error_code:"FILE_PUSH_FAILED", detail:sendError instanceof Error ? sendError.message.slice(0,500) : "Falha no envio" });
+    throw sendError;
+  }
+}
+
 /** Envia um único ping de diagnóstico, sem dados de negócio, à Central já pareada. */
 export async function sendKevinV2SettingsPing() {
   requireKevinV2Config();
