@@ -3,7 +3,7 @@ import { sendKevinV2File } from "@/lib/kevin-system/runtime.server";
 
 function authorized(request: Request) {
   const expected = process.env.KEVIN_ADMIN_TOKEN ?? "";
-  const supplied = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "") ?? "";
+  const supplied = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
   if (!expected || supplied.length !== expected.length) return false;
   let mismatch = 0;
   for (let i = 0; i < expected.length; i++) mismatch |= expected.charCodeAt(i) ^ supplied.charCodeAt(i);
