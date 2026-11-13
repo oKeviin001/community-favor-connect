@@ -36,6 +36,13 @@
       "when": 1794500000000,
       "tag": "0004_kevin_v2_remote_connection_id",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794528262219,
+      "tag": "0005_kevin_v2_remote_connection_id_apply",
+      "breakpoints": true
     }
   ]
 }

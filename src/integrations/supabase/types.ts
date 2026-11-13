@@ -806,7 +806,6 @@ export type Database = {
       }
       kevin_v2_connections: {
         Row: {
-          remote_connection_id: string | null
           confirmed_at: string | null
           created_at: string
           encrypted_shared_secret: string
@@ -818,6 +817,7 @@ export type Database = {
           local_app_id: string
           protocol_version: string
           remote_app_id: string
+          remote_connection_id: string | null
           remote_name: string
           remote_origin: string
           remote_slug: string | null
@@ -827,7 +827,6 @@ export type Database = {
           status: string
         }
         Insert: {
-          remote_connection_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           encrypted_shared_secret: string
@@ -839,6 +838,7 @@ export type Database = {
           local_app_id: string
           protocol_version?: string
           remote_app_id: string
+          remote_connection_id?: string | null
           remote_name: string
           remote_origin: string
           remote_slug?: string | null
@@ -848,7 +848,6 @@ export type Database = {
           status?: string
         }
         Update: {
-          remote_connection_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           encrypted_shared_secret?: string
@@ -860,6 +859,7 @@ export type Database = {
           local_app_id?: string
           protocol_version?: string
           remote_app_id?: string
+          remote_connection_id?: string | null
           remote_name?: string
           remote_origin?: string
           remote_slug?: string | null
