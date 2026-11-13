@@ -927,6 +927,65 @@ export type Database = {
           },
         ]
       }
+      kevin_v2_files: {
+        Row: {
+          id: string
+          transfer_id: string
+          connection_id: string
+          source_app_id: string
+          target_app_id: string
+          object_path: string
+          file_name: string
+          content_type: string
+          size_bytes: number
+          sha256: string
+          direction: string
+          status: string
+          created_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          id?: string
+          transfer_id: string
+          connection_id: string
+          source_app_id: string
+          target_app_id: string
+          object_path: string
+          file_name: string
+          content_type: string
+          size_bytes: number
+          sha256: string
+          direction: string
+          status?: string
+          created_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          id?: string
+          transfer_id?: string
+          connection_id?: string
+          source_app_id?: string
+          target_app_id?: string
+          object_path?: string
+          file_name?: string
+          content_type?: string
+          size_bytes?: number
+          sha256?: string
+          direction?: string
+          status?: string
+          created_at?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kevin_v2_files_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "kevin_v2_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kevin_v2_inbox: {
         Row: {
           applied_at: string | null
