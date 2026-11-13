@@ -288,17 +288,60 @@ export async function sendKevinV2SettingsPing() {
   if (priorSuccess) {
     return { ok: true as const, eventId, alreadyDelivered: true, category: "settings" as const };
   }
+  let { data: outbox, error: outboxReadError } = await v2Db.from("kevin_v2_outbox")
+    .select("id,event_id,entity_version,occurred_at")
+    .eq("event_id", eventId).maybeSingle();
+  if (outboxReadError) throw outboxReadError;
+  if (!outbox) {
+    const inserted = await v2Db.from("kevin_v2_outbox").insert({
+      event_id: eventId, source_app_id: identity.app_id, category: "settings",
+      source_record_id: "app-config-test", operation: "upsert",
+      occurred_at: occurredAt, payload: { test: true, ping: "handshake-check" },
+    }).select("id,event_id,entity_version,occurred_at").single();
+    if (inserted.error && inserted.error.code !== "23505") throw inserted.error;
+    if (inserted.data) outbox = inserted.data;
+    else {
+      const retry = await v2Db.from("kevin_v2_outbox").select("id,event_id,entity_version,occurred_at")
+        .eq("event_id", eventId).single();
+      if (retry.error) throw retry.error;
+      outbox = retry.data;
+    }
+  }
+  if (!outbox) throw new Error("Não foi possível persistir o evento de saída.");
   const event = await createKevinEnvelope({
-    eventId,
+    eventId: String(outbox.event_id),
     sourceAppId: String(identity.app_id),
     sourceAppName: String(identity.app_name),
     category: "settings",
     recordId: "app-config-test",
     operation: "upsert",
-    entityVersion: 1,
-    occurredAt,
+    entityVersion: Number(outbox.entity_version),
+    occurredAt: String(outbox.occurred_at),
     payload: { test: true, ping: "handshake-check" },
   });
+  const { error: checksumError } = await v2Db.from("kevin_v2_outbox")
+    .update({ checksum: event.checksum, payload: { test: true, ping: "handshake-check" } })
+    .eq("id", outbox.id);
+  if (checksumError) throw checksumError;
+
+  let { data: delivery, error: deliveryReadError } = await v2Db.from("kevin_v2_deliveries")
+    .select("id,attempts,status").eq("outbox_id", outbox.id).eq("connection_id", connection.id).maybeSingle();
+  if (deliveryReadError) throw deliveryReadError;
+  if (!delivery) {
+    const insertedDelivery = await v2Db.from("kevin_v2_deliveries").insert({
+      outbox_id: outbox.id, connection_id: connection.id, status: "pending",
+    }).select("id,attempts,status").single();
+    if (insertedDelivery.error && insertedDelivery.error.code !== "23505") throw insertedDelivery.error;
+    if (insertedDelivery.data) delivery = insertedDelivery.data;
+    else {
+      const retry = await v2Db.from("kevin_v2_deliveries").select("id,attempts,status")
+        .eq("outbox_id", outbox.id).eq("connection_id", connection.id).single();
+      if (retry.error) throw retry.error;
+      delivery = retry.data;
+    }
+  }
+  if (!delivery) throw new Error("Não foi possível persistir a entrega.");
+  const nextAttempt = Number(delivery.attempts ?? 0) + 1;
   const body = { events: [event] };
   const pathAndQuery = "/api/public/kevin/v2/events";
   const timestamp = String(Math.floor(Date.now() / 1000));
@@ -327,6 +370,11 @@ export async function sendKevinV2SettingsPing() {
     const accepted = result && Array.isArray(result.accepted) ? result.accepted : [];
     const rejected = result && Array.isArray(result.rejected) ? result.rejected : [];
     const success = response.ok && result?.ok === true && accepted.includes(event.eventId) && rejected.length === 0;
+    const { error: deliveryUpdateError } = await v2Db.from("kevin_v2_deliveries").update(success
+      ? { status: "delivered", delivered_at: new Date().toISOString(), lease_until: null, attempts: nextAttempt, last_error_code: null, last_error_message: null }
+      : { status: "pending", attempts: nextAttempt, last_error_code: "REMOTE_REJECTED", last_error_message: JSON.stringify(responseBody).slice(0, 500) })
+      .eq("id", delivery.id);
+    if (deliveryUpdateError) throw deliveryUpdateError;
     const { error: historyError } = await v2Db.from("kevin_v2_transfer_history").insert({
       correlation_id: crypto.randomUUID(), connection_id: connection.id, operation: "push",
       direction: "outbound", source_app_id: connection.local_app_id, target_app_id: connection.remote_app_id,
@@ -349,6 +397,11 @@ export async function sendKevinV2SettingsPing() {
     }).eq("id", connection.id);
     return { ok: true as const, eventId: event.eventId, httpStatus: responseStatus, accepted: 1, category: "settings" as const };
   } catch (error) {
+    await v2Db.from("kevin_v2_deliveries").update({
+      status: "pending", attempts: nextAttempt,
+      last_error_code: "NETWORK_OR_PROCESSING_ERROR",
+      last_error_message: error instanceof Error ? error.message.slice(0, 500) : "Falha no envio.",
+    }).eq("id", delivery.id);
     if (error instanceof Error && error.message.startsWith("A Central não confirmou")) throw error;
     await v2Db.from("kevin_v2_transfer_history").insert({
       correlation_id: crypto.randomUUID(), connection_id: connection.id, operation: "push",
