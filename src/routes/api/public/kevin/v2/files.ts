@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { receiveKevinV2File } from "@/lib/kevin-system/runtime.server";
 
+// @ts-expect-error TanStack regenerates the checked-in route tree during the Vite build.
 export const Route = createFileRoute("/api/public/kevin/v2/files")({
   server: { handlers: {
     OPTIONS: async () => new Response(null, { status: 204, headers: cors }),
