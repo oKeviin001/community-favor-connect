@@ -142,7 +142,11 @@ export async function initiateCentralKevinV2Pairing(code: string) {
     confirmed_at: null,
   }).select("id").single();
   if (insertError) throw insertError;
-  const confirmationBody = { connectionId: handshake.connectionId };
+  // Send our local connection ID so Central can address this app in reverse.
+  const confirmationBody = {
+    connectionId: handshake.connectionId,
+    remoteConnectionId: localConnection.id,
+  };
   const timestamp = String(Math.floor(Date.now() / 1000));
   const nonce = generateKevinNonce();
   const pathAndQuery = "/api/public/kevin/v2/confirm";
@@ -190,7 +194,12 @@ export async function confirmKevinV2Pairing(request: Request, body: unknown) {
       !/^[a-f0-9]{32}$/i.test(nonce) || !/^[a-f0-9]{64}$/i.test(signature)) {
     throw new Error("Cabeçalhos de autenticação inválidos.");
   }
-  if (!isRecord(body) || body.connectionId !== connectionId) throw new Error("Confirmação inválida.");
+  if (!isRecord(body) || body.connectionId !== connectionId ||
+      typeof body.remoteConnectionId !== "string" ||
+      !/^[0-9a-f-]{36}$/i.test(body.remoteConnectionId)) {
+    throw new Error("Confirmação inválida: ID remoto ausente.");
+  }
+  const remoteConnectionId = body.remoteConnectionId;
   const { data: connection, error } = await v2Db.from("kevin_v2_connections")
     .select("id,encrypted_shared_secret").eq("id", connectionId).eq("status", "pending").maybeSingle();
   if (error) throw error;
@@ -207,7 +216,7 @@ export async function confirmKevinV2Pairing(request: Request, body: unknown) {
   });
   if (nonceError) throw new Error(nonceError.code === "23505" ? "Requisição repetida." : "Não foi possível registrar o nonce.");
   const { data: updated, error: updateError } = await v2Db.from("kevin_v2_connections")
-    .update({ status: "connected", confirmed_at: new Date().toISOString() })
+    .update({ status: "connected", confirmed_at: new Date().toISOString(), remote_connection_id: remoteConnectionId })
     .eq("id", connection.id).eq("status", "pending").select("id").maybeSingle();
   if (updateError) throw updateError;
   if (!updated) throw new Error("A conexão foi alterada antes da confirmação.");
@@ -246,6 +255,201 @@ export async function authenticateKevinV2Request(request: Request, body: unknown
   return row;
 }
 
+/** Receives a signed file transfer into the private Kevin bucket. */
+export async function receiveKevinV2File(request: Request, body: unknown) {
+  const connection = await authenticateKevinV2Request(request, body);
+  if (!isRecord(body) || typeof body.transferId !== "string" ||
+      !/^[0-9a-f-]{36}$/i.test(body.transferId) ||
+      typeof body.fileName !== "string" || typeof body.contentType !== "string" ||
+      typeof body.base64 !== "string" || typeof body.sha256 !== "string") {
+    throw new Error("Metadados do arquivo inválidos.");
+  }
+  const fileName = body.fileName.trim();
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/.test(fileName) || fileName.includes("..")) {
+    throw new Error("Nome de arquivo não permitido.");
+  }
+  const allowedTypes = new Set(["application/pdf","application/json","application/zip","text/plain","image/jpeg","image/png","image/webp"]);
+  if (!allowedTypes.has(body.contentType)) throw new Error("Tipo de arquivo não permitido.");
+  if (body.base64.length > 14_000_000 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(body.base64)) {
+    throw new Error("Arquivo excede o limite ou está codificado incorretamente.");
+  }
+  const binary = Uint8Array.from(atob(body.base64), (char) => char.charCodeAt(0));
+  if (binary.length < 1 || binary.length > 10 * 1024 * 1024) throw new Error("O arquivo deve ter entre 1 byte e 10 MB.");
+  const hashBytes = await crypto.subtle.digest("SHA-256", binary);
+  const checksum = Array.from(new Uint8Array(hashBytes), (b) => b.toString(16).padStart(2, "0")).join("");
+  if (checksum !== body.sha256.toLowerCase()) throw new Error("Checksum do arquivo não confere.");
+  const { data: existing, error: existingError } = await v2Db.from("kevin_v2_files")
+    .select("id,sha256,status").eq("connection_id", connection.id).eq("transfer_id", body.transferId).maybeSingle();
+  if (existingError) throw existingError;
+  if (existing) {
+    if (existing.sha256 !== checksum) throw new Error("ID de transferência reutilizado com conteúdo diferente.");
+    return { transferId: body.transferId, status: existing.status, sha256: checksum, duplicate: true };
+  }
+  const objectPath = connection.id + "/" + body.transferId + "/" + fileName;
+  const { error: uploadError } = await v2Db.storage.from("kevin-v2-files").upload(objectPath, binary, {
+    contentType: body.contentType, upsert: false,
+  });
+  if (uploadError) throw uploadError;
+  const identity = await getKevinV2Identity();
+  const { error: insertError } = await v2Db.from("kevin_v2_files").insert({
+    transfer_id: body.transferId, connection_id: connection.id,
+    source_app_id: connection.remote_app_id, target_app_id: identity.app_id,
+    object_path: objectPath, file_name: fileName, content_type: body.contentType,
+    size_bytes: binary.length, sha256: checksum, direction: "inbound", status: "verified",
+    verified_at: new Date().toISOString(),
+  });
+  if (insertError) {
+    await v2Db.storage.from("kevin-v2-files").remove([objectPath]);
+    throw insertError;
+  }
+  await v2Db.from("kevin_v2_transfer_history").insert({
+    correlation_id: body.transferId, connection_id: connection.id, operation: "file_push",
+    direction: "inbound", source_app_id: connection.remote_app_id, target_app_id: identity.app_id,
+    item_count: 1, status: "success", detail: fileName,
+  });
+  return { transferId: body.transferId, status: "verified", sizeBytes: binary.length, sha256: checksum };
+}
+
+/** Stores a file locally, then sends it to Central using the paired HMAC channel. */
+export async function sendKevinV2File(input: { fileName: string; contentType: string; base64: string }) {
+  requireKevinV2Config();
+  const centralOrigin = process.env.KEVIN_CENTRAL_ORIGIN ?? "";
+  if (!centralOrigin) throw new Error("KEVIN_CENTRAL_ORIGIN não configurada.");
+  const central = new URL(normalizeKevinOrigin(centralOrigin));
+  const fileName = input.fileName.trim();
+  const allowedTypes = new Set(["application/pdf","application/json","application/zip","text/plain","image/jpeg","image/png","image/webp"]);
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/.test(fileName) || fileName.includes("..") || !allowedTypes.has(input.contentType)) {
+    throw new Error("Nome ou tipo de arquivo não permitido.");
+  }
+  if (input.base64.length > 14_000_000 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(input.base64)) throw new Error("Arquivo inválido ou acima de 10 MB.");
+  const bytes = Uint8Array.from(atob(input.base64), c => c.charCodeAt(0));
+  if (!bytes.length || bytes.length > 10 * 1024 * 1024) throw new Error("O arquivo deve ter entre 1 byte e 10 MB.");
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  const sha256 = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2,"0")).join("");
+  const { data: rows, error } = await v2Db.from("kevin_v2_connections")
+    .select("id,remote_connection_id,local_app_id,remote_app_id,remote_origin,encrypted_shared_secret,status")
+    .eq("status","connected").eq("remote_origin",central.origin).limit(2);
+  if (error) throw error;
+  if (!rows || rows.length !== 1 || !rows[0].remote_connection_id) throw new Error("Não existe um único pareamento bilateral ativo.");
+  const connection = rows[0] as unknown as Connection;
+  const identity = await getKevinV2Identity();
+  const transferId = crypto.randomUUID();
+  const objectPath = connection.id + "/" + transferId + "/" + fileName;
+  const { error: uploadError } = await v2Db.storage.from("kevin-v2-files").upload(objectPath, bytes, { contentType: input.contentType, upsert: false });
+  if (uploadError) throw uploadError;
+  const { error: insertError } = await v2Db.from("kevin_v2_files").insert({
+    transfer_id: transferId, connection_id: connection.id, source_app_id: identity.app_id,
+    target_app_id: connection.remote_app_id, object_path: objectPath, file_name: fileName,
+    content_type: input.contentType, size_bytes: bytes.length, sha256, direction: "outbound", status: "pending",
+  });
+  if (insertError) { await v2Db.storage.from("kevin-v2-files").remove([objectPath]); throw insertError; }
+  const body = { transferId, fileName, contentType: input.contentType, base64: input.base64, sha256 };
+  const pathAndQuery = "/api/public/kevin/v2/files";
+  const timestamp = String(Math.floor(Date.now()/1000)), nonce = generateKevinNonce();
+  const secret = await decryptKevinSecret(connection.encrypted_shared_secret, MASTER_KEY());
+  const signature = await signKevinRequest({ secret, method:"POST", pathAndQuery, timestamp, nonce, body });
+  try {
+    const response = await fetch(new URL(pathAndQuery, central.origin), {
+      method:"POST", headers: { "content-type":"application/json", "x-kevin-connection":connection.remote_connection_id,
+        "x-kevin-timestamp":timestamp, "x-kevin-nonce":nonce, "x-kevin-signature":signature },
+      body:JSON.stringify(body), redirect:"manual", signal:AbortSignal.timeout(30_000),
+    });
+    const result = await response.json().catch(()=>null) as {ok?:boolean;sha256?:string;status?:string}|null;
+    if (!response.ok || result?.ok !== true || result.sha256 !== sha256 || result.status !== "verified") throw new Error("Central não confirmou a integridade do arquivo.");
+    const { error: updateError } = await v2Db.from("kevin_v2_files").update({ status:"verified", verified_at:new Date().toISOString() })
+      .eq("connection_id",connection.id).eq("transfer_id",transferId);
+    if (updateError) throw updateError;
+    await v2Db.from("kevin_v2_transfer_history").insert({ correlation_id:transferId, connection_id:connection.id,
+      operation:"file_push", direction:"outbound", source_app_id:identity.app_id, target_app_id:connection.remote_app_id,
+      item_count:1, status:"success", detail:fileName });
+    return { ok:true, transferId, status:"verified", sizeBytes:bytes.length, sha256 };
+  } catch (sendError) {
+    await v2Db.from("kevin_v2_transfer_history").insert({ correlation_id:transferId, connection_id:connection.id,
+      operation:"file_push", direction:"outbound", source_app_id:identity.app_id, target_app_id:connection.remote_app_id,
+      item_count:0, status:"error", error_code:"FILE_PUSH_FAILED", detail:sendError instanceof Error ? sendError.message.slice(0,500) : "Falha no envio" });
+    throw sendError;
+  }
+}
+
+
+/** Reenvia arquivos pendentes preservando transfer_id, objeto e checksum. */
+export async function retryKevinV2Files(limit = 10) {
+  requireKevinV2Config();
+  const identity = await getKevinV2Identity();
+  const { data: pending, error: pendingError } = await v2Db.from("kevin_v2_files")
+    .select("transfer_id,connection_id,object_path,file_name,content_type,size_bytes,sha256")
+    .eq("direction", "outbound").eq("status", "pending").order("created_at", { ascending: true }).limit(Math.max(1, Math.min(10, limit)));
+  if (pendingError) throw pendingError;
+  const results: { transferId: string; status: "verified" | "pending"; error?: string }[] = [];
+  for (const file of pending ?? []) {
+    const transferId = String(file.transfer_id);
+    const { data: priorErrors, error: historyReadError } = await v2Db.from("kevin_v2_transfer_history")
+      .select("created_at").eq("correlation_id", transferId).eq("direction", "outbound")
+      .eq("operation", "file_push").eq("status", "error").order("created_at", { ascending: false }).limit(6);
+    if (historyReadError) throw historyReadError;
+    const attempts = priorErrors?.length ?? 0;
+    if (attempts >= 6) {
+      results.push({ transferId, status: "pending", error: "Limite de seis tentativas atingido; requer intervenção manual." });
+      continue;
+    }
+    const backoffMs = [60_000, 5 * 60_000, 15 * 60_000, 60 * 60_000, 6 * 60 * 60_000][Math.max(0, attempts - 1)] ?? 24 * 60 * 60_000;
+    const lastAttempt = priorErrors?.[0]?.created_at ? Date.parse(priorErrors[0].created_at) : 0;
+    if (lastAttempt && Date.now() - lastAttempt < backoffMs) {
+      results.push({ transferId, status: "pending", error: "Aguardando intervalo de segurança antes da próxima tentativa." });
+      continue;
+    }
+    try {
+      const { data: connectionData, error: connectionError } = await v2Db.from("kevin_v2_connections")
+        .select("id,remote_connection_id,remote_app_id,remote_origin,encrypted_shared_secret,status")
+        .eq("id", file.connection_id).eq("status", "connected").maybeSingle();
+      if (connectionError) throw connectionError;
+      if (!connectionData || !connectionData.remote_connection_id) throw new Error("Conexão bilateral indisponível.");
+      const connection = connectionData as unknown as Connection;
+      const { data: blob, error: downloadError } = await v2Db.storage.from("kevin-v2-files").download(String(file.object_path));
+      if (downloadError || !blob) throw new Error("Não foi possível recuperar o arquivo do armazenamento privado.");
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      if (bytes.length !== Number(file.size_bytes) || bytes.length < 1 || bytes.length > 10 * 1024 * 1024) throw new Error("Tamanho do arquivo armazenado não confere.");
+      const digestBytes = await crypto.subtle.digest("SHA-256", bytes);
+      const sha256 = Array.from(new Uint8Array(digestBytes), b => b.toString(16).padStart(2, "0")).join("");
+      if (sha256 !== String(file.sha256)) throw new Error("Checksum do arquivo armazenado não confere.");
+      let binary = "";
+      for (let offset = 0; offset < bytes.length; offset += 0x8000) binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+      const body = { transferId, fileName: String(file.file_name), contentType: String(file.content_type), base64: btoa(binary), sha256 };
+      const pathAndQuery = "/api/public/kevin/v2/files";
+      const timestamp = String(Math.floor(Date.now() / 1000)), nonce = generateKevinNonce();
+      const secret = await decryptKevinSecret(connection.encrypted_shared_secret, MASTER_KEY());
+      const signature = await signKevinRequest({ secret, method: "POST", pathAndQuery, timestamp, nonce, body });
+      const response = await fetch(new URL(pathAndQuery, connection.remote_origin), {
+        method: "POST", headers: { "content-type": "application/json", "x-kevin-connection": connection.remote_connection_id,
+          "x-kevin-timestamp": timestamp, "x-kevin-nonce": nonce, "x-kevin-signature": signature },
+        body: JSON.stringify(body), redirect: "manual", signal: AbortSignal.timeout(30_000),
+      });
+      const result = await response.json().catch(() => null) as { ok?: boolean; sha256?: string; status?: string } | null;
+      if (!response.ok || result?.ok !== true || result.sha256 !== sha256 || result.status !== "verified") throw new Error("A Central não confirmou a integridade do arquivo.");
+      const { error: updateError } = await v2Db.from("kevin_v2_files").update({ status: "verified", verified_at: new Date().toISOString() })
+        .eq("connection_id", connection.id).eq("transfer_id", transferId).eq("status", "pending");
+      if (updateError) throw updateError;
+      const { error: historyError } = await v2Db.from("kevin_v2_transfer_history").insert({
+        correlation_id: transferId, connection_id: connection.id, operation: "file_push", direction: "outbound",
+        source_app_id: identity.app_id, target_app_id: connection.remote_app_id, item_count: 1, status: "success",
+        detail: "retry:" + String(file.file_name),
+      });
+      if (historyError) throw historyError;
+      results.push({ transferId, status: "verified" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message.slice(0, 500) : "Falha no reenvio.";
+      const { data: connectionData } = await v2Db.from("kevin_v2_connections").select("remote_app_id").eq("id", file.connection_id).maybeSingle();
+      await v2Db.from("kevin_v2_transfer_history").insert({
+        correlation_id: transferId, connection_id: file.connection_id, operation: "file_push", direction: "outbound",
+        source_app_id: identity.app_id, target_app_id: connectionData?.remote_app_id ?? null,
+        item_count: 0, status: "error", error_code: "FILE_RETRY_FAILED", detail: message,
+      });
+      results.push({ transferId, status: "pending", error: message });
+    }
+  }
+  return { ok: true, checked: pending?.length ?? 0, verified: results.filter(item => item.status === "verified").length, pending: results.filter(item => item.status === "pending").length, results };
+}
+
 /** Envia um único ping de diagnóstico, sem dados de negócio, à Central já pareada. */
 export async function sendKevinV2SettingsPing() {
   requireKevinV2Config();
@@ -279,17 +483,60 @@ export async function sendKevinV2SettingsPing() {
   if (priorSuccess) {
     return { ok: true as const, eventId, alreadyDelivered: true, category: "settings" as const };
   }
+  let { data: outbox, error: outboxReadError } = await v2Db.from("kevin_v2_outbox")
+    .select("id,event_id,entity_version,occurred_at")
+    .eq("event_id", eventId).maybeSingle();
+  if (outboxReadError) throw outboxReadError;
+  if (!outbox) {
+    const inserted = await v2Db.from("kevin_v2_outbox").insert({
+      event_id: eventId, source_app_id: identity.app_id, category: "settings",
+      source_record_id: "app-config-test", operation: "upsert",
+      occurred_at: occurredAt, payload: { test: true, ping: "handshake-check" },
+    }).select("id,event_id,entity_version,occurred_at").single();
+    if (inserted.error && inserted.error.code !== "23505") throw inserted.error;
+    if (inserted.data) outbox = inserted.data;
+    else {
+      const retry = await v2Db.from("kevin_v2_outbox").select("id,event_id,entity_version,occurred_at")
+        .eq("event_id", eventId).single();
+      if (retry.error) throw retry.error;
+      outbox = retry.data;
+    }
+  }
+  if (!outbox) throw new Error("Não foi possível persistir o evento de saída.");
   const event = await createKevinEnvelope({
-    eventId,
+    eventId: String(outbox.event_id),
     sourceAppId: String(identity.app_id),
     sourceAppName: String(identity.app_name),
     category: "settings",
     recordId: "app-config-test",
     operation: "upsert",
-    entityVersion: 1,
-    occurredAt,
+    entityVersion: Number(outbox.entity_version),
+    occurredAt: String(outbox.occurred_at),
     payload: { test: true, ping: "handshake-check" },
   });
+  const { error: checksumError } = await v2Db.from("kevin_v2_outbox")
+    .update({ checksum: event.checksum, payload: { test: true, ping: "handshake-check" } })
+    .eq("id", outbox.id);
+  if (checksumError) throw checksumError;
+
+  let { data: delivery, error: deliveryReadError } = await v2Db.from("kevin_v2_deliveries")
+    .select("id,attempts,status").eq("outbox_id", outbox.id).eq("connection_id", connection.id).maybeSingle();
+  if (deliveryReadError) throw deliveryReadError;
+  if (!delivery) {
+    const insertedDelivery = await v2Db.from("kevin_v2_deliveries").insert({
+      outbox_id: outbox.id, connection_id: connection.id, status: "pending",
+    }).select("id,attempts,status").single();
+    if (insertedDelivery.error && insertedDelivery.error.code !== "23505") throw insertedDelivery.error;
+    if (insertedDelivery.data) delivery = insertedDelivery.data;
+    else {
+      const retry = await v2Db.from("kevin_v2_deliveries").select("id,attempts,status")
+        .eq("outbox_id", outbox.id).eq("connection_id", connection.id).single();
+      if (retry.error) throw retry.error;
+      delivery = retry.data;
+    }
+  }
+  if (!delivery) throw new Error("Não foi possível persistir a entrega.");
+  const nextAttempt = Number(delivery.attempts ?? 0) + 1;
   const body = { events: [event] };
   const pathAndQuery = "/api/public/kevin/v2/events";
   const timestamp = String(Math.floor(Date.now() / 1000));
@@ -318,6 +565,11 @@ export async function sendKevinV2SettingsPing() {
     const accepted = result && Array.isArray(result.accepted) ? result.accepted : [];
     const rejected = result && Array.isArray(result.rejected) ? result.rejected : [];
     const success = response.ok && result?.ok === true && accepted.includes(event.eventId) && rejected.length === 0;
+    const { error: deliveryUpdateError } = await v2Db.from("kevin_v2_deliveries").update(success
+      ? { status: "delivered", delivered_at: new Date().toISOString(), lease_until: null, attempts: nextAttempt, last_error_code: null, last_error_message: null }
+      : { status: "pending", attempts: nextAttempt, last_error_code: "REMOTE_REJECTED", last_error_message: JSON.stringify(responseBody).slice(0, 500) })
+      .eq("id", delivery.id);
+    if (deliveryUpdateError) throw deliveryUpdateError;
     const { error: historyError } = await v2Db.from("kevin_v2_transfer_history").insert({
       correlation_id: crypto.randomUUID(), connection_id: connection.id, operation: "push",
       direction: "outbound", source_app_id: connection.local_app_id, target_app_id: connection.remote_app_id,
@@ -340,6 +592,11 @@ export async function sendKevinV2SettingsPing() {
     }).eq("id", connection.id);
     return { ok: true as const, eventId: event.eventId, httpStatus: responseStatus, accepted: 1, category: "settings" as const };
   } catch (error) {
+    await v2Db.from("kevin_v2_deliveries").update({
+      status: "pending", attempts: nextAttempt,
+      last_error_code: "NETWORK_OR_PROCESSING_ERROR",
+      last_error_message: error instanceof Error ? error.message.slice(0, 500) : "Falha no envio.",
+    }).eq("id", delivery.id);
     if (error instanceof Error && error.message.startsWith("A Central não confirmou")) throw error;
     await v2Db.from("kevin_v2_transfer_history").insert({
       correlation_id: crypto.randomUUID(), connection_id: connection.id, operation: "push",
@@ -364,8 +621,10 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
   if (events.length < 1 || events.length > 100) throw new Error("O lote deve conter de 1 a 100 eventos.");
   const accepted: string[] = [], rejected: { eventId?: string; error: string }[] = [];
   for (const raw of events) {
+    let event: KevinEventEnvelope | undefined;
+    let inboxRecorded = false;
     try {
-      const event = await validateKevinEnvelope(raw) as KevinEventEnvelope;
+      event = await validateKevinEnvelope(raw) as KevinEventEnvelope;
       if (event.payload !== null && !isJsonValue(event.payload)) throw new Error("Payload não é JSON válido.");
       if (event.sourceAppId !== connection.remote_app_id || !connection.scopes.includes(event.category)) {
         throw new Error("Origem ou escopo não autorizado.");
@@ -375,8 +634,27 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
         source_record_id: event.recordId, entity_version: event.entityVersion,
         operation: event.operation, checksum: event.checksum, status: "received",
       });
-      if (inboxError?.code === "23505") { accepted.push(event.eventId); continue; }
-      if (inboxError) throw inboxError;
+      if (inboxError?.code === "23505") {
+        const { data: existing, error: lookupError } = await v2Db.from("kevin_v2_inbox")
+          .select("status,checksum").eq("source_app_id", event.sourceAppId)
+          .eq("event_id", event.eventId).maybeSingle();
+        if (lookupError) throw lookupError;
+        if (!existing) throw inboxError;
+        if (existing.checksum !== event.checksum) throw new Error("eventId reutilizado com checksum diferente.");
+        if (existing.status === "applied" || existing.status === "duplicate") {
+          accepted.push(event.eventId);
+          continue;
+        }
+        if (existing.status !== "received" && existing.status !== "rejected") {
+          throw new Error("Evento duplicado sem estado recuperável no inbox.");
+        }
+        inboxRecorded = true;
+      } else if (inboxError) {
+        throw inboxError;
+      } else {
+        inboxRecorded = true;
+      }
+
       const { data: applied, error: applyError } = await v2Db.rpc("kevin_v2_apply_storage", {
         p_source_app_id: event.sourceAppId, p_category: event.category,
         p_source_record_id: event.recordId, p_payload: event.payload,
@@ -384,12 +662,29 @@ export async function receiveKevinV2Events(request: Request, body: unknown) {
         p_deleted_at: event.operation === "delete" ? event.occurredAt : (null as unknown as string),
       });
       if (applyError) throw applyError;
-      await v2Db.from("kevin_v2_inbox").update({
-        status: applied === "applied" ? "applied" : "duplicate", applied_at: new Date().toISOString(),
-      }).eq("source_app_id", event.sourceAppId).eq("event_id", event.eventId);
+      const { data: updated, error: updateError } = await v2Db.from("kevin_v2_inbox").update({
+        status: applied === "applied" ? "applied" : "duplicate",
+        applied_at: new Date().toISOString(), error_code: null,
+      }).eq("source_app_id", event.sourceAppId).eq("event_id", event.eventId)
+        .in("status", ["received", "rejected"]).select("id").maybeSingle();
+      if (updateError) throw updateError;
+      if (!updated) throw new Error("Espelho atualizado, mas o estado do inbox mudou; ACK não confirmado.");
       accepted.push(event.eventId);
     } catch (error) {
-      rejected.push({ eventId: (raw as { eventId?: string })?.eventId, error: safeMessage(error) });
+      if (event && inboxRecorded) {
+        try {
+          await v2Db.from("kevin_v2_inbox").update({
+            status: "rejected", error_code: "PROCESSING_FAILED",
+          }).eq("source_app_id", event.sourceAppId).eq("event_id", event.eventId)
+            .in("status", ["received", "rejected"]);
+        } catch {
+          // A still-received row remains retryable; preserve the original processing error.
+        }
+      }
+      rejected.push({
+        ...(event?.eventId ? { eventId: event.eventId } : {}),
+        error: safeMessage(error),
+      });
     }
   }
   await v2Db.from("kevin_v2_transfer_history").insert({
@@ -440,4 +735,107 @@ function randomChars(length: number) {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const bytes = crypto.getRandomValues(new Uint8Array(length));
   return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
+}
+
+
+/** Polls Central for explicitly approved, allowlisted commands and returns signed execution ACKs. */
+export async function pollCentralKevinV2Commands() {
+  requireKevinV2Config();
+  const centralOrigin = process.env.KEVIN_CENTRAL_ORIGIN ?? "";
+  if (!centralOrigin) throw new Error("KEVIN_CENTRAL_ORIGIN não configurada.");
+  const central = new URL(normalizeKevinOrigin(centralOrigin));
+  const { data: rows, error } = await v2Db.from("kevin_v2_connections")
+    .select("id,remote_connection_id,remote_app_id,remote_name,remote_origin,scopes,encrypted_shared_secret,status")
+    .eq("status", "connected").eq("remote_origin", central.origin).limit(2);
+  if (error) throw error;
+  if (!rows || rows.length !== 1) throw new Error("É necessário exatamente um pareamento ativo com a Central Kevin.");
+  const connection = rows[0] as unknown as Connection;
+  if (!connection.remote_connection_id) throw new Error("ID remoto ausente; refaça a confirmação bilateral.");
+  if (!connection.scopes.includes("settings")) throw new Error("A conexão não possui o escopo settings.");
+  const secret = await decryptKevinSecret(connection.encrypted_shared_secret, MASTER_KEY());
+
+  const pullPath = "/api/public/kevin/v2/commands/pull";
+  const pullBody = { limit: 5 };
+  const pullTimestamp = String(Math.floor(Date.now() / 1000));
+  const pullNonce = generateKevinNonce();
+  const pullSignature = await signKevinRequest({
+    secret, method: "POST", pathAndQuery: pullPath,
+    timestamp: pullTimestamp, nonce: pullNonce, body: pullBody,
+  });
+  const pullResponse = await fetch(new URL(pullPath, central.origin), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-kevin-connection": connection.remote_connection_id,
+      "x-kevin-timestamp": pullTimestamp,
+      "x-kevin-nonce": pullNonce,
+      "x-kevin-signature": pullSignature,
+    },
+    body: JSON.stringify(pullBody),
+    redirect: "manual",
+    signal: AbortSignal.timeout(15_000),
+  });
+  const pulled: unknown = await pullResponse.json().catch(() => null);
+  if (!pullResponse.ok || !isRecord(pulled) || pulled.ok !== true || !Array.isArray(pulled.commands)) {
+    throw new Error("A Central não entregou uma fila de comandos válida.");
+  }
+
+  const identity = await getKevinV2Identity();
+  const results: { commandId: string; status: string }[] = [];
+  for (const raw of pulled.commands) {
+    if (!isRecord(raw) || typeof raw.id !== "string" || !/^[0-9a-f-]{36}$/i.test(raw.id)) continue;
+    let status: "succeeded" | "failed" | "rejected" = "rejected";
+    let result: Record<string, unknown> = { error: "Comando não suportado por esta versão." };
+    if (raw.command_type === "system.ping") {
+      status = "succeeded";
+      result = {
+        appId: identity.app_id,
+        appSlug: identity.app_slug,
+        appName: identity.app_name,
+        appVersion: identity.app_version,
+        protocol: KEVIN_PROTOCOL,
+        checkedAt: new Date().toISOString(),
+      };
+    }
+    const ackBody = { commandId: raw.id, status, result };
+    const ackPath = "/api/public/kevin/v2/commands/ack";
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const nonce = generateKevinNonce();
+    const signature = await signKevinRequest({
+      secret, method: "POST", pathAndQuery: ackPath, timestamp, nonce, body: ackBody,
+    });
+    const ackResponse = await fetch(new URL(ackPath, central.origin), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-kevin-connection": connection.remote_connection_id,
+        "x-kevin-timestamp": timestamp,
+        "x-kevin-nonce": nonce,
+        "x-kevin-signature": signature,
+      },
+      body: JSON.stringify(ackBody),
+      redirect: "manual",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const ack = await ackResponse.json().catch(() => null);
+    if (!ackResponse.ok || !isRecord(ack) || ack.ok !== true) {
+      throw new Error("A Central não confirmou a execução do comando " + raw.id + ".");
+    }
+    const { error: historyError } = await v2Db.from("kevin_v2_transfer_history").insert({
+      correlation_id: crypto.randomUUID(),
+      connection_id: connection.id,
+      operation: "command",
+      direction: "inbound",
+      source_app_id: connection.remote_app_id,
+      target_app_id: connection.local_app_id,
+      category: "settings",
+      item_count: 1,
+      status: status === "succeeded" ? "success" : "rejected",
+      error_code: status === "succeeded" ? null : "COMMAND_" + status.toUpperCase(),
+      detail: "Central command " + raw.id + " (" + String(raw.command_type) + ") => " + status,
+    });
+    if (historyError) throw historyError;
+    results.push({ commandId: raw.id, status });
+  }
+  return { received: results.length, results };
 }
