@@ -74,6 +74,12 @@ BEGIN
     RAISE EXCEPTION 'Test prerequisite missing: canonical master auth user';
   END IF;
 
+  -- Temporarily remove the role row so this specifically exercises the
+  -- canonical-email fallback. The outer transaction rolls this back.
+  DELETE FROM public.user_roles
+  WHERE user_id = v_user_id
+    AND role = 'admin'::public.app_role;
+
   PERFORM pg_catalog.set_config('request.jwt.claim.sub', v_user_id::text, true);
 END;
 $test$;
