@@ -57,6 +57,13 @@
       "when": 1794600003000,
       "tag": "0008_kevin_v2_files",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794786113748,
+      "tag": "0008_kevin_v2_outbox_payload",
+      "breakpoints": true
     }
   ]
 }

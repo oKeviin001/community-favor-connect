@@ -927,6 +927,65 @@ export type Database = {
           },
         ]
       }
+      kevin_v2_files: {
+        Row: {
+          connection_id: string
+          content_type: string
+          created_at: string
+          direction: string
+          file_name: string
+          id: string
+          object_path: string
+          sha256: string
+          size_bytes: number
+          source_app_id: string
+          status: string
+          target_app_id: string
+          transfer_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          connection_id: string
+          content_type: string
+          created_at?: string
+          direction: string
+          file_name: string
+          id?: string
+          object_path: string
+          sha256: string
+          size_bytes: number
+          source_app_id: string
+          status?: string
+          target_app_id: string
+          transfer_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          connection_id?: string
+          content_type?: string
+          created_at?: string
+          direction?: string
+          file_name?: string
+          id?: string
+          object_path?: string
+          sha256?: string
+          size_bytes?: number
+          source_app_id?: string
+          status?: string
+          target_app_id?: string
+          transfer_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kevin_v2_files_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "kevin_v2_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kevin_v2_inbox: {
         Row: {
           applied_at: string | null
@@ -1040,34 +1099,40 @@ export type Database = {
       kevin_v2_outbox: {
         Row: {
           category: string
+          checksum: string | null
           created_at: string
           entity_version: number
           event_id: string
           id: string
           occurred_at: string
           operation: string
+          payload: Json
           source_app_id: string
           source_record_id: string
         }
         Insert: {
           category: string
+          checksum?: string | null
           created_at?: string
           entity_version?: never
           event_id?: string
           id?: string
           occurred_at?: string
           operation: string
+          payload?: Json
           source_app_id: string
           source_record_id: string
         }
         Update: {
           category?: string
+          checksum?: string | null
           created_at?: string
           entity_version?: never
           event_id?: string
           id?: string
           occurred_at?: string
           operation?: string
+          payload?: Json
           source_app_id?: string
           source_record_id?: string
         }
