@@ -745,7 +745,7 @@ export async function pollCentralKevinV2Commands() {
   if (!centralOrigin) throw new Error("KEVIN_CENTRAL_ORIGIN não configurada.");
   const central = new URL(normalizeKevinOrigin(centralOrigin));
   const { data: rows, error } = await v2Db.from("kevin_v2_connections")
-    .select("id,remote_connection_id,remote_app_id,remote_name,remote_origin,scopes,encrypted_shared_secret,status")
+    .select("id,remote_connection_id,local_app_id,remote_app_id,remote_name,remote_origin,scopes,encrypted_shared_secret,status")
     .eq("status", "connected").eq("remote_origin", central.origin).limit(2);
   if (error) throw error;
   if (!rows || rows.length !== 1) throw new Error("É necessário exatamente um pareamento ativo com a Central Kevin.");
