@@ -34,14 +34,18 @@ import { Route as AuthenticatedEntregadorGrupoSlugRouteImport } from './routes/_
 import { Route as AuthenticatedEntregadorPedidoIdRouteImport } from './routes/_authenticated/entregador.pedido.$id'
 import { Route as AuthenticatedPedidosIdAvaliarRouteImport } from './routes/_authenticated/pedidos.$id.avaliar'
 import { Route as AuthenticatedPedidosIdDisputaRouteImport } from './routes/_authenticated/pedidos.$id.disputa'
+import { Route as ApiKevinV2FilePushRouteImport } from './routes/api/kevin/v2/file-push'
+import { Route as ApiKevinV2FileRetryRouteImport } from './routes/api/kevin/v2/file-retry'
 import { Route as ApiPublicKevinExportRouteImport } from './routes/api/public/kevin/export'
 import { Route as ApiPublicKevinHandshakeRouteImport } from './routes/api/public/kevin/handshake'
 import { Route as ApiPublicKevinLearnRouteImport } from './routes/api/public/kevin/learn'
 import { Route as ApiPublicKevinManifestRouteImport } from './routes/api/public/kevin/manifest'
 import { Route as ApiPublicKevinReceiveRouteImport } from './routes/api/public/kevin/receive'
+import { Route as ApiKevinV2CommandsPollRouteImport } from './routes/api/kevin/v2/commands/poll'
 import { Route as ApiPublicKevinV2AckRouteImport } from './routes/api/public/kevin/v2/ack'
 import { Route as ApiPublicKevinV2ConfirmRouteImport } from './routes/api/public/kevin/v2/confirm'
 import { Route as ApiPublicKevinV2EventsRouteImport } from './routes/api/public/kevin/v2/events'
+import { Route as ApiPublicKevinV2FilesRouteImport } from './routes/api/public/kevin/v2/files'
 import { Route as ApiPublicKevinV2HandshakeRouteImport } from './routes/api/public/kevin/v2/handshake'
 import { Route as ApiPublicKevinV2ManifestRouteImport } from './routes/api/public/kevin/v2/manifest'
 
@@ -181,6 +185,16 @@ const AuthenticatedPedidosIdDisputaRoute =
     path: '/disputa',
     getParentRoute: () => AuthenticatedPedidosIdRoute,
   } as any)
+const ApiKevinV2FilePushRoute = ApiKevinV2FilePushRouteImport.update({
+  id: '/api/kevin/v2/file-push',
+  path: '/api/kevin/v2/file-push',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKevinV2FileRetryRoute = ApiKevinV2FileRetryRouteImport.update({
+  id: '/api/kevin/v2/file-retry',
+  path: '/api/kevin/v2/file-retry',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicKevinExportRoute = ApiPublicKevinExportRouteImport.update({
   id: '/api/public/kevin/export',
   path: '/api/public/kevin/export',
@@ -206,6 +220,11 @@ const ApiPublicKevinReceiveRoute = ApiPublicKevinReceiveRouteImport.update({
   path: '/api/public/kevin/receive',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiKevinV2CommandsPollRoute = ApiKevinV2CommandsPollRouteImport.update({
+  id: '/api/kevin/v2/commands/poll',
+  path: '/api/kevin/v2/commands/poll',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicKevinV2AckRoute = ApiPublicKevinV2AckRouteImport.update({
   id: '/api/public/kevin/v2/ack',
   path: '/api/public/kevin/v2/ack',
@@ -219,6 +238,11 @@ const ApiPublicKevinV2ConfirmRoute = ApiPublicKevinV2ConfirmRouteImport.update({
 const ApiPublicKevinV2EventsRoute = ApiPublicKevinV2EventsRouteImport.update({
   id: '/api/public/kevin/v2/events',
   path: '/api/public/kevin/v2/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicKevinV2FilesRoute = ApiPublicKevinV2FilesRouteImport.update({
+  id: '/api/public/kevin/v2/files',
+  path: '/api/public/kevin/v2/files',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicKevinV2HandshakeRoute =
@@ -259,14 +283,18 @@ export interface FileRoutesByFullPath {
   '/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
+  '/api/kevin/v2/file-push': typeof ApiKevinV2FilePushRoute
+  '/api/kevin/v2/file-retry': typeof ApiKevinV2FileRetryRoute
   '/api/public/kevin/export': typeof ApiPublicKevinExportRoute
   '/api/public/kevin/handshake': typeof ApiPublicKevinHandshakeRoute
   '/api/public/kevin/learn': typeof ApiPublicKevinLearnRoute
   '/api/public/kevin/manifest': typeof ApiPublicKevinManifestRoute
   '/api/public/kevin/receive': typeof ApiPublicKevinReceiveRoute
+  '/api/kevin/v2/commands/poll': typeof ApiKevinV2CommandsPollRoute
   '/api/public/kevin/v2/ack': typeof ApiPublicKevinV2AckRoute
   '/api/public/kevin/v2/confirm': typeof ApiPublicKevinV2ConfirmRoute
   '/api/public/kevin/v2/events': typeof ApiPublicKevinV2EventsRoute
+  '/api/public/kevin/v2/files': typeof ApiPublicKevinV2FilesRoute
   '/api/public/kevin/v2/handshake': typeof ApiPublicKevinV2HandshakeRoute
   '/api/public/kevin/v2/manifest': typeof ApiPublicKevinV2ManifestRoute
 }
@@ -294,14 +322,18 @@ export interface FileRoutesByTo {
   '/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
   '/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
+  '/api/kevin/v2/file-push': typeof ApiKevinV2FilePushRoute
+  '/api/kevin/v2/file-retry': typeof ApiKevinV2FileRetryRoute
   '/api/public/kevin/export': typeof ApiPublicKevinExportRoute
   '/api/public/kevin/handshake': typeof ApiPublicKevinHandshakeRoute
   '/api/public/kevin/learn': typeof ApiPublicKevinLearnRoute
   '/api/public/kevin/manifest': typeof ApiPublicKevinManifestRoute
   '/api/public/kevin/receive': typeof ApiPublicKevinReceiveRoute
+  '/api/kevin/v2/commands/poll': typeof ApiKevinV2CommandsPollRoute
   '/api/public/kevin/v2/ack': typeof ApiPublicKevinV2AckRoute
   '/api/public/kevin/v2/confirm': typeof ApiPublicKevinV2ConfirmRoute
   '/api/public/kevin/v2/events': typeof ApiPublicKevinV2EventsRoute
+  '/api/public/kevin/v2/files': typeof ApiPublicKevinV2FilesRoute
   '/api/public/kevin/v2/handshake': typeof ApiPublicKevinV2HandshakeRoute
   '/api/public/kevin/v2/manifest': typeof ApiPublicKevinV2ManifestRoute
 }
@@ -332,14 +364,18 @@ export interface FileRoutesById {
   '/_authenticated/entregador/pedido/$id': typeof AuthenticatedEntregadorPedidoIdRoute
   '/_authenticated/pedidos/$id/avaliar': typeof AuthenticatedPedidosIdAvaliarRoute
   '/_authenticated/pedidos/$id/disputa': typeof AuthenticatedPedidosIdDisputaRoute
+  '/api/kevin/v2/file-push': typeof ApiKevinV2FilePushRoute
+  '/api/kevin/v2/file-retry': typeof ApiKevinV2FileRetryRoute
   '/api/public/kevin/export': typeof ApiPublicKevinExportRoute
   '/api/public/kevin/handshake': typeof ApiPublicKevinHandshakeRoute
   '/api/public/kevin/learn': typeof ApiPublicKevinLearnRoute
   '/api/public/kevin/manifest': typeof ApiPublicKevinManifestRoute
   '/api/public/kevin/receive': typeof ApiPublicKevinReceiveRoute
+  '/api/kevin/v2/commands/poll': typeof ApiKevinV2CommandsPollRoute
   '/api/public/kevin/v2/ack': typeof ApiPublicKevinV2AckRoute
   '/api/public/kevin/v2/confirm': typeof ApiPublicKevinV2ConfirmRoute
   '/api/public/kevin/v2/events': typeof ApiPublicKevinV2EventsRoute
+  '/api/public/kevin/v2/files': typeof ApiPublicKevinV2FilesRoute
   '/api/public/kevin/v2/handshake': typeof ApiPublicKevinV2HandshakeRoute
   '/api/public/kevin/v2/manifest': typeof ApiPublicKevinV2ManifestRoute
 }
@@ -370,14 +406,18 @@ export interface FileRouteTypes {
     | '/entregador/pedido/$id'
     | '/pedidos/$id/avaliar'
     | '/pedidos/$id/disputa'
+    | '/api/kevin/v2/file-push'
+    | '/api/kevin/v2/file-retry'
     | '/api/public/kevin/export'
     | '/api/public/kevin/handshake'
     | '/api/public/kevin/learn'
     | '/api/public/kevin/manifest'
     | '/api/public/kevin/receive'
+    | '/api/kevin/v2/commands/poll'
     | '/api/public/kevin/v2/ack'
     | '/api/public/kevin/v2/confirm'
     | '/api/public/kevin/v2/events'
+    | '/api/public/kevin/v2/files'
     | '/api/public/kevin/v2/handshake'
     | '/api/public/kevin/v2/manifest'
   fileRoutesByTo: FileRoutesByTo
@@ -405,14 +445,18 @@ export interface FileRouteTypes {
     | '/entregador/pedido/$id'
     | '/pedidos/$id/avaliar'
     | '/pedidos/$id/disputa'
+    | '/api/kevin/v2/file-push'
+    | '/api/kevin/v2/file-retry'
     | '/api/public/kevin/export'
     | '/api/public/kevin/handshake'
     | '/api/public/kevin/learn'
     | '/api/public/kevin/manifest'
     | '/api/public/kevin/receive'
+    | '/api/kevin/v2/commands/poll'
     | '/api/public/kevin/v2/ack'
     | '/api/public/kevin/v2/confirm'
     | '/api/public/kevin/v2/events'
+    | '/api/public/kevin/v2/files'
     | '/api/public/kevin/v2/handshake'
     | '/api/public/kevin/v2/manifest'
   id:
@@ -442,14 +486,18 @@ export interface FileRouteTypes {
     | '/_authenticated/entregador/pedido/$id'
     | '/_authenticated/pedidos/$id/avaliar'
     | '/_authenticated/pedidos/$id/disputa'
+    | '/api/kevin/v2/file-push'
+    | '/api/kevin/v2/file-retry'
     | '/api/public/kevin/export'
     | '/api/public/kevin/handshake'
     | '/api/public/kevin/learn'
     | '/api/public/kevin/manifest'
     | '/api/public/kevin/receive'
+    | '/api/kevin/v2/commands/poll'
     | '/api/public/kevin/v2/ack'
     | '/api/public/kevin/v2/confirm'
     | '/api/public/kevin/v2/events'
+    | '/api/public/kevin/v2/files'
     | '/api/public/kevin/v2/handshake'
     | '/api/public/kevin/v2/manifest'
   fileRoutesById: FileRoutesById
@@ -460,14 +508,18 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   TermosRoute: typeof TermosRoute
+  ApiKevinV2FilePushRoute: typeof ApiKevinV2FilePushRoute
+  ApiKevinV2FileRetryRoute: typeof ApiKevinV2FileRetryRoute
   ApiPublicKevinExportRoute: typeof ApiPublicKevinExportRoute
   ApiPublicKevinHandshakeRoute: typeof ApiPublicKevinHandshakeRoute
   ApiPublicKevinLearnRoute: typeof ApiPublicKevinLearnRoute
   ApiPublicKevinManifestRoute: typeof ApiPublicKevinManifestRoute
   ApiPublicKevinReceiveRoute: typeof ApiPublicKevinReceiveRoute
+  ApiKevinV2CommandsPollRoute: typeof ApiKevinV2CommandsPollRoute
   ApiPublicKevinV2AckRoute: typeof ApiPublicKevinV2AckRoute
   ApiPublicKevinV2ConfirmRoute: typeof ApiPublicKevinV2ConfirmRoute
   ApiPublicKevinV2EventsRoute: typeof ApiPublicKevinV2EventsRoute
+  ApiPublicKevinV2FilesRoute: typeof ApiPublicKevinV2FilesRoute
   ApiPublicKevinV2HandshakeRoute: typeof ApiPublicKevinV2HandshakeRoute
   ApiPublicKevinV2ManifestRoute: typeof ApiPublicKevinV2ManifestRoute
 }
@@ -649,6 +701,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPedidosIdDisputaRouteImport
       parentRoute: typeof AuthenticatedPedidosIdRoute
     }
+    '/api/kevin/v2/file-push': {
+      id: '/api/kevin/v2/file-push'
+      path: '/api/kevin/v2/file-push'
+      fullPath: '/api/kevin/v2/file-push'
+      preLoaderRoute: typeof ApiKevinV2FilePushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/kevin/v2/file-retry': {
+      id: '/api/kevin/v2/file-retry'
+      path: '/api/kevin/v2/file-retry'
+      fullPath: '/api/kevin/v2/file-retry'
+      preLoaderRoute: typeof ApiKevinV2FileRetryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/kevin/export': {
       id: '/api/public/kevin/export'
       path: '/api/public/kevin/export'
@@ -684,6 +750,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicKevinReceiveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/kevin/v2/commands/poll': {
+      id: '/api/kevin/v2/commands/poll'
+      path: '/api/kevin/v2/commands/poll'
+      fullPath: '/api/kevin/v2/commands/poll'
+      preLoaderRoute: typeof ApiKevinV2CommandsPollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/kevin/v2/ack': {
       id: '/api/public/kevin/v2/ack'
       path: '/api/public/kevin/v2/ack'
@@ -703,6 +776,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/kevin/v2/events'
       fullPath: '/api/public/kevin/v2/events'
       preLoaderRoute: typeof ApiPublicKevinV2EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kevin/v2/files': {
+      id: '/api/public/kevin/v2/files'
+      path: '/api/public/kevin/v2/files'
+      fullPath: '/api/public/kevin/v2/files'
+      preLoaderRoute: typeof ApiPublicKevinV2FilesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/kevin/v2/handshake': {
@@ -815,14 +895,18 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   TermosRoute: TermosRoute,
+  ApiKevinV2FilePushRoute: ApiKevinV2FilePushRoute,
+  ApiKevinV2FileRetryRoute: ApiKevinV2FileRetryRoute,
   ApiPublicKevinExportRoute: ApiPublicKevinExportRoute,
   ApiPublicKevinHandshakeRoute: ApiPublicKevinHandshakeRoute,
   ApiPublicKevinLearnRoute: ApiPublicKevinLearnRoute,
   ApiPublicKevinManifestRoute: ApiPublicKevinManifestRoute,
   ApiPublicKevinReceiveRoute: ApiPublicKevinReceiveRoute,
+  ApiKevinV2CommandsPollRoute: ApiKevinV2CommandsPollRoute,
   ApiPublicKevinV2AckRoute: ApiPublicKevinV2AckRoute,
   ApiPublicKevinV2ConfirmRoute: ApiPublicKevinV2ConfirmRoute,
   ApiPublicKevinV2EventsRoute: ApiPublicKevinV2EventsRoute,
+  ApiPublicKevinV2FilesRoute: ApiPublicKevinV2FilesRoute,
   ApiPublicKevinV2HandshakeRoute: ApiPublicKevinV2HandshakeRoute,
   ApiPublicKevinV2ManifestRoute: ApiPublicKevinV2ManifestRoute,
 }
