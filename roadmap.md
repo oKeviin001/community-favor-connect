@@ -1,5 +1,16 @@
 # Roadmap
 
+## Sistema Kevin — conclusão solicitada
+- [ ] Corrigir erros de compilação das rotas V2
+- [ ] Exibir identidade, conexões e dependências reais no Modo Deus
+- [ ] Conectar controles administrativos de diagnóstico, consulta de comandos e arquivos ao V2 existente
+- [ ] Testar contrato criptográfico e acesso real ao painel
+- [ ] Ativar armazenamento privado de arquivos e reconciliar migrations pendentes
+- [ ] Verificar código e banco reais da Central (bloqueado: projeto inacessível nesta conta)
+- [ ] Coordenar assinatura com ID de conexão nos dois aplicativos
+- [ ] Implementar comandos administrativos idempotentes e snapshots versionados após verificar a Central
+- [ ] Validar comunicação bilateral e publicação autorizada
+
 ## Correção de segurança — controle de notificações (somente código)
 - [ ] Reconciliar as propostas conflitantes em uma migration canônica Drizzle, sem aplicá-la
 - [ ] Preservar leitura autenticada e restringir escrita a administradores reais

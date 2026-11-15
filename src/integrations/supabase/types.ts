@@ -929,51 +929,51 @@ export type Database = {
       }
       kevin_v2_files: {
         Row: {
-          id: string
-          transfer_id: string
           connection_id: string
-          source_app_id: string
-          target_app_id: string
-          object_path: string
-          file_name: string
           content_type: string
-          size_bytes: number
-          sha256: string
-          direction: string
-          status: string
           created_at: string
+          direction: string
+          file_name: string
+          id: string
+          object_path: string
+          sha256: string
+          size_bytes: number
+          source_app_id: string
+          status: string
+          target_app_id: string
+          transfer_id: string
           verified_at: string | null
         }
         Insert: {
-          id?: string
-          transfer_id: string
           connection_id: string
-          source_app_id: string
-          target_app_id: string
-          object_path: string
-          file_name: string
           content_type: string
-          size_bytes: number
-          sha256: string
-          direction: string
-          status?: string
           created_at?: string
+          direction: string
+          file_name: string
+          id?: string
+          object_path: string
+          sha256: string
+          size_bytes: number
+          source_app_id: string
+          status?: string
+          target_app_id: string
+          transfer_id: string
           verified_at?: string | null
         }
         Update: {
-          id?: string
-          transfer_id?: string
           connection_id?: string
-          source_app_id?: string
-          target_app_id?: string
-          object_path?: string
-          file_name?: string
           content_type?: string
-          size_bytes?: number
-          sha256?: string
-          direction?: string
-          status?: string
           created_at?: string
+          direction?: string
+          file_name?: string
+          id?: string
+          object_path?: string
+          sha256?: string
+          size_bytes?: number
+          source_app_id?: string
+          status?: string
+          target_app_id?: string
+          transfer_id?: string
           verified_at?: string | null
         }
         Relationships: [
@@ -1100,39 +1100,39 @@ export type Database = {
         Row: {
           category: string
           checksum: string | null
-          payload: Json
           created_at: string
           entity_version: number
           event_id: string
           id: string
           occurred_at: string
           operation: string
+          payload: Json
           source_app_id: string
           source_record_id: string
         }
         Insert: {
           category: string
           checksum?: string | null
-          payload?: Json
           created_at?: string
           entity_version?: never
           event_id?: string
           id?: string
           occurred_at?: string
           operation: string
+          payload?: Json
           source_app_id: string
           source_record_id: string
         }
         Update: {
           category?: string
           checksum?: string | null
-          payload?: Json
           created_at?: string
           entity_version?: never
           event_id?: string
           id?: string
           occurred_at?: string
           operation?: string
+          payload?: Json
           source_app_id?: string
           source_record_id?: string
         }
