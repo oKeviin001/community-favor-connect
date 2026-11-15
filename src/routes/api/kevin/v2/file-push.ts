@@ -10,7 +10,6 @@ function authorized(request: Request) {
   return mismatch === 0;
 }
 
-// @ts-expect-error The generated TanStack route tree is refreshed during build.
 export const Route = createFileRoute("/api/kevin/v2/file-push")({
   server: { handlers: {
     POST: async ({ request }) => {
