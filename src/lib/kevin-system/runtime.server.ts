@@ -801,7 +801,7 @@ export async function pollCentralKevinV2Commands() {
         if (!isRecord(raw.payload) || typeof raw.payload.target_id !== "string") {
           throw new Error("Payload de orders.patch inválido.");
         }
-        const patch: Record<string, unknown> = {};
+        const patch: { endereco_entrega?: string; observacoes?: string; atualizado_em?: string } = {};
         if (typeof raw.payload.address === "string" && raw.payload.address.trim()) {
           patch.endereco_entrega = raw.payload.address.trim().slice(0, 1000);
         }
