@@ -827,17 +827,12 @@ export async function pollCentralKevinV2Commands() {
         }
         const orderId = raw.payload.target_id;
         const reason = raw.payload.reason.trim().slice(0, 1000);
-        const { data, error } = await v2Db.from("orders").update({
-          status: "cancelado", atualizado_em: new Date().toISOString(),
-        }).eq("id", orderId).neq("status", "cancelado").select("id").maybeSingle();
-        if (error) throw error;
-        if (!data) throw new Error("Pedido não encontrado ou já cancelado.");
-        const { error: eventError } = await v2Db.from("order_events").insert({
-          order_id: orderId, status: "cancelado", nota: "Cancelamento administrativo: " + reason,
+        const { data, error } = await v2Db.rpc("kevin_v2_admin_cancel_order", {
+          p_order_id: orderId, p_reason: reason,
         });
-        if (eventError) throw eventError;
+        if (error) throw error;
         status = "succeeded";
-        result = { orderId, status: "cancelado", reason };
+        result = isRecord(data) ? data : { orderId, status: "cancelado", reason };
       } else if (raw.command_type === "courier.notify") {
         if (!isRecord(raw.payload) || typeof raw.payload.target_id !== "string" ||
             typeof raw.payload.message !== "string" || !raw.payload.message.trim() ||
