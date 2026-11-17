@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/public/kevin/v2/manifest")({
         return Response.json({
           protocol: KEVIN_PROTOCOL, identity,
           capabilities: { receiveEvents: true, sendEvents: true, signedRequests: true, acknowledgements: true, transferFiles: true, pullChanges: false, adminCommands: true },
-          supportedCommands: ["system.ping"],
+          supportedCommands: ["system.ping", "orders.patch", "orders.cancel", "courier.notify"],
           scopes: KEVIN_CATEGORIES,
         }, { headers: { "cache-control": "no-store" } });
       } catch {
