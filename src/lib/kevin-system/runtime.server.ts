@@ -463,7 +463,7 @@ export async function sendKevinV2SettingsPing() {
   if (!rows || rows.length !== 1) throw new Error("É necessário exatamente um pareamento ativo com a Central Kevin.");
   const connection = rows[0] as unknown as Connection;
   if (!connection.remote_connection_id) throw new Error("A conexão local não possui o ID correspondente da Central. É necessária a atualização de compatibilidade.");
-  if (!connection.scopes.includes("settings")) throw new Error("A conexão não possui o escopo settings.");
+  if (!connection.scopes.some((scope) => ["settings", "orders", "couriers"].includes(scope))) throw new Error("A conexão não possui escopo para comandos administrativos.");
   const identity = await getKevinV2Identity();
   // Stable diagnostic identity makes retries idempotent at the Central inbox.
   // This is the exact, explicitly approved test payload; it contains no business data.
@@ -786,16 +786,80 @@ export async function pollCentralKevinV2Commands() {
     if (!isRecord(raw) || typeof raw.id !== "string" || !/^[0-9a-f-]{36}$/i.test(raw.id)) continue;
     let status: "succeeded" | "failed" | "rejected" = "rejected";
     let result: Record<string, unknown> = { error: "Comando não suportado por esta versão." };
-    if (raw.command_type === "system.ping") {
-      status = "succeeded";
-      result = {
-        appId: identity.app_id,
-        appSlug: identity.app_slug,
-        appName: identity.app_name,
-        appVersion: identity.app_version,
-        protocol: KEVIN_PROTOCOL,
-        checkedAt: new Date().toISOString(),
-      };
+    try {
+      if (raw.command_type === "system.ping") {
+        status = "succeeded";
+        result = {
+          appId: identity.app_id,
+          appSlug: identity.app_slug,
+          appName: identity.app_name,
+          appVersion: identity.app_version,
+          protocol: KEVIN_PROTOCOL,
+          checkedAt: new Date().toISOString(),
+        };
+      } else if (raw.command_type === "orders.patch") {
+        if (!isRecord(raw.payload) || typeof raw.payload.target_id !== "string") {
+          throw new Error("Payload de orders.patch inválido.");
+        }
+        const patch: { endereco_entrega?: string; observacoes?: string; atualizado_em?: string } = {};
+        if (typeof raw.payload.address === "string" && raw.payload.address.trim()) {
+          patch.endereco_entrega = raw.payload.address.trim().slice(0, 1000);
+        }
+        if (typeof raw.payload.observation === "string" && raw.payload.observation.trim()) {
+          patch.observacoes = raw.payload.observation.trim().slice(0, 1000);
+        }
+        if (!Object.keys(patch).length || Object.keys(raw.payload).some((key) =>
+          !["target_id", "address", "observation"].includes(key))) {
+          throw new Error("orders.patch aceita somente address e observation nesta versão.");
+        }
+        patch.atualizado_em = new Date().toISOString();
+        const { data, error } = await v2Db.from("orders").update(patch)
+          .eq("id", raw.payload.target_id).select("id").maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error("Pedido não encontrado.");
+        status = "succeeded";
+        result = { orderId: data.id, updatedFields: Object.keys(patch).filter((key) => key !== "atualizado_em") };
+      } else if (raw.command_type === "orders.cancel") {
+        if (!isRecord(raw.payload) || typeof raw.payload.target_id !== "string" ||
+            typeof raw.payload.reason !== "string" || !raw.payload.reason.trim() ||
+            Object.keys(raw.payload).some((key) => !["target_id", "reason"].includes(key))) {
+          throw new Error("Payload de orders.cancel inválido; justificativa obrigatória.");
+        }
+        const orderId = raw.payload.target_id;
+        const reason = raw.payload.reason.trim().slice(0, 1000);
+        const { data, error } = await v2Db.rpc("kevin_v2_admin_cancel_order", {
+          p_order_id: orderId, p_reason: reason,
+        });
+        if (error) throw error;
+        status = "succeeded";
+        result = isRecord(data) ? data : { orderId, status: "cancelado", reason };
+      } else if (raw.command_type === "courier.notify") {
+        if (!isRecord(raw.payload) || typeof raw.payload.target_id !== "string" ||
+            typeof raw.payload.message !== "string" || !raw.payload.message.trim() ||
+            Object.keys(raw.payload).some((key) => !["target_id", "message"].includes(key))) {
+          throw new Error("Payload de courier.notify inválido.");
+        }
+        const { data: order, error: orderError } = await v2Db.from("orders")
+          .select("id,entregador_id").eq("id", raw.payload.target_id).maybeSingle();
+        if (orderError) throw orderError;
+        if (!order?.entregador_id) throw new Error("Pedido não encontrado ou sem entregador atribuído.");
+        const { data: notification, error: notificationError } = await v2Db.from("notifications").insert({
+          user_id: order.entregador_id,
+          tipo: "sistema",
+          titulo: "Aviso da Central Kevin",
+          mensagem: raw.payload.message.trim().slice(0, 2000),
+          dados: { order_id: order.id, source: "central-kevin" },
+        }).select("id").single();
+        if (notificationError) throw notificationError;
+        status = "succeeded";
+        result = { orderId: order.id, courierId: order.entregador_id, notificationId: notification.id, channel: "in_app" };
+      } else {
+        status = "rejected";
+        result = { error: "Comando não suportado por esta versão." };
+      }
+    } catch (error) {
+      status = "failed";
+      result = { error: error instanceof Error ? error.message.slice(0, 500) : "Falha ao executar comando." };
     }
     const ackBody = { commandId: raw.id, status, result };
     const ackPath = "/api/public/kevin/v2/commands/ack";

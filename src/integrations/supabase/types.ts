@@ -2034,6 +2034,10 @@ export type Database = {
       }
       is_active_provider: { Args: { _uid: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      kevin_v2_admin_cancel_order: {
+        Args: { p_order_id: string; p_reason: string }
+        Returns: Json
+      }
       kevin_v2_apply_storage: {
         Args: {
           p_category: string
