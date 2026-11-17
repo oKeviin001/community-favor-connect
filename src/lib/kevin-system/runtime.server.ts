@@ -463,7 +463,7 @@ export async function sendKevinV2SettingsPing() {
   if (!rows || rows.length !== 1) throw new Error("É necessário exatamente um pareamento ativo com a Central Kevin.");
   const connection = rows[0] as unknown as Connection;
   if (!connection.remote_connection_id) throw new Error("A conexão local não possui o ID correspondente da Central. É necessária a atualização de compatibilidade.");
-  if (!connection.scopes.includes("settings")) throw new Error("A conexão não possui o escopo settings.");
+  if (!connection.scopes.some((scope) => ["settings", "orders", "couriers"].includes(scope))) throw new Error("A conexão não possui escopo para comandos administrativos.");
   const identity = await getKevinV2Identity();
   // Stable diagnostic identity makes retries idempotent at the Central inbox.
   // This is the exact, explicitly approved test payload; it contains no business data.
